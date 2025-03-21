@@ -1,0 +1,23 @@
+<h2>Detalle del Equipo</h2>
+<p><strong>Marca:</strong> {{ equipo.marca }}</p>
+<p><strong>Modelo:</strong> {{ equipo.modelo }}</p>
+<p><strong>Estado:</strong> {{ equipo.estado }}</p>
+<p><strong>Ubicación:</strong> {{ equipo.ubicacion }}</p>
+
+<h3>Historial de Alquiler</h3>
+<table>
+    <tr>
+        <th>Cliente</th>
+        <th>Inicio</th>
+        <th>Fin</th>
+        <th>Estado</th>
+    </tr>
+    {% for alquiler in historial %}
+    <tr>
+        <td>{{ alquiler.cliente.nombre }}</td>
+        <td>{{ alquiler.fecha_inicio }}</td>
+        <td>{{ alquiler.fecha_fin }}</td>
+        <td>{{ alquiler.estado_alquiler }}</td>
+    </tr>
+    {% endfor %}
+</table>

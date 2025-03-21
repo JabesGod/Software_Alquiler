@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Equipos más alquilados</title>
+    <link rel="stylesheet" href="{% static 'alquiler/css/estadisticas.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'js/grafico_equipos.js' %}" defer></script>
+
+</head>
+
+<body>
+
+    <div class="contenedor">
+        <h2>📊 Equipos más alquilados</h2>
+        <a href="{% url 'listar_equipos' %}">← Volver a la lista</a>
+
+        <!-- Debug temporal -->
+        <p>Equipos cargados: {{ labels }}</p>
+        <p>Datos de alquileres: {{ datos }}</p>
+
+        <canvas id="grafico" width="800" height="400" data-labels='{{ labels|safe }}' data-datos='{{ datos|safe }}'>
+        </canvas>
+    </div>
+
+</body>
+
+</html>

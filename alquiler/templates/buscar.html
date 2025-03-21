@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Búsqueda de Equipos</title>
+    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
+</head>
+
+<body>
+    <h2>🔍 Búsqueda de Equipos</h2>
+
+    <form method="get">
+        <input type="text" name="q" placeholder="Buscar equipos..." value="{{ query }}">
+        <select name="estado">
+            <option value="">Todos los estados</option>
+            <option value="disponible">Disponible</option>
+            <option value="alquilado">Alquilado</option>
+            <option value="reservado">Reservado</option>
+        </select>
+        <button type="submit">Buscar</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Número Serie</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for equipo in equipos %}
+            <tr class="{{ equipo.estado }}">
+                <td>{{ equipo.marca }}</td>
+                <td>{{ equipo.modelo }}</td>
+                <td>{{ equipo.numero_serie }}</td>
+                <td>{{ equipo.get_estado_display }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">No se encontraron equipos.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Administrativo</title>
+    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
+</head>
+
+<body>
+    <h2>📊 Dashboard Administrativo</h2>
+
+    <ul>
+        <li>Total de equipos registrados: <strong>{{ total_equipos }}</strong></li>
+        <li>Total de equipos alquilados: <strong>{{ total_alquilados }}</strong></li>
+        <li>Pagos pendientes: <strong>{{ pagos_pendientes }}</strong></li>
+        <li>Clientes verificados: <strong>{{ clientes_verificados }}</strong></li>
+    </ul>
+</body>
+</html>

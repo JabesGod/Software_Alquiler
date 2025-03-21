@@ -50,7 +50,7 @@ class Alquiler(models.Model):
     ]
 
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
-    equipo = models.ForeignKey(Equipo, on_delete=models.CASCADE)
+    equipo = models.ForeignKey(Equipo, on_delete=models.CASCADE, related_name="alquileres")    
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
     precio_total = models.DecimalField(max_digits=10, decimal_places=2)
@@ -61,6 +61,7 @@ class Alquiler(models.Model):
 
     def __str__(self):
         return f"Alquiler de {self.equipo} a {self.cliente}"
+
 
 
 class Pago(models.Model):

@@ -1,36 +1,66 @@
-<h2>Listado de Equipos</h2>
-<a href="{% url 'crear_equipo' %}">+ Agregar nuevo equipo</a>
-<table>
-    <tr>
-        <th>ID</th>
-        <th>Marca</th>
-        <th>Modelo</th>
-        <th>Numero de Serie</th>
-        <th>Especificaciones</th>
-        <th>Estado</th>
-        <th>Acciones</th>
-    </tr>
-    {% for equipo in equipos %}
-    <tr>
-        <td>{{ equipo.id }}</td>
-        <td>{{ equipo.marca }}</td>
-        <td>{{ equipo.modelo }}</td>
-        <td>{{ equipo.numero_serie}}</td>
-        <td>{{ equipo.especificaciones}}</td>
-        <td>{{ equipo.estado }}</td>
-        <td>
-            <a href="{% url 'detalle_equipo' equipo.id %}">Ver</a> |
-            <a href="{% url 'editar_equipo' equipo.id %}">Editar</a> |
-            {% if equipo.estado != 'disponible' %}
-                <a href="{% url 'cambiar_estado_equipo' equipo.id 'disponible' %}">Marcar Disponible</a>
-            {% endif %}
-            {% if equipo.estado != 'alquilado' %}
-                <a href="{% url 'cambiar_estado_equipo' equipo.id 'alquilado' %}">Marcar Alquilado</a>
-            {% endif %}
-            {% if equipo.estado != 'reservado' %}
-                <a href="{% url 'cambiar_estado_equipo' equipo.id 'reservado' %}">Marcar Reservado</a>
-            {% endif %}
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Listado de Equipos</title>
+    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
+</head>
+<body>
+
+    <h2>Listado de Equipos</h2>
+
+    <p>
+        <a href="{% url 'crear_equipo' %}">+ Agregar nuevo equipo</a> |
+        <a href="{% url 'listar_equipos' %}">Ver todos</a> |
+        <a href="{% url 'equipos_por_estado' 'disponible' %}">Disponibles</a> |
+        <a href="{% url 'equipos_por_estado' 'alquilado' %}">Alquilados</a> |
+        <a href="{% url 'equipos_por_estado' 'reservado' %}">Reservados</a> |
+        <a href="{% url 'equipos_mas_alquilados' %}">📊 Equipos más alquilados</a>
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Número de Serie</th>
+                <th>Especificaciones</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for equipo in equipos %}
+            <tr class="{{ equipo.estado }}">
+                <td>{{ equipo.id }}</td>
+                <td>{{ equipo.marca }}</td>
+                <td>{{ equipo.modelo }}</td>
+                <td>{{ equipo.numero_serie }}</td>
+                <td>{{ equipo.especificaciones }}</td>
+                <td>{{ equipo.estado }}</td>
+                <td>
+                    <a href="{% url 'detalle_equipo' equipo.id %}">Ver</a> |
+                    <a href="{% url 'editar_equipo' equipo.id %}">Editar</a>
+                    {% if equipo.estado != 'disponible' %}
+                        | <a href="{% url 'cambiar_estado_equipo' equipo.id 'disponible' %}">Marcar Disponible</a>
+                    {% endif %}
+                    {% if equipo.estado != 'alquilado' %}
+                        | <a href="{% url 'cambiar_estado_equipo' equipo.id 'alquilado' %}">Marcar Alquilado</a>
+                    {% endif %}
+                    {% if equipo.estado != 'reservado' %}
+                        | <a href="{% url 'cambiar_estado_equipo' equipo.id 'reservado' %}">Marcar Reservado</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7">No hay equipos registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

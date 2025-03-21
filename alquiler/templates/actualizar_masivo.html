@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Actualizar Estado de Equipos Masivamente</title>
+    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
+</head>
+
+<body>
+    <h2>🔄 Actualizar Estados Masivamente</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Seleccionar</th>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Estado Actual</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for equipo in equipos %}
+                <tr>
+                    <td><input type="checkbox" name="ids_equipos" value="{{ equipo.id }}"></td>
+                    <td>{{ equipo.marca }}</td>
+                    <td>{{ equipo.modelo }}</td>
+                    <td>{{ equipo.get_estado_display }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No hay equipos.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <select name="nuevo_estado" required>
+            <option value="disponible">Disponible</option>
+            <option value="alquilado">Alquilado</option>
+            <option value="reservado">Reservado</option>
+        </select>
+        <button type="submit">Actualizar Estado</button>
+    </form>
+
+</body>
+</html>

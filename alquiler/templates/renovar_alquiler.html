@@ -1,0 +1,20 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Renovar Alquiler</title>
+    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
+</head>
+<body>
+<h2>🔄 Renovar Alquiler {{ alquiler.id }}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <label>Nueva Fecha Fin:</label>
+    <input type="date" name="nueva_fecha_fin" required>
+    <button type="submit">Renovar Alquiler</button>
+</form>
+
+<a href="{% url 'listar_alquileres' %}">⬅️ Volver al listado</a>
+</body>
+</html>

@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Listado de Clientes</title>
+    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
+</head>
+<body>
+<h2>👥 Listado de Clientes</h2>
+<a href="{% url 'crear_cliente' %}">➕ Registrar Cliente</a>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Estado Verificación</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for cliente in clientes %}
+        <tr>
+            <td>{{ cliente.id }}</td>
+            <td>{{ cliente.nombre }}</td>
+            <td>{{ cliente.email }}</td>
+            <td>{{ cliente.telefono }}</td>
+            <td>{{ cliente.get_estado_verificacion_display }}</td>
+            <td>
+                <a href="{% url 'detalle_cliente' cliente.id %}">Detalle</a> |
+                <a href="{% url 'editar_cliente' cliente.id %}">Editar</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No hay clientes registrados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>

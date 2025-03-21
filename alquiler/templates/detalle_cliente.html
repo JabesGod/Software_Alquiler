@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Detalle Cliente</title>
+    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
+</head>
+<body>
+<h2>👤 Detalle de {{ cliente.nombre }}</h2>
+
+<p><strong>Email:</strong> {{ cliente.email }}</p>
+<p><strong>Teléfono:</strong> {{ cliente.telefono }}</p>
+<p><strong>Dirección:</strong> {{ cliente.direccion }}</p>
+<p><strong>Estado Verificación:</strong> {{ cliente.get_estado_verificacion_display }}</p>
+
+<p>
+    <a href="{% url 'cambiar_estado_verificacion' cliente.id 'verificado' %}">✅ Verificar</a> |
+    <a href="{% url 'bloquear_cliente' cliente.id %}">🚫 Bloquear</a> |
+    <a href="{% url 'validar_documentos_cliente' cliente.id %}">📁 Validar Documentos</a>
+</p>
+
+<h3>Historial de Alquileres:</h3>
+<ul>
+    {% for alquiler in historial_alquileres %}
+    <li>{{ alquiler.equipo }} ({{ alquiler.fecha_inicio }} - {{ alquiler.fecha_fin }}) - Estado: {{ alquiler.get_estado_alquiler_display }}</li>
+    {% empty %}
+    <li>No tiene alquileres registrados.</li>
+    {% endfor %}
+</ul>
+
+<h3>Pagos Pendientes:</h3>
+<ul>
+    {% for pago in pagos_pendientes %}
+    <li>
+        {{ pago.alquiler.equipo }} - ${{ pago.monto }} ({{ pago.fecha_pago }}) |
+        <a href="{% url 'registrar_pago_parcial' pago.alquiler.id %}">💳 Registrar Pago Parcial</a>
+    </li>
+    {% empty %}
+    <li>No tiene pagos pendientes.</li>
+    {% endfor %}
+</ul>
+
+<a href="{% url 'listar_clientes' %}">⬅️ Volver a la lista de clientes</a>
+</body>
+</html>

@@ -105,9 +105,7 @@ def dashboard_admin(request):
     })
 
 
-def calendario_alquileres(request):
-    alquileres = Alquiler.objects.filter(estado_alquiler='activo').order_by('fecha_inicio')
-    return render(request, 'calendario.html', {'alquileres': alquileres})
+
 
 
 def actualizar_estados_masivo(request):

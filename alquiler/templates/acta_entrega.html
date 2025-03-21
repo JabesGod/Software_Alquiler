@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Acta de Entrega</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+    </style>
+</head>
+<body>
+    <h2>📄 Acta de Entrega - Alquiler #{{ alquiler.id }}</h2>
+    <p><strong>Cliente:</strong> {{ alquiler.cliente.nombre }}</p>
+    <p><strong>Equipo:</strong> {{ alquiler.equipo.marca }} - {{ alquiler.equipo.modelo }}</p>
+    <p><strong>Fecha de Inicio:</strong> {{ alquiler.fecha_inicio }}</p>
+    <p><strong>Fecha de Fin:</strong> {{ alquiler.fecha_fin }}</p>
+    <br><br>
+    <p>_____________________________</p>
+    <p>Firma del Cliente</p>
+</body>
+</html>

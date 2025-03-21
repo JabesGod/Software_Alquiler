@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>{% if cliente %}Editar{% else %}Crear{% endif %} Cliente</title>
+    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
+</head>
+<body>
+<h2>{% if cliente %}Editar{% else %}Crear{% endif %} Cliente</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Guardar</button>
+</form>
+
+<a href="{% url 'listar_clientes' %}">⬅️ Volver a la lista</a>
+</body>
+</html>

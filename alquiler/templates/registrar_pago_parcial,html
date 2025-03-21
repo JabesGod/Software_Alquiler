@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Registrar Pago Parcial</title>
+    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
+</head>
+<body>
+<h2>💰 Registrar Pago Parcial ({{ alquiler.equipo }})</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Registrar</button>
+</form>
+
+<a href="{% url 'detalle_cliente' alquiler.cliente.id %}">⬅️ Volver al cliente</a>
+</body>
+</html>

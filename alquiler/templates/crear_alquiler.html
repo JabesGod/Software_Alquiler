@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Crear Alquiler</title>
+    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
+</head>
+<body>
+<h2>📥 Crear Nuevo Alquiler</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Guardar Alquiler</button>
+</form>
+
+<a href="{% url 'listar_alquileres' %}">⬅️ Volver al listado</a>
+</body>
+</html>

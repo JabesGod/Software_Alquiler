@@ -1,3 +1,8 @@
 from django.contrib import admin
+from .models import Cliente, Equipo, Alquiler, Pago, Contrato
 
-# Register your models here.
+admin.site.register(Cliente)
+admin.site.register(Equipo)
+admin.site.register(Alquiler)
+admin.site.register(Pago)
+admin.site.register(Contrato)

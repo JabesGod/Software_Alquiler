@@ -1,27 +1,25 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <title>Calendario Alquileres</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css">
+    <!-- Correct CDN paths for FullCalendar 6.1.10 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css">
     <link rel="stylesheet" href="{% static 'css/calendario.css' %}">
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/es.js"></script>
-    <script src="{% static 'js/calendario.js' %}" defer></script>
 </head>
+
 <body>
     <h2>📅 Calendario de Alquileres</h2>
+    <div id="calendar" data-eventos='{{ eventos_json|safe }}'></div>
 
-    <div id="calendar"
-        data-eventos='[
-            {% for alquiler in alquileres %}
-                {
-                    "title": "{{ alquiler.equipo }} - {{ alquiler.cliente }}",
-                    "start": "{{ alquiler.fecha_inicio|date:'Y-m-d' }}",
-                    "end": "{{ alquiler.fecha_fin|date:'Y-m-d' }}"
-                }{% if not forloop.last %},{% endif %}
-            {% endfor %}
-        ]'>
-    </div>
+    <!-- Load FullCalendar with the correct CDN URL -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <!-- Spanish locale -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/es.global.min.js"></script>
+
+    <!-- Load your JS -->
+    <script src="{% static 'js/calendario.js' %}" defer></script>
 </body>
+
 </html>

@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Detalle del Alquiler</title>
+    <link rel="stylesheet" href="{% static 'css/calendario.css' %}">
+</head>
+<body>
+    <h2>📋 Detalle del Alquiler</h2>
+
+    <p><strong>Cliente:</strong> {{ alquiler.cliente.nombre }}</p>
+    <p><strong>Equipo:</strong> {{ alquiler.equipo.marca }} {{ alquiler.equipo.modelo }}</p>
+    <p><strong>Periodo:</strong> {{ alquiler.fecha_inicio }} - {{ alquiler.fecha_fin }}</p>
+    <p><strong>Precio Total:</strong> ${{ alquiler.precio_total }}</p>
+    <p><strong>Estado:</strong> {{ alquiler.get_estado_alquiler_display }}</p>
+
+    <a href="{% url 'calendario_alquileres' %}">⬅️ Regresar al calendario</a>
+</body>
+</html>

@@ -8,6 +8,8 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 import pdfkit
 from django.core.mail import send_mail
+import json
+from django.core.serializers.json import DjangoJSONEncoder
 
 # Listar alquileres
 def listar_alquileres(request):
@@ -68,7 +70,7 @@ def subir_documentos_alquiler(request, id):
 
 def generar_acta_entrega(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
-    html = render_to_string('alquileres/acta_entrega.html', {'alquiler': alquiler})
+    html = render_to_string('acta_entrega.html', {'alquiler': alquiler})
     pdf = pdfkit.from_string(html, False)
 
     response = HttpResponse(pdf, content_type='application/pdf')
@@ -100,6 +102,23 @@ def alertas_devoluciones_proximas():
             fail_silently=False,
         )
 
+
+def detalle_alquiler(request, id):
+    alquiler = get_object_or_404(Alquiler, id=id)
+    return render(request, 'detalle_alquiler.html', {'alquiler': alquiler})
+
 def calendario_alquileres(request):
     alquileres = Alquiler.objects.filter(estado_alquiler='activo')
-    return render(request, 'calendario.html', {'alquileres': alquileres})
+    
+    eventos = [
+        {
+            "title": f"{alquiler.equipo.marca} {alquiler.equipo.modelo} - {alquiler.cliente.nombre}",
+            "start": alquiler.fecha_inicio.strftime("%Y-%m-%d"),
+            "end": alquiler.fecha_fin.strftime("%Y-%m-%d"),
+            "color": "#28a745" if alquiler.estado_alquiler == "activo" else "#dc3545",
+            "url": f"/alquileres/{alquiler.id}/detalle/"
+        }
+        for alquiler in alquileres
+    ]
+
+    return render(request, "calendario.html", {"eventos_json": json.dumps(eventos)})

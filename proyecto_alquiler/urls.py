@@ -15,7 +15,8 @@ from alquiler.views.cliente_views import (
 )
 from alquiler.views.alquiler_views import (
    listar_alquileres,crear_alquiler,finalizar_alquiler, renovar_alquiler,
-   subir_documentos_alquiler, generar_acta_entrega, aprobar_alquiler,calendario_alquileres
+   subir_documentos_alquiler, generar_acta_entrega, aprobar_alquiler,calendario_alquileres,
+   detalle_alquiler
 
 )
 urlpatterns = [
@@ -56,6 +57,8 @@ urlpatterns = [
     path('alquileres/<int:id>/acta-entrega/', generar_acta_entrega, name='generar_acta_entrega'),
     path('alquileres/<int:id>/aprobar/', aprobar_alquiler, name='aprobar_alquiler'),
     path('alquileres/calendario/', calendario_alquileres, name='calendario_alquileres'),
+    path('alquileres/<int:id>/detalle/', detalle_alquiler, name='detalle_alquiler'),
+
 ]
 
 # Manejo personalizado de errores

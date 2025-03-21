@@ -91,6 +91,6 @@ def registrar_pago_parcial(request, id_alquiler):
     else:
         form = PagoForm()
 
-    return render(request, 'clientes/registrar_pago_parcial.html', {
+    return render(request, 'registrar_pago_parcial.html', {
         'form': form, 'alquiler': alquiler
     })

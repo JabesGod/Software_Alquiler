@@ -5,6 +5,9 @@ from django.db.models import Count
 import csv
 from django.http import HttpResponse
 from django.db import models
+from django.http import JsonResponse
+
+
 
 def listar_equipos(request):
     equipos = Equipo.objects.all()
@@ -130,4 +133,46 @@ def exportar_equipos_csv(request):
 def error_404_view(request, exception):
     return render(request, '404.html', status=404)
 
+
+def historial_equipo(request, id):
+    equipo = get_object_or_404(Equipo, id=id)
+    historial = equipo.historial_alquileres()
+    return render(request, 'historial_equipo.html', {
+        'equipo': equipo,
+        'historial': historial
+    })
+
+def proxima_disponibilidad(request, id):
+    equipo = get_object_or_404(Equipo, id=id)
+    fecha_disponible = equipo.proxima_fecha_disponible()
+    return render(request, 'proxima_disponibilidad.html', {
+        'equipo': equipo,
+        'fecha_disponible': fecha_disponible
+    })
+
+def exportar_equipos_json(request):
+    equipos = Equipo.objects.all()
+    data = [equipo.exportar_informacion() for equipo in equipos]
+    return JsonResponse({'equipos': data}, safe=False)
+
+def equipos_similares(request, id):
+    equipo = get_object_or_404(Equipo, id=id)
+    similares = equipo.equipos_similares()
+    return render(request, 'equipos_similares.html', {
+        'equipo': equipo,
+        'similares': similares
+    })
+
+def dashboard_equipo(request, id):
+    equipo = get_object_or_404(Equipo, id=id)
+    datos = {
+        'total_alquileres': equipo.total_alquileres(),
+        'duracion_promedio_dias': equipo.duracion_promedio_alquiler(),
+        'estado_actual': equipo.estado,
+        'fecha_proxima_disponibilidad': equipo.proxima_fecha_disponible(),
+    }
+    return render(request, 'dashboard_equipo.html', {
+        'equipo': equipo,
+        'datos': datos
+    })
 

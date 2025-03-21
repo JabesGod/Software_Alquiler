@@ -16,7 +16,10 @@
         <a href="{% url 'equipos_por_estado' 'disponible' %}">Disponibles</a> |
         <a href="{% url 'equipos_por_estado' 'alquilado' %}">Alquilados</a> |
         <a href="{% url 'equipos_por_estado' 'reservado' %}">Reservados</a> |
-        <a href="{% url 'equipos_mas_alquilados' %}">📊 Equipos más alquilados</a>
+        <a href="{% url 'equipos_mas_alquilados' %}">📊 Equipos más alquilados</a> |
+        <a href="{% url 'actualizar_estados_masivo' %}">🔄 Actualización Masiva</a> |
+        <a href="{% url 'exportar_equipos_csv' %}">📥 Exportar CSV</a> |
+        <a href="{% url 'dashboard_admin' %}">📈 Dashboard Admin</a>
     </p>
 
     <table>
@@ -39,10 +42,13 @@
                 <td>{{ equipo.modelo }}</td>
                 <td>{{ equipo.numero_serie }}</td>
                 <td>{{ equipo.especificaciones }}</td>
-                <td>{{ equipo.estado }}</td>
+                <td>{{ equipo.estado|capfirst }}</td>
                 <td>
                     <a href="{% url 'detalle_equipo' equipo.id %}">Ver</a> |
-                    <a href="{% url 'editar_equipo' equipo.id %}">Editar</a>
+                    <a href="{% url 'editar_equipo' equipo.id %}">Editar</a> |
+                    <a href="{% url 'historial_equipo' equipo.id %}">Historial</a> |
+                    <a href="{% url 'dashboard_equipo' equipo.id %}">Dashboard</a> |
+                    <a href="{% url 'equipos_similares' equipo.id %}">Similares</a>
                     {% if equipo.estado != 'disponible' %}
                         | <a href="{% url 'cambiar_estado_equipo' equipo.id 'disponible' %}">Marcar Disponible</a>
                     {% endif %}

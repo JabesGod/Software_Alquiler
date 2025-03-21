@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Equipos Similares</title>
+    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
+</head>
+<body>
+    <h2>🔄 Equipos Similares a: {{ equipo.marca }} {{ equipo.modelo }}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Número Serie</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for similar in similares %}
+            <tr>
+                <td>{{ similar.marca }}</td>
+                <td>{{ similar.modelo }}</td>
+                <td>{{ similar.numero_serie }}</td>
+                <td>{{ similar.get_estado_display }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">No se encontraron equipos similares.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'listar_equipos' %}">⬅️ Volver a Equipos</a>
+</body>
+</html>

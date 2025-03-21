@@ -1,0 +1,17 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Próxima Disponibilidad</title>
+    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
+</head>
+<body>
+    <h2>📅 Próxima Disponibilidad del Equipo</h2>
+    <p><strong>Equipo:</strong> {{ equipo.marca }} {{ equipo.modelo }}</p>
+    <p><strong>Número de Serie:</strong> {{ equipo.numero_serie }}</p>
+    <p><strong>Estado Actual:</strong> {{ equipo.get_estado_display }}</p>
+    <p><strong>Próxima Fecha Disponible:</strong> {{ fecha_disponible }}</p>
+    <a href="{% url 'listar_equipos' %}">⬅️ Volver a Equipos</a>
+</body>
+</html>

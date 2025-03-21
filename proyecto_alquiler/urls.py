@@ -4,7 +4,8 @@ from alquiler.views.equipo_views import (
     equipos_disponibles, cambiar_estado_equipo, equipos_por_estado,
     equipos_mas_alquilados, buscar_equipos, dashboard_admin,
     calendario_alquileres, actualizar_estados_masivo, exportar_equipos_csv,
-    historial_equipo, proxima_disponibilidad, equipos_similares, dashboard_equipo
+    historial_equipo, proxima_disponibilidad, equipos_similares, dashboard_equipo,
+    ejecutar_alertas_vencimiento
 )
 
 urlpatterns = [
@@ -26,6 +27,8 @@ urlpatterns = [
     path('equipos/<int:id>/proxima-disponibilidad/', proxima_disponibilidad, name='proxima_disponibilidad'),
     path('equipos/<int:id>/similares/', equipos_similares, name='equipos_similares'),
     path('equipos/<int:id>/dashboard/', dashboard_equipo, name='dashboard_equipo'),
+    path('ejecutar-alertas/', ejecutar_alertas_vencimiento, name='ejecutar_alertas_vencimiento'),
+
 ]
 
 # Manejo personalizado de errores

@@ -109,16 +109,23 @@ def detalle_alquiler(request, id):
 
 def calendario_alquileres(request):
     alquileres = Alquiler.objects.filter(estado_alquiler='activo')
-    
-    eventos = [
-        {
-            "title": f"{alquiler.equipo.marca} {alquiler.equipo.modelo} - {alquiler.cliente.nombre}",
+
+    eventos = []
+    for alquiler in alquileres:
+        # Evento de inicio
+        eventos.append({
+            "title": f"{alquiler.equipo.marca} {alquiler.equipo.modelo} {alquiler.cliente.nombre} - INICIO",
             "start": alquiler.fecha_inicio.strftime("%Y-%m-%d"),
-            "end": alquiler.fecha_fin.strftime("%Y-%m-%d"),
-            "color": "#28a745" if alquiler.estado_alquiler == "activo" else "#dc3545",
+            "color": "#28a745",  # Verde
             "url": f"/alquileres/{alquiler.id}/detalle/"
-        }
-        for alquiler in alquileres
-    ]
+        })
+
+        # Evento de fin
+        eventos.append({
+            "title": f"{alquiler.equipo.marca} {alquiler.equipo.modelo} {alquiler.cliente.nombre} - FIN",
+            "start": alquiler.fecha_fin.strftime("%Y-%m-%d"),
+            "color": "#dc3545",  # Rojo
+            "url": f"/alquileres/{alquiler.id}/detalle/"
+        })
 
     return render(request, "calendario.html", {"eventos_json": json.dumps(eventos)})

@@ -1,0 +1,75 @@
+/* Estilos base del calendario */
+#calendar {
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 20px;
+    background-color: #f8f9fa; /* Fondo claro */
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* Cabecera del calendario */
+.fc-toolbar-title {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #343a40;
+}
+
+/* Botones */
+.fc-button {
+    background-color: #007bff;
+    border: none;
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.fc-button:hover {
+    background-color: #0056b3;
+}
+
+.fc-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Estilos para los eventos */
+.fc-event {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    margin: 1px;
+    line-height: 1.2;
+    color: white;
+    text-align: center;
+}
+
+/* Día de hoy */
+.fc-day-today {
+    background-color: #e6f7ff !important;
+}
+
+
+.fc-event:hover {
+    transform: scale(1.03);
+    background-color: #138496;
+}
+
+/* Vista semanal/diaria */
+.fc-timegrid-slot-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.fc-scrollgrid {
+    border-color: #dee2e6;
+}
+
+/* Bordes de las celdas */
+.fc .fc-daygrid-day-frame {
+    border-color: #dee2e6;
+}
+

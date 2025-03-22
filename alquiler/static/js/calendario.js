@@ -41,3 +41,4 @@ document.addEventListener('DOMContentLoaded', function () {
     calendar.render();
     console.log("✅ Calendario renderizado exitosamente.");
 });
+

@@ -1,10 +1,12 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <title>Detalle del Alquiler</title>
     <link rel="stylesheet" href="{% static 'css/calendario.css' %}">
 </head>
+
 <body>
     <h2>📋 Detalle del Alquiler</h2>
 
@@ -14,6 +16,28 @@
     <p><strong>Precio Total:</strong> ${{ alquiler.precio_total }}</p>
     <p><strong>Estado:</strong> {{ alquiler.get_estado_alquiler_display }}</p>
 
+    <hr>
+
+    <h3>📄 Contrato</h3>
+    {% if alquiler.contrato %}
+    <p><strong>Fecha de contratación:</strong> {{ alquiler.contrato.fecha_contratacion }}</p>
+
+    {% if alquiler.contrato.fecha_firma %}
+    <p><strong>Contrato firmado el:</strong> {{ alquiler.contrato.fecha_firma|date:"j \\d\\e F \\d\\e Y" }}</p>
+    {% else %}
+    <p><strong>Contrato firmado:</strong> No firmado aún</p>
+    <a href="{% url 'firmar_contrato' alquiler.id %}">🖋️ Firmar contrato</a>
+    {% endif %}
+
+    <p><a href="{{ alquiler.contrato.documento_contrato.url }}" target="_blank">📥 Ver contrato en PDF</a></p>
+
+    {% else %}
+    <a href="{% url 'crear_contrato' alquiler.id %}">📝 Generar contrato</a>
+    {% endif %}
+
+
+    <br><br>
     <a href="{% url 'calendario_alquileres' %}">⬅️ Regresar al calendario</a>
 </body>
+
 </html>

@@ -112,6 +112,7 @@ class Alquiler(models.Model):
         ('activo', 'Activo'),
         ('finalizado', 'Finalizado'),
         ('cancelado', 'Cancelado'),
+        ('reservado', 'Reservado'),
     ]
 
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
@@ -159,6 +160,7 @@ class Contrato(models.Model):
     fecha_contratacion = models.DateField(auto_now_add=True)
     terminos_contrato = models.TextField()
     fecha_firma = models.DateField(blank=True, null=True)
+    firma_cliente = models.ImageField(upload_to='firmas/', blank=True, null=True)
     documento_contrato = models.FileField(upload_to='contratos/')
 
     def __str__(self):

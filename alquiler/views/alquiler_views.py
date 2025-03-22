@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from ..models import Alquiler
-from ..forms import AlquilerForm, DocumentosAlquilerForm
+from ..forms import AlquilerForm, DocumentosAlquilerForm, FirmarContratoForm
 from django.utils import timezone
 from datetime import timedelta
 from django.http import HttpResponse
@@ -10,6 +10,12 @@ import pdfkit
 from django.core.mail import send_mail
 import json
 from django.core.serializers.json import DjangoJSONEncoder
+from ..models import Equipo, Contrato
+from xhtml2pdf import pisa
+from io import BytesIO
+from django.core.files.base import ContentFile
+from django.utils.timezone import now
+import base64
 
 # Listar alquileres
 def listar_alquileres(request):
@@ -68,14 +74,21 @@ def subir_documentos_alquiler(request, id):
     return render(request, 'subir_documentos.html', {'form': form, 'alquiler': alquiler})
 
 
+
 def generar_acta_entrega(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
     html = render_to_string('acta_entrega.html', {'alquiler': alquiler})
-    pdf = pdfkit.from_string(html, False)
 
-    response = HttpResponse(pdf, content_type='application/pdf')
+    response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="acta_entrega_{alquiler.id}.pdf"'
 
+    result = BytesIO()
+    pisa_status = pisa.CreatePDF(html, dest=result)
+
+    if pisa_status.err:
+        return HttpResponse("Error al generar el PDF", status=500)
+
+    response.write(result.getvalue())
     return response
 
 def aprobar_alquiler(request, id):
@@ -108,27 +121,158 @@ def detalle_alquiler(request, id):
     return render(request, 'detalle_alquiler.html', {'alquiler': alquiler})
 
 
+
 def calendario_alquileres(request):
     alquileres = Alquiler.objects.filter(estado_alquiler='activo')
-
     eventos = []
-    for alquiler in alquileres:
-        fecha_inicio = alquiler.fecha_inicio.strftime("%Y-%m-%d")
-        fecha_fin = alquiler.fecha_fin.strftime("%Y-%m-%d")
 
+    for alquiler in alquileres:
         eventos.append({
             "title": f"{alquiler.equipo.marca} {alquiler.equipo.modelo} - {alquiler.cliente.nombre} - INICIO",
-            "start": fecha_inicio,
+            "start": alquiler.fecha_inicio.strftime("%Y-%m-%d"),
             "color": "#28a745",
             "url": f"/alquileres/{alquiler.id}/detalle/"
         })
-
         eventos.append({
             "title": f"{alquiler.equipo.marca} {alquiler.equipo.modelo} - {alquiler.cliente.nombre} - FIN",
-            "start": fecha_fin,
+            "start": alquiler.fecha_fin.strftime("%Y-%m-%d"),
             "color": "#dc3545",
             "url": f"/alquileres/{alquiler.id}/detalle/"
         })
 
     eventos_json = json.dumps(eventos)
     return render(request, "calendario.html", {"eventos_json": eventos_json})
+
+def cancelar_alquiler(request, id):
+    alquiler = get_object_or_404(Alquiler, id=id)
+    if alquiler.estado_alquiler != 'cancelado':
+        alquiler.estado_alquiler = 'cancelado'
+        alquiler.equipo.estado = 'disponible'
+        alquiler.equipo.save()
+        alquiler.save()
+        messages.warning(request, "Alquiler cancelado.")
+    else:
+        messages.info(request, "Este alquiler ya estaba cancelado.")
+    return redirect('listar_alquileres')
+
+def reservar_alquiler(request):
+    if request.method == 'POST':
+        form = AlquilerForm(request.POST)
+        if form.is_valid():
+            alquiler = form.save(commit=False)
+            alquiler.estado_alquiler = 'reservado'
+            alquiler.equipo.estado = 'reservado'
+            alquiler.equipo.save()
+            alquiler.save()
+            messages.success(request, "Reserva realizada exitosamente.")
+            return redirect('listar_alquileres')
+    else:
+        form = AlquilerForm()
+    return render(request, 'reservar_alquiler.html', {'form': form})
+
+def generar_acta_devolucion(request, id):
+    alquiler = get_object_or_404(Alquiler, id=id)
+    html = render_to_string('acta_devolucion.html', {'alquiler': alquiler})
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="acta_devolucion_{alquiler.id}.pdf"'
+
+    result = BytesIO()
+    pisa_status = pisa.CreatePDF(html, dest=result)
+
+    if pisa_status.err:
+        return HttpResponse("Error al generar el PDF", status=500)
+
+    response.write(result.getvalue())
+    return response
+
+
+def crear_contrato(request, id):
+    alquiler = get_object_or_404(Alquiler, id=id)
+
+    # Evitar duplicados
+    if hasattr(alquiler, 'contrato'):
+        messages.warning(request, "Este alquiler ya tiene un contrato generado.")
+        return redirect('detalle_alquiler', id=alquiler.id)
+
+    terminos = f"""
+    Contrato de alquiler entre {alquiler.cliente.nombre} y la empresa.
+    Equipo: {alquiler.equipo.marca} {alquiler.equipo.modelo} (Serie: {alquiler.equipo.numero_serie})
+    Desde {alquiler.fecha_inicio} hasta {alquiler.fecha_fin}.
+    Precio total: ${alquiler.precio_total}.
+    """
+
+    html = render_to_string('contrato_pdf.html', {
+        'alquiler': alquiler,
+        'terminos': terminos,
+        'fecha': now().date()
+    })
+
+    result = BytesIO()
+    pisa_status = pisa.CreatePDF(html, dest=result)
+
+    if pisa_status.err:
+        return HttpResponse("Error al generar contrato PDF", status=500)
+
+    # Guardar PDF como archivo
+    pdf_content = ContentFile(result.getvalue())
+    nombre_archivo = f"contrato_alquiler_{alquiler.id}.pdf"
+
+    contrato = Contrato.objects.create(
+        alquiler=alquiler,
+        terminos_contrato=terminos,
+    )
+    contrato.documento_contrato.save(nombre_archivo, pdf_content)
+    contrato.save()
+
+    messages.success(request, "Contrato generado correctamente.")
+    return redirect('detalle_alquiler', id=alquiler.id)
+
+def firmar_contrato(request, id):
+    alquiler = get_object_or_404(Alquiler, id=id)
+    contrato = getattr(alquiler, 'contrato', None)
+
+    if not contrato:
+        messages.error(request, "Este alquiler no tiene contrato generado.")
+        return redirect('detalle_alquiler', id=alquiler.id)
+
+    if request.method == 'POST':
+        # Depuración - imprimir los datos recibidos
+        print("POST recibido:", request.POST)
+        print("FILES recibidos:", request.FILES)
+        
+        # Imagen subida
+        firma_file = request.FILES.get('firma_imagen')
+
+        # Firma desde canvas
+        firma_data = request.POST.get('firma_data')
+        
+        print("Firma data:", "Recibida" if firma_data else "No recibida")
+
+        if firma_file:
+            contrato.firma_cliente = firma_file
+            contrato.fecha_firma = timezone.now().date()
+            contrato.save()
+            messages.success(request, "Firma subida correctamente.")
+            return redirect('detalle_alquiler', id=alquiler.id)
+
+        elif firma_data and "base64" in firma_data:
+            try:
+                format, imgstr = firma_data.split(';base64,')
+                ext = format.split('/')[-1]
+                data = ContentFile(base64.b64decode(imgstr), name=f"firma_{alquiler.id}.{ext}")
+
+                contrato.firma_cliente = data
+                contrato.fecha_firma = timezone.now().date()
+                contrato.save()
+                messages.success(request, "Firma dibujada guardada correctamente.")
+                return redirect('detalle_alquiler', id=alquiler.id)
+            except Exception as e:
+                print("Error al procesar firma:", str(e))
+                messages.error(request, f"Error al procesar la firma: {str(e)}")
+                return redirect('firmar_contrato', id=alquiler.id)
+        else:
+            messages.error(request, "Por favor, dibuja o sube una firma.")
+            return redirect('firmar_contrato', id=alquiler.id)
+
+    return render(request, 'firmar_contrato.html', {'alquiler': alquiler})

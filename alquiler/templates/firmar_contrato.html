@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Firmar Contrato</title>
+    <link rel="stylesheet" href="{% static 'css/firma.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.5/dist/signature_pad.umd.min.js"></script>
+</head>
+<body>
+<h2>🖋️ Firmar Contrato - Alquiler #{{ alquiler.id }}</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <p><strong>Opción 1: Dibujar firma</strong></p>
+    <canvas id="signature-pad" width="400" height="200"></canvas>
+    <div id="botones-firma">
+        <button type="button" id="clear-signature">🧽 Borrar</button>
+        <input type="hidden" name="firma_data" id="firma_data">
+    </div>
+
+    <p><strong>Opción 2: Subir firma como imagen</strong></p>
+    <input type="file" name="firma_imagen" accept="image/*">
+
+    <br><br>
+    <button type="submit">Guardar Firma</button>
+</form>
+
+<a href="{% url 'detalle_alquiler' alquiler.id %}">⬅️ Volver al detalle</a>
+
+<script src="{% static 'js/firma.js' %}"></script>
+</body>
+</html>

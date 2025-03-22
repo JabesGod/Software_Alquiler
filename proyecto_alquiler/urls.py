@@ -1,4 +1,6 @@
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from alquiler.views.equipo_views import (
     listar_equipos, crear_equipo, editar_equipo, detalle_equipo,
     equipos_disponibles, cambiar_estado_equipo, equipos_por_estado,
@@ -16,7 +18,7 @@ from alquiler.views.cliente_views import (
 from alquiler.views.alquiler_views import (
    listar_alquileres,crear_alquiler,finalizar_alquiler, renovar_alquiler,
    subir_documentos_alquiler, generar_acta_entrega, aprobar_alquiler,calendario_alquileres,
-   detalle_alquiler
+   detalle_alquiler, cancelar_alquiler,reservar_alquiler,generar_acta_devolucion, crear_contrato, firmar_contrato
 
 )
 urlpatterns = [
@@ -58,8 +60,15 @@ urlpatterns = [
     path('alquileres/<int:id>/aprobar/', aprobar_alquiler, name='aprobar_alquiler'),
     path('alquileres/calendario/', calendario_alquileres, name='calendario_alquileres'),
     path('alquileres/<int:id>/detalle/', detalle_alquiler, name='detalle_alquiler'),
+    path('alquileres/<int:id>/cancelar/', cancelar_alquiler, name='cancelar_alquiler'),
+    path('alquileres/reservar/', reservar_alquiler, name='reservar_alquiler'),
+    path('alquileres/<int:id>/acta-devolucion/', generar_acta_devolucion, name='generar_acta_devolucion'),
+    path('alquileres/<int:id>/crear-contrato/', crear_contrato, name='crear_contrato'),
+    path('alquileres/<int:id>/firmar-contrato/', firmar_contrato, name='firmar_contrato'),
 
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Manejo personalizado de errores
 handler404 = 'alquiler.views.equipo_views.error_404_view'

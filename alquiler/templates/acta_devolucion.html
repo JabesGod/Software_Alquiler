@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Acta de Devolución</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h2 { text-align: center; }
+        .info { margin-top: 20px; }
+        .firma { margin-top: 60px; }
+    </style>
+</head>
+<body>
+    <h2>📄 Acta de Devolución de Equipo</h2>
+
+    <div class="info">
+        <p><strong>Cliente:</strong> {{ alquiler.cliente.nombre }}</p>
+        <p><strong>Equipo:</strong> {{ alquiler.equipo.marca }} {{ alquiler.equipo.modelo }} - Serie {{ alquiler.equipo.numero_serie }}</p>
+        <p><strong>Fecha de Devolución:</strong> {{ alquiler.fecha_fin }}</p>
+        <p><strong>Estado al devolver:</strong> _______________________________</p>
+        <p><strong>Observaciones:</strong> ____________________________________________</p>
+    </div>
+
+    <div class="firma">
+        <p>_________________________<br>Firma del Cliente</p>
+        <p>_________________________<br>Firma del Encargado</p>
+    </div>
+</body>
+</html>

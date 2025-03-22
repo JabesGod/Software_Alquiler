@@ -21,10 +21,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderCalendario(anio) {
         contenedor.innerHTML = '';
-        const meses = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-        ];
+        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
         for (let mes = 0; mes < 12; mes++) {
             const fecha = new Date(anio, mes, 1);
@@ -42,11 +40,13 @@ document.addEventListener('DOMContentLoaded', function () {
             const tabla = document.createElement('table');
             const cabecera = document.createElement('thead');
             const filaCabecera = document.createElement('tr');
+
             ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'].forEach(dia => {
                 const th = document.createElement('th');
                 th.textContent = dia;
                 filaCabecera.appendChild(th);
             });
+
             cabecera.appendChild(filaCabecera);
             tabla.appendChild(cabecera);
 

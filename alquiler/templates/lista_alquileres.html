@@ -8,6 +8,8 @@
 <body>
 <h2>📦 Listado de Alquileres</h2>
 <a href="{% url 'crear_alquiler' %}">➕ Crear Alquiler</a>
+<a href="{% url 'reservar_alquiler' %}">📆 Reservar Equipo</a> |
+
 
 <table>
     <thead>
@@ -36,6 +38,7 @@
                 {% if alquiler.estado_alquiler == 'activo' %}
                     <a href="{% url 'finalizar_alquiler' alquiler.id %}">🛑 Finalizar</a> |
                     <a href="{% url 'renovar_alquiler' alquiler.id %}">🔄 Renovar</a> |
+                    <a href="{% url 'cancelar_alquiler' alquiler.id %}">❌ Cancelar</a> |
                     <a href="{% url 'subir_documentos_alquiler' alquiler.id %}">📁 Subir Documentos</a> |
                     {% if not alquiler.aprobado_por %}
                         <a href="{% url 'aprobar_alquiler' alquiler.id %}">✅ Aprobar</a>
@@ -43,8 +46,13 @@
                         ✅ Aprobado
                     {% endif %}
                     | <a href="{% url 'generar_acta_entrega' alquiler.id %}">📄 Acta Entrega</a>
+                {% elif alquiler.estado_alquiler == 'finalizado' %}
+                    ✅ Finalizado
+                    <a href="{% url 'generar_acta_devolucion' alquiler.id %}">📄 Acta Devolución</a>
+                {% elif alquiler.estado_alquiler == 'cancelado' %}
+                    ❌ Cancelado
                 {% else %}
-                    Finalizado/Cancelado
+                    Estado desconocido
                 {% endif %}
             </td>
         </tr>

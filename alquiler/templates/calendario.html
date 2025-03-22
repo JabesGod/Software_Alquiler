@@ -1,25 +1,23 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <title>Calendario Alquileres</title>
-    <!-- Correct CDN paths for FullCalendar 6.1.10 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css">
+    <meta charset="UTF-8">
+    <title>Calendario Anual de Alquileres</title>
     <link rel="stylesheet" href="{% static 'css/calendario0.css' %}">
 </head>
-
 <body>
-    <h2>Calendario de Alquileres</h2>
-    <div id="calendar" data-eventos='{{ eventos_json|safe }}'></div>
+    <h2>📅 Calendario Anual de Alquileres</h2>
+    <div class="navegacion">
+        <button id="anioAnterior">◀</button>
+        <span id="anioActual">2025</span>
+        <button id="anioSiguiente">▶</button>
+    </div>
+    <div id="calendarioContainer"></div>
 
-    <!-- Load FullCalendar with the correct CDN URL -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-    <!-- Spanish locale -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/es.global.min.js"></script>
-
-    <!-- Load your JS -->
-    <script src="{% static 'js/calendario.js' %}" defer></script>
+    <script>
+        const eventos = {{ eventos_json|safe }};
+    </script>
+    <script src="{% static 'js/calendario.js' %}"></script>
 </body>
-
 </html>

@@ -107,25 +107,28 @@ def detalle_alquiler(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
     return render(request, 'detalle_alquiler.html', {'alquiler': alquiler})
 
+
 def calendario_alquileres(request):
     alquileres = Alquiler.objects.filter(estado_alquiler='activo')
 
     eventos = []
     for alquiler in alquileres:
-        # Evento de inicio
+        fecha_inicio = alquiler.fecha_inicio.strftime("%Y-%m-%d")
+        fecha_fin = alquiler.fecha_fin.strftime("%Y-%m-%d")
+
         eventos.append({
-            "title": f"{alquiler.equipo.marca} {alquiler.equipo.modelo} {alquiler.cliente.nombre} - INICIO",
-            "start": alquiler.fecha_inicio.strftime("%Y-%m-%d"),
-            "color": "#28a745",  # Verde
+            "title": f"{alquiler.equipo.marca} {alquiler.equipo.modelo} - {alquiler.cliente.nombre} - INICIO",
+            "start": fecha_inicio,
+            "color": "#28a745",
             "url": f"/alquileres/{alquiler.id}/detalle/"
         })
 
-        # Evento de fin
         eventos.append({
-            "title": f"{alquiler.equipo.marca} {alquiler.equipo.modelo} {alquiler.cliente.nombre} - FIN",
-            "start": alquiler.fecha_fin.strftime("%Y-%m-%d"),
-            "color": "#dc3545",  # Rojo
+            "title": f"{alquiler.equipo.marca} {alquiler.equipo.modelo} - {alquiler.cliente.nombre} - FIN",
+            "start": fecha_fin,
+            "color": "#dc3545",
             "url": f"/alquileres/{alquiler.id}/detalle/"
         })
 
-    return render(request, "calendario.html", {"eventos_json": json.dumps(eventos)})
+    eventos_json = json.dumps(eventos)
+    return render(request, "calendario.html", {"eventos_json": eventos_json})

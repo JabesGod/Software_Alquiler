@@ -190,7 +190,6 @@ def generar_acta_devolucion(request, id):
 def crear_contrato(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
 
-    # Evitar duplicados
     if hasattr(alquiler, 'contrato'):
         messages.warning(request, "Este alquiler ya tiene un contrato generado.")
         return redirect('detalle_alquiler', id=alquiler.id)
@@ -202,8 +201,16 @@ def crear_contrato(request, id):
     Precio total: ${alquiler.precio_total}.
     """
 
+    # 1. Crear contrato primero
+    contrato = Contrato.objects.create(
+        alquiler=alquiler,
+        terminos_contrato=terminos,
+    )
+
+    # 2. Renderizar HTML con contrato ya existente
     html = render_to_string('contrato_pdf.html', {
         'alquiler': alquiler,
+        'contrato': contrato,
         'terminos': terminos,
         'fecha': now().date()
     })
@@ -214,19 +221,15 @@ def crear_contrato(request, id):
     if pisa_status.err:
         return HttpResponse("Error al generar contrato PDF", status=500)
 
-    # Guardar PDF como archivo
+    # 3. Guardar PDF en el contrato ya creado
     pdf_content = ContentFile(result.getvalue())
     nombre_archivo = f"contrato_alquiler_{alquiler.id}.pdf"
-
-    contrato = Contrato.objects.create(
-        alquiler=alquiler,
-        terminos_contrato=terminos,
-    )
     contrato.documento_contrato.save(nombre_archivo, pdf_content)
     contrato.save()
 
     messages.success(request, "Contrato generado correctamente.")
     return redirect('detalle_alquiler', id=alquiler.id)
+
 
 def firmar_contrato(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)

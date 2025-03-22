@@ -1,36 +1,38 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Contrato de Alquiler</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 40px;
             font-size: 14px;
+            margin: 40px;
+        }
+        .firma {
+            margin-top: 50px;
         }
     </style>
 </head>
-
 <body>
     <h2 style="text-align: center;">Contrato de Alquiler</h2>
+
     <p><strong>Fecha:</strong> {{ fecha|date:"j \d\e F \d\e Y" }}</p>
     <p><strong>Cliente:</strong> {{ alquiler.cliente.nombre }}</p>
-    <p><strong>Equipo:</strong> {{ alquiler.equipo.marca }} {{ alquiler.equipo.modelo }} ({{
-        alquiler.equipo.numero_serie }})</p>
+    <p><strong>Equipo:</strong> {{ alquiler.equipo.marca }} {{ alquiler.equipo.modelo }} ({{ alquiler.equipo.numero_serie }})</p>
     <p><strong>Duración:</strong> {{ alquiler.fecha_inicio }} a {{ alquiler.fecha_fin }}</p>
     <p><strong>Precio Total:</strong> ${{ alquiler.precio_total }}</p>
+
     <p style="margin-top: 20px;"><strong>Términos del contrato:</strong></p>
     <p>{{ terminos }}</p>
 
-    {% if alquiler.contrato.firma_cliente %}
-    <p><strong>Firma del cliente:</strong></p>
-    <img src="{{ alquiler.contrato.firma_cliente.path }}" width="200" alt="Firma">
-    {% else %}
-    <p><strong>Firma pendiente</strong></p>
-    {% endif %}
-
+    <div class="firma">
+        <p><strong>Firma del cliente:</strong></p>
+        {% if contrato.firma_cliente %}
+            <img src="file://{{ contrato.firma_cliente.path }}" width="200" alt="Firma del Cliente">
+        {% else %}
+            <p><em>Firma pendiente</em></p>
+        {% endif %}
+    </div>
 </body>
-
 </html>

@@ -7,8 +7,10 @@
     <link rel="stylesheet" href="{% static 'css/calendario0.css' %}">
 </head>
 <body>
+    <a href="{% url 'enviar_alertas_vencimiento' %}">
     <h2>📅 Calendario Anual de Alquileres</h2>
-    <div class="navegacion">
+ 
+        <div class="navegacion">
         <button id="anioAnterior">◀</button>
         <span id="anioActual">2025</span>
         <button id="anioSiguiente">▶</button>

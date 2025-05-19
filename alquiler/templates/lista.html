@@ -1,72 +1,194 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Listado de Equipos</title>
-    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
-</head>
-<body>
 
-    <h2>Listado de Equipos</h2>
+{% block title %}Listado de Equipos{% endblock %}
 
-    <p>
-        <a href="{% url 'crear_equipo' %}">+ Agregar nuevo equipo</a> |
-        <a href="{% url 'listar_equipos' %}">Ver todos</a> |
-        <a href="{% url 'equipos_por_estado' 'disponible' %}">Disponibles</a> |
-        <a href="{% url 'equipos_por_estado' 'alquilado' %}">Alquilados</a> |
-        <a href="{% url 'equipos_por_estado' 'reservado' %}">Reservados</a> |
-        <a href="{% url 'equipos_mas_alquilados' %}">📊 Equipos más alquilados</a> |
-        <a href="{% url 'actualizar_estados_masivo' %}">🔄 Actualización Masiva</a> |
-        <a href="{% url 'exportar_equipos_csv' %}">📥 Exportar CSV</a> |
-        <a href="{% url 'dashboard_admin' %}">📈 Dashboard Admin</a>
-    </p>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/lista_equipos.css' %}">
+{% endblock %}
 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Marca</th>
-                <th>Modelo</th>
-                <th>Número de Serie</th>
-                <th>Especificaciones</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for equipo in equipos %}
-            <tr class="{{ equipo.estado }}">
-                <td>{{ equipo.id }}</td>
-                <td>{{ equipo.marca }}</td>
-                <td>{{ equipo.modelo }}</td>
-                <td>{{ equipo.numero_serie }}</td>
-                <td>{{ equipo.especificaciones }}</td>
-                <td>{{ equipo.estado|capfirst }}</td>
-                <td>
-                    <a href="{% url 'detalle_equipo' equipo.id %}">Ver</a> |
-                    <a href="{% url 'editar_equipo' equipo.id %}">Editar</a> |
-                    <a href="{% url 'historial_equipo' equipo.id %}">Historial</a> |
-                    <a href="{% url 'dashboard_equipo' equipo.id %}">Dashboard</a> |
-                    <a href="{% url 'equipos_similares' equipo.id %}">Similares</a>
-                    {% if equipo.estado != 'disponible' %}
-                        | <a href="{% url 'cambiar_estado_equipo' equipo.id 'disponible' %}">Marcar Disponible</a>
-                    {% endif %}
-                    {% if equipo.estado != 'alquilado' %}
-                        | <a href="{% url 'cambiar_estado_equipo' equipo.id 'alquilado' %}">Marcar Alquilado</a>
-                    {% endif %}
-                    {% if equipo.estado != 'reservado' %}
-                        | <a href="{% url 'cambiar_estado_equipo' equipo.id 'reservado' %}">Marcar Reservado</a>
-                    {% endif %}
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="7">No hay equipos registrados.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="fas fa-laptop-code me-2"></i>Listado de Equipos
+        </h1>
+        <a href="{% url 'crear_equipo' %}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i>Nuevo Equipo
+        </a>
+    </div>
 
-</body>
-</html>
+    <!-- Filtros rápidos -->
+    <div class="mb-4">
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'listar_equipos' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-list-ol me-1"></i>Todos
+            </a>
+            <a href="{% url 'equipos_por_estado' 'disponible' %}" class="btn btn-sm btn-outline-success">
+                <i class="fas fa-check-circle me-1"></i>Disponibles
+            </a>
+            <a href="{% url 'equipos_por_estado' 'alquilado' %}" class="btn btn-sm btn-outline-danger">
+                <i class="fas fa-handshake me-1"></i>Alquilados
+            </a>
+            <a href="{% url 'equipos_por_estado' 'reservado' %}" class="btn btn-sm btn-outline-warning">
+                <i class="fas fa-calendar-check me-1"></i>Reservados
+            </a>
+            <a href="{% url 'equipos_mas_alquilados' %}" class="btn btn-sm btn-outline-info">
+                <i class="fas fa-chart-line me-1"></i>Más Alquilados
+            </a>
+        </div>
+    </div>
+
+    <!-- Grid de cards -->
+    {% if equipos %}
+    <div class="equipos-grid">
+        {% for equipo in equipos %}
+        <div class="equipo-card">
+            <!-- Imagen del equipo con botón de vista rápida -->
+            <div class="equipo-imagen-container">
+                <img src="{{ equipo.obtener_foto_principal }}" class="equipo-imagen"
+                    alt="{{ equipo.marca }} {{ equipo.modelo }}"
+                    onerror="this.onerror=null; this.src='{% static 'img/default-equipo.png' %}'">
+                <button class="quick-view-btn" data-equipo-id="{{ equipo.id }}">
+                    <i class="fas fa-search"></i> Vista Rápida
+                </button>
+            </div>
+
+            <!-- Información del equipo -->
+            <div class="equipo-info">
+                <h3 class="equipo-titulo">{{ equipo.marca }} {{ equipo.modelo }}</h3>
+                <p class="equipo-codigo">Código: {{ equipo.numero_serie }}</p>
+
+                <div class="equipo-precio">$ {{ equipo.precio|default:"0"|floatformat:0 }}</div>
+
+                <div class="equipo-especificaciones">
+                    <i class="fas fa-info-circle"></i>
+                    <p>{{ equipo.especificaciones|truncatechars:100|default:"Sin especificaciones" }}</p>
+                </div>
+
+                <div class="equipo-estado">
+                    <span class="estado-badge {{ equipo.estado }}">
+                        <i class="fas fa-{{ equipo.estado_icono }} me-1"></i>
+                        {{ equipo.get_estado_display }}
+                    </span>
+                    <a href="{% url 'detalle_equipo' equipo.id %}" class="btn-action btn-detalle">
+                        <i class="fas fa-eye me-1"></i>Ver
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Vista Rápida (oculto inicialmente) -->
+        <div class="quick-view-modal" id="quickViewModal-{{ equipo.id }}">
+            <div class="quick-view-content">
+                <span class="close-quick-view">&times;</span>
+
+                <div class="quick-view-header">
+                    <h2>{{ equipo.marca }} {{ equipo.modelo }}</h2>
+                    <span class="estado-badge {{ equipo.estado }}">
+                        {{ equipo.get_estado_display }}
+                    </span>
+                </div>
+
+                <div class="quick-view-body">
+                    <div class="quick-view-img-container">
+                        <img src="{{ equipo.obtener_foto_principal }}" class="quick-view-img"
+                            alt="{{ equipo.marca }} {{ equipo.modelo }}"
+                            onerror="this.onerror=null; this.src='{% static 'img/default-equipo.png' %}'">
+                    </div>
+
+                    <div class="quick-view-details">
+                        <div class="quick-view-detail">
+                            <i class="fas fa-barcode"></i>
+                            <span>Número de serie: <strong>{{ equipo.numero_serie }}</strong></span>
+                        </div>
+
+                        <div class="quick-view-detail">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Ubicación: <strong>{{ equipo.ubicacion }}</strong></span>
+                        </div>
+
+                        <div class="quick-view-detail">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Registrado: <strong>{{ equipo.fecha_registro|date:"d/m/Y" }}</strong></span>
+                        </div>
+
+                        <div class="quick-view-detail">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Especificaciones: <strong>{{ equipo.especificaciones|truncatechars:200}}</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-view-footer">
+                    <a href="{% url 'detalle_equipo' equipo.id %}" class="btn-action btn-detalle">
+                        <i class="fas fa-eye me-1"></i> Ver detalle completo
+                    </a>
+                    <button class="btn-action btn-secondary close-quick-view-btn">
+                        <i class="fas fa-times me-1"></i> Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle fa-2x mb-3"></i>
+        <h4>No hay equipos registrados</h4>
+        <p>Parece que aún no has agregado ningún equipo al sistema.</p>
+        <a href="{% url 'crear_equipo' %}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i>Agregar primer equipo
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Paginación -->
+    {% if is_paginated %}
+    <nav aria-label="Paginación" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1" aria-label="Primera">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Anterior">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active" aria-current="page">
+                <span class="page-link">{{ num }}</span>
+            </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <li class="page-item">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Siguiente">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Última">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/lista_equipos.js' %}"></script>
+{% endblock %}

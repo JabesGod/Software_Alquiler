@@ -1,31 +1,81 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 Equipos más alquilados</title>
-    <link rel="stylesheet" href="{% static 'alquiler/css/estadisticas.css' %}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="{% static 'js/grafico_equipos.js' %}" defer></script>
+{% block title %} Equipos más alquilados{% endblock %}
 
-</head>
+{% block page_title %} Equipos más alquilados{% endblock %}
 
-<body>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'alquiler/css/estadisticas.css' %}">
+{% endblock %}
 
-    <div class="contenedor">
-        <h2>📊 Equipos más alquilados</h2>
-        <a href="{% url 'listar_equipos' %}">← Volver a la lista</a>
+{% block content %}
+<div class="contenedor">
+    <a href="{% url 'listar_equipos' %}" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Volver a la lista
+    </a>
 
-        <!-- Debug temporal -->
-        <p>Equipos cargados: {{ labels }}</p>
-        <p>Datos de alquileres: {{ datos }}</p>
-
-        <canvas id="grafico" width="800" height="400" data-labels='{{ labels|safe }}' data-datos='{{ datos|safe }}'>
+    <div class="grafico-container">
+        <!-- CORREGIDO: Los datos ya están en formato JSON -->
+        <canvas id="grafico" width="800" height="400" 
+                data-labels='{{ labels }}' 
+                data-datos='{{ datos }}'>
         </canvas>
     </div>
 
-</body>
+    {% if equipos %}
+    <h3>Detalles por equipo</h3>
+    <table class="tabla-detalles">
+        <thead>
+            <tr>
+                <th>Equipo</th>
+                <th>Total Alquileres</th>
+                <th>Clientes frecuentes</th>
+                <th>Último alquiler</th>
+                <th>Cliente último alquiler</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for equipo in equipos %}
+            <tr>
+                <td>{{ equipo.marca }} {{ equipo.modelo }}</td>
+                <td class="text-center">{{ equipo.total_alquileres }}</td>
+                <td>
+                    {% if equipo.clientes_frecuentes %}
+                        {% for cliente in equipo.clientes_frecuentes %}
+                            {{ cliente }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        Sin datos
+                    {% endif %}
+                </td>
+                <td>
+                    {% if equipo.ultimo_alquiler %}
+                        {{ equipo.ultimo_alquiler.fecha_inicio|date:"d/m/Y" }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {% if equipo.ultimo_alquiler %}
+                        {{ equipo.ultimo_alquiler.cliente.nombre }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info">
+        No hay suficientes datos de alquileres para mostrar estadísticas.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
 
-</html>
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/grafico_equipos.js' %}"></script>
+{% endblock %}

@@ -17,10 +17,11 @@
     </ul>
 
     <!-- Botón para ejecutar alertas -->
-    <form action="{% url 'ejecutar_alertas_vencimiento' %}" method="post">
+    <form action="{% url 'enviar_alertas_vencimiento' %}" method="post">
         {% csrf_token %}
         <button type="submit">⚠️ Enviar Alertas de Vencimiento Ahora</button>
     </form>
+    
 
     <!-- Mostrar mensaje de éxito -->
     {% if messages %}

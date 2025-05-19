@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ titulo }}</h2>
+    <hr>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Formulario principal -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Información Básica</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form.marca.label_tag }}
+                        {{ form.marca }}
+                        {{ form.marca.errors }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.modelo.label_tag }}
+                        {{ form.modelo }}
+                        {{ form.modelo.errors }}
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        {{ form.numero_serie.label_tag }}
+                        {{ form.numero_serie }}
+                        {{ form.numero_serie.errors }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.estado.label_tag }}
+                        {{ form.estado }}
+                        {{ form.estado.errors }}
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        {{ form.ubicacion.label_tag }}
+                        {{ form.ubicacion }}
+                        {{ form.ubicacion.errors }}
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        {{ form.especificaciones.label_tag }}
+                        {{ form.especificaciones }}
+                        {{ form.especificaciones.errors }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Descripción -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Descripción Detallada</h4>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    {{ form.descripcion_larga.label_tag }}
+                    {{ form.descripcion_larga }}
+                    {{ form.descripcion_larga.errors }}
+                </div>
+                <div class="form-check">
+                    {{ form.es_html }}
+                    <label class="form-check-label" for="{{ form.es_html.id_for_label }}">
+                        {{ form.es_html.label }}
+                    </label>
+                    <small class="form-text text-muted">{{ form.es_html.help_text }}</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Fotos -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Fotos del Equipo</h4>
+            </div>
+            <div class="card-body">
+                {% if formset %}
+                    <!-- Edición: Mostrar formset para fotos existentes -->
+                    <h5>Fotos existentes</h5>
+                    {{ formset.management_form }}
+                    <div class="row">
+                        {% for foto_form in formset %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    {% if foto_form.instance.foto %}
+                                        <img src="{{ foto_form.instance.foto.url }}" class="card-img-top" alt="Foto del equipo">
+                                    {% else %}
+                                        <div class="text-center py-5 bg-light">
+                                            <i class="fas fa-camera fa-3x text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="card-body">
+                                        {{ foto_form.id }}
+                                        <div class="mb-2">
+                                            <div class="form-check">
+                                                {{ foto_form.es_principal }}
+                                                <label class="form-check-label" for="{{ foto_form.es_principal.id_for_label }}">
+                                                    {{ foto_form.es_principal.label }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            {{ foto_form.descripcion.label_tag }}
+                                            {{ foto_form.descripcion }}
+                                        </div>
+                                        {% if foto_form.instance.pk %}
+                                            <div class="form-check">
+                                                {{ foto_form.DELETE }}
+                                                <label class="form-check-label text-danger" for="{{ foto_form.DELETE.id_for_label }}">
+                                                    {{ foto_form.DELETE.label }}
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <!-- Campo para subir nuevas fotos -->
+                <div class="mt-4">
+                    <h5>{% if formset %}Subir fotos adicionales{% else %}Subir fotos del equipo{% endif %}</h5>
+                    {{ form.fotos.label_tag }}
+                    {{ form.fotos }}
+                    <small class="form-text text-muted">{{ form.fotos.help_text }}</small>
+                    {{ form.fotos.errors }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between">
+            <a href="{% if equipo %}{% url 'detalle_equipo' equipo.pk %}{% else %}{% url 'listar_equipos' %}{% endif %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Guardar Equipo
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

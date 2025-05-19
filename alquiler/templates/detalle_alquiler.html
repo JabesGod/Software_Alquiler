@@ -1,12 +1,10 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <title>Detalle del Alquiler</title>
     <link rel="stylesheet" href="{% static 'css/calendario.css' %}">
 </head>
-
 <body>
     <h2>📋 Detalle del Alquiler</h2>
 
@@ -20,24 +18,30 @@
 
     <h3>📄 Contrato</h3>
     {% if alquiler.contrato %}
-    <p><strong>Fecha de contratación:</strong> {{ alquiler.contrato.fecha_contratacion }}</p>
+        <p><strong>Fecha de contratación:</strong> {{ alquiler.contrato.fecha_contratacion }}</p>
 
-    {% if alquiler.contrato.fecha_firma %}
-    <p><strong>Contrato firmado el:</strong> {{ alquiler.contrato.fecha_firma|date:"j \\d\\e F \\d\\e Y" }}</p>
+        {% if alquiler.contrato.fecha_firma %}
+            <p><strong>Contrato firmado el:</strong> {{ alquiler.contrato.fecha_firma|date:"j \\d\\e F \\d\\e Y" }}</p>
+        {% else %}
+            <p><strong>Contrato firmado:</strong> No firmado aún</p>
+            <a href="{% url 'firmar_contrato' alquiler.id %}">🖋️ Firmar contrato</a>
+        {% endif %}
+
+        <p><a href="{{ alquiler.contrato.documento_contrato.url }}" target="_blank">📥 Ver contrato en PDF</a></p>
+
     {% else %}
-    <p><strong>Contrato firmado:</strong> No firmado aún</p>
-    <a href="{% url 'firmar_contrato' alquiler.id %}">🖋️ Firmar contrato</a>
+        <a href="{% url 'crear_contrato' alquiler.id %}">📝 Generar contrato</a>
     {% endif %}
 
-    <p><a href="{{ alquiler.contrato.documento_contrato.url }}" target="_blank">📥 Ver contrato en PDF</a></p>
-
-    {% else %}
-    <a href="{% url 'crear_contrato' alquiler.id %}">📝 Generar contrato</a>
+    {% if alquiler.estado_alquiler == 'activo' or alquiler.estado_alquiler == 'finalizado' %}
+        <hr>
+        <a href="{% url 'renovar_contrato' alquiler.id %}">🔄 Renovar contrato</a>
     {% endif %}
 
+    <hr>
+    <a href="{% url 'eliminar_alquiler' alquiler.id %}" style="color: red;">🗑️ Eliminar alquiler</a>
 
     <br><br>
     <a href="{% url 'calendario_alquileres' %}">⬅️ Regresar al calendario</a>
 </body>
-
 </html>

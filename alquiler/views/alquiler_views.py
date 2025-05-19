@@ -279,3 +279,39 @@ def firmar_contrato(request, id):
             return redirect('firmar_contrato', id=alquiler.id)
 
     return render(request, 'firmar_contrato.html', {'alquiler': alquiler})
+
+def renovar_contrato(request, id):
+    alquiler_original = get_object_or_404(Alquiler, id=id)
+
+    if request.method == 'POST':
+        form = AlquilerForm(request.POST)
+        if form.is_valid():
+            nuevo_alquiler = form.save(commit=False)
+            nuevo_alquiler.estado_alquiler = 'activo'
+            nuevo_alquiler.equipo = alquiler_original.equipo
+            nuevo_alquiler.cliente = alquiler_original.cliente
+            nuevo_alquiler.save()
+
+            messages.success(request, "Alquiler renovado correctamente.")
+            return redirect('crear_contrato', id=nuevo_alquiler.id)
+    else:
+        form = AlquilerForm(initial={
+            'fecha_inicio': alquiler_original.fecha_fin,
+            'fecha_fin': alquiler_original.fecha_fin,  # puedes dejar igual o +X días
+            'precio_total': alquiler_original.precio_total,
+        })
+
+    return render(request, 'renovar_contrato.html', {
+        'form': form,
+        'alquiler_anterior': alquiler_original
+    })
+
+def eliminar_alquiler(request, id):
+    alquiler = get_object_or_404(Alquiler, id=id)
+
+    if request.method == 'POST':
+        alquiler.delete()
+        messages.success(request, "Alquiler eliminado correctamente.")
+        return redirect('listar_alquileres')
+
+    return render(request, 'eliminar_alquiler.html', {'alquiler': alquiler})

@@ -6,3 +6,6 @@ admin.site.register(Equipo)
 admin.site.register(Alquiler)
 admin.site.register(Pago)
 admin.site.register(Contrato)
+
+
+

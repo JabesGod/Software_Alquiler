@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Renovar Contrato</title>
+    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
+</head>
+<body>
+<h2>🔄 Renovar Contrato de Alquiler #{{ alquiler_anterior.id }}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Renovar</button>
+</form>
+
+<a href="{% url 'detalle_alquiler' alquiler_anterior.id %}">⬅️ Volver al detalle</a>
+</body>
+</html>

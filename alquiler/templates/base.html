@@ -1,0 +1,203 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TecnoNacho | {% block title %}{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="icon" href="{% static 'media/tecnonacho.png' %}">
+    {% block styles %}{% endblock %} 
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Barra de navegación vertical -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <img src="{% static 'media/tecnonacho.png' %}" alt="TecnoNacho Logo" class="sidebar-logo">
+                <h1 class="sidebar-title">Tecnonacho</h1>
+            </div>
+
+            <li class="menu-item user-info">
+                <div class="user-details">
+                    <span class="welcome-msg">Bienvenido</span>
+                    <span class="username">{{ user.nombre_usuario }}</span>
+                </div>
+            </li>
+
+            <ul class="sidebar-menu">
+                {% if user.is_authenticated %}
+                <!-- Menú principal -->
+                <li class="menu-item">
+                    <a href="{% url 'pagina_principal' %}" class="menu-link">
+                        <i class="fas fa-home"></i>
+                        <span class="link-text">Inicio</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <div class="color-picker-container">
+                        <label for="navColorPicker" class="color-picker-label">
+                            <i class="fas fa-palette"></i>
+                            <span class="link-text">Personalizar</span>
+                            <span class="color-preview"></span>
+                        </label>
+                        <input type="color" id="navColorPicker" class="color-picker" value="#2c3e50">
+                    </div>
+                </li>
+                <!-- Equipos -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="fas fa-laptop"></i>
+                        <span class="link-text">Equipos</span>
+                        <i class="fas fa-chevron-down submenu-icon"></i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="{% url 'listar_equipos' %}"><i class="fas fa-list"></i> Listado</a></li>
+                        <li><a href="{% url 'crear_equipo' %}"><i class="fas fa-plus"></i> Nuevo</a></li>
+                        <li><a href="{% url 'equipos_disponibles' %}"><i class="fas fa-check-circle"></i>
+                                Disponibles</a></li>
+                        <li><a href="{% url 'equipos_mas_alquilados' %}"><i class="fas fa-chart-bar"></i>
+                                Estadísticas</a></li>
+                        <li><a href="{% url 'exportar_equipos_csv' %}"><i class="fas fa-file-csv"></i> Exportar</a></li>
+                    </ul>
+                </li>
+
+                <!-- Clientes -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="fas fa-users"></i>
+                        <span class="link-text">Clientes</span>
+                        <i class="fas fa-chevron-down submenu-icon"></i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="{% url 'listar_clientes' %}"><i class="fas fa-list"></i> Listado</a></li>
+                        <li><a href="{% url 'crear_cliente' %}"><i class="fas fa-user-plus"></i> Nuevo</a></li>
+                        <li><a href="{% url 'clientes_morosos' %}"><i class="fas fa-exclamation-triangle"></i>
+                                Morosos</a></li>
+                    </ul>
+                </li>
+
+                <!-- Alquileres -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="fas fa-handshake"></i>
+                        <span class="link-text">Alquileres</span>
+                        <i class="fas fa-chevron-down submenu-icon"></i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="{% url 'listar_alquileres' %}"><i class="fas fa-list"></i> Listado</a></li>
+                        <li><a href="{% url 'crear_alquiler' %}"><i class="fas fa-plus-circle"></i> Nuevo</a></li>
+                        <li><a href="{% url 'calendario_alquileres' %}"><i class="fas fa-calendar-alt"></i>
+                                Calendario</a></li>
+                        <li><a href="{% url 'reservar_alquiler' %}"><i class="fas fa-calendar-check"></i> Reservas</a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- Pagos -->
+                <li class="menu-item has-submenu">
+                    <a href="#" class="menu-link">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span class="link-text">Pagos</span>
+                        <i class="fas fa-chevron-down submenu-icon"></i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="{% url 'registrar_pago' %}"><i class="fas fa-cash-register"></i> Registrar</a></li>
+                        <li><a href="{% url 'pagos_pendientes' user.id %}"><i class="fas fa-clock"></i> Pendientes</a>
+                        </li>
+                        <li><a href="{% url 'pasarela_pago' %}"><i class="fas fa-credit-card"></i> Pasarela</a></li>
+                    </ul>
+                </li>
+
+                {% if user.rol.nombre_rol == 'administrador' %}
+                <!-- Admin -->
+                <li class="menu-item">
+                    <a href="{% url 'dashboard_admin' %}" class="menu-link">
+                        <i class="fas fa-cog"></i>
+                        <span class="link-text">Admin</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                <!-- Botón de modo oscuro -->
+                <li class="menu-item">
+                    <div class="dark-mode-toggle">
+                        <input type="checkbox" id="darkModeToggle" class="toggle-checkbox">
+                        <label for="darkModeToggle" class="toggle-label">
+                            <i class="fas fa-moon"></i>
+                            <i class="fas fa-sun"></i>
+                            <span class="link-text">Modo Oscuro</span>
+                            <span class="toggle-handle"></span>
+                        </label>
+                    </div>
+                </li>
+
+                <!-- Cerrar sesión -->
+                <li class="menu-item">
+                    <a href="{% url 'salir' %}" class="menu-link logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="link-text">Cerrar sesión</span>
+                    </a>
+                </li>
+                {% else %}
+                <!-- Login -->
+                <li class="menu-item">
+                    <a href="{% url 'inicio_sesion' %}" class="menu-link">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span class="link-text">Iniciar sesión</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+
+        <!-- Overlay para móviles -->
+        <div class="sidebar-overlay"></div>
+
+        <!-- Contenido principal -->
+        <div class="main-content">
+            <header class="content-header">
+                <button class="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h2>{% block page_title %}{% endblock %}</h2>
+                <div class="search-container">
+                    <form action="{% url 'busqueda_global' %}" method="get" class="search-form" id="globalSearchForm">
+                        <input type="text" name="q" id="globalSearchInput" placeholder="Buscar equipos, clientes..."
+                            value="{{ request.GET.q }}" autocomplete="off">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                        <div class="search-suggestions" id="searchSuggestions"></div>
+                    </form>
+                </div>
+            </header>
+
+            {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="content-wrapper">
+                {% block content %}
+                <!-- Contenido específico de cada página -->
+                {% endblock %}
+            </div>
+
+            <footer class="main-footer">
+                <p>© {% now "Y" %} TecnoNacho - Soluciones tecnológicas para tu negocio</p>
+            </footer>
+        </div>
+    </div>
+
+    <script src="{% static 'js/base.js' %}"></script>
+    {% block scripts %}{% endblock %} 
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

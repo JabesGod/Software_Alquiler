@@ -1,0 +1,10 @@
+<form method="POST">
+    {% csrf_token %}
+    <label for="rol">Seleccionar rol:</label>
+    <select name="rol" required>
+        {% for rol in roles %}
+            <option value="{{ rol.id }}">{{ rol.nombre_rol }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Asignar rol</button>
+</form>

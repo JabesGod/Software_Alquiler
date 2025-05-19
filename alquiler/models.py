@@ -1,13 +1,26 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
+from django.utils.html import strip_tags
+from django.utils.text import Truncator
+from django.conf import settings
+import os
+
+def equipo_foto_upload_path(instance, filename):
+    """Función para definir la ruta de subida de fotos"""
+    return f'equipos/{instance.equipo.numero_serie}/{filename}'
 
 class Equipo(models.Model):
     ESTADOS = [
         ('disponible', 'Disponible'),
         ('alquilado', 'En alquiler'),
         ('reservado', 'Reservado'),
+        ('mantenimiento', 'En mantenimiento'),
     ]
-
+    
+    # Campos básicos
     marca = models.CharField(max_length=50)
     modelo = models.CharField(max_length=50)
     numero_serie = models.CharField(max_length=100, unique=True)
@@ -15,23 +28,72 @@ class Equipo(models.Model):
     estado = models.CharField(max_length=20, choices=ESTADOS, default='disponible')
     fecha_registro = models.DateField(auto_now_add=True)
     ubicacion = models.CharField(max_length=100)
-
+    
+    # Nuevos campos
+    descripcion_larga = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Descripción detallada",
+        help_text="Descripción completa con formato HTML permitido"
+    )
+    
+    es_html = models.BooleanField(
+        default=False,
+        verbose_name="Usar HTML",
+        help_text="Marcar si la descripción contiene formato HTML"
+    )
+    
+    # Campos para valoración (opcional)
+    valoracion_promedio = models.FloatField(
+        default=0.0,
+        validators=[MinValueValidator(0.0)],
+        verbose_name="Valoración promedio"
+    )
+    
+    # Métodos relacionados con fotos
+    def obtener_foto_principal(self):
+        """Obtiene la foto principal o la predeterminada"""
+        foto = self.fotos.filter(es_principal=True).first() or self.fotos.first()
+        if foto:
+            return foto.foto.url
+        return os.path.join(settings.STATIC_URL, 'media/tecnonacho.png')
+    
+    def tiene_fotos(self):
+        """Verifica si el equipo tiene fotos asociadas"""
+        return self.fotos.exists()
+    
+    # Métodos para descripción
+    def descripcion_corta(self, length=150):
+        """Devuelve una versión corta de la descripción"""
+        if not self.descripcion_larga:
+            return ""
+        
+        if self.es_html:
+            # Elimina etiquetas HTML para la versión corta
+            text = strip_tags(self.descripcion_larga)
+            return Truncator(text).chars(length)
+        return Truncator(self.descripcion_larga).chars(length)
+    
+    def descripcion_como_html(self):
+        """Devuelve la descripción como HTML seguro"""
+        from django.utils.html import mark_safe
+        if self.es_html and self.descripcion_larga:
+            return mark_safe(self.descripcion_larga)
+        return mark_safe(f"<p>{self.descripcion_larga}</p>" if self.descripcion_larga else "")
+    
+    # Métodos existentes mejorados
     def __str__(self):
         return f"{self.marca} {self.modelo} - {self.numero_serie}"
-
-    # Método para verificar rápidamente disponibilidad
+    
     def esta_disponible(self):
         return self.estado == 'disponible'
-
-    # Método para historial de alquileres relacionados al equipo
+    
     def historial_alquileres(self):
         return self.alquileres.select_related('cliente').order_by('-fecha_inicio')
-
-    # Cantidad total de alquileres realizados al equipo
+    
     def total_alquileres(self):
         return self.alquileres.count()
-
-    # Próxima fecha en que estará disponible basado en alquileres activos
+    
     def proxima_fecha_disponible(self):
         alquiler_activo = self.alquileres.filter(
             estado_alquiler='activo', fecha_fin__gte=timezone.now().date()
@@ -40,22 +102,19 @@ class Equipo(models.Model):
         if alquiler_activo:
             return alquiler_activo.fecha_fin
         return timezone.now().date()
-
-    # Método para cambiar fácilmente el estado del equipo
+    
     def actualizar_estado(self, nuevo_estado):
         if nuevo_estado in dict(self.ESTADOS):
             self.estado = nuevo_estado
             self.save()
             return True
         return False
-
-    # Equipos similares según marca o modelo
+    
     def equipos_similares(self):
         return Equipo.objects.filter(
             models.Q(marca__iexact=self.marca) | models.Q(modelo__iexact=self.modelo)
         ).exclude(id=self.id)
-
-    # Duración promedio de alquiler del equipo (en días)
+    
     def duracion_promedio_alquiler(self):
         from django.db.models import Avg, F, ExpressionWrapper, DurationField
 
@@ -70,8 +129,7 @@ class Equipo(models.Model):
         if promedio['promedio']:
             return promedio['promedio'].days
         return 0
-
-    # Método para exportar información básica del equipo
+    
     def exportar_informacion(self):
         return {
             'marca': self.marca,
@@ -80,9 +138,60 @@ class Equipo(models.Model):
             'estado': self.estado,
             'ubicacion': self.ubicacion,
             'fecha_registro': self.fecha_registro.strftime('%Y-%m-%d'),
+            'foto_principal': self.obtener_foto_principal(),
+            'descripcion_corta': self.descripcion_corta(),
         }
+    
+    class Meta:
+        verbose_name = "Equipo"
+        verbose_name_plural = "Equipos"
+        ordering = ['marca', 'modelo']
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(valoracion_promedio__gte=0.0) & models.Q(valoracion_promedio__lte=5.0),
+                name="valoracion_promedio_rango"
+            )
+        ]
 
-
+class FotoEquipo(models.Model):
+    equipo = models.ForeignKey(
+        Equipo,
+        related_name='fotos',
+        on_delete=models.CASCADE,
+        verbose_name="Equipo asociado"
+    )
+    foto = models.ImageField(
+        upload_to=equipo_foto_upload_path,
+        verbose_name="Archivo de imagen",
+        help_text="Suba una foto del equipo"
+    )
+    es_principal = models.BooleanField(
+        default=False,
+        verbose_name="Foto principal",
+        help_text="Marcar si esta es la foto principal del equipo"
+    )
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+    descripcion = models.CharField(max_length=255, blank=True, null=True)
+    
+    def clean(self):
+        """Valida que solo haya una foto principal por equipo"""
+        if self.es_principal:
+            if FotoEquipo.objects.filter(equipo=self.equipo, es_principal=True).exclude(id=self.id).exists():
+                raise ValidationError("Ya existe una foto principal para este equipo.")
+    
+    def save(self, *args, **kwargs):
+        """Garantiza que solo haya una foto principal"""
+        if self.es_principal:
+            FotoEquipo.objects.filter(equipo=self.equipo, es_principal=True).update(es_principal=False)
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"Foto de {self.equipo.marca} {self.equipo.modelo} - {self.descripcion or 'Sin descripción'}"
+    
+    class Meta:
+        verbose_name = "Foto de equipo"
+        verbose_name_plural = "Fotos de equipos"
+        ordering = ['-es_principal', 'fecha_subida']
 
 class Cliente(models.Model):
     ESTADO_VERIFICACION = [
@@ -165,3 +274,74 @@ class Contrato(models.Model):
 
     def __str__(self):
         return f"Contrato #{self.id} - Alquiler {self.alquiler.id}"
+    
+
+
+class Rol(models.Model):
+    nombre_rol = models.CharField(max_length=50, unique=True)
+    descripcion = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.nombre_rol
+
+
+
+class UsuarioManager(BaseUserManager):
+    def _create_user(self, nombre_usuario, password, **extra_fields):
+        """Método base para creación de usuarios"""
+        if not nombre_usuario:
+            raise ValueError("El nombre de usuario es obligatorio.")
+        
+        # Asignación automática de rol cliente si no se especifica
+        if 'rol' not in extra_fields:
+            extra_fields['rol'] = Rol.objects.get_or_create(
+                nombre_rol="cliente",
+                defaults={'descripcion': 'Rol por defecto para clientes'}
+            )[0]
+        
+        user = self.model(nombre_usuario=nombre_usuario, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_user(self, nombre_usuario, password=None, **extra_fields):
+        """Crea un usuario regular con rol cliente por defecto"""
+        extra_fields.setdefault('is_staff', False)
+        extra_fields.setdefault('is_superuser', False)
+        return self._create_user(nombre_usuario, password, **extra_fields)
+
+    def create_superuser(self, nombre_usuario, password, **extra_fields):
+        """Crea un superusuario con rol administrador"""
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        
+        # Asignar rol de administrador
+        extra_fields['rol'], _ = Rol.objects.get_or_create(
+            nombre_rol="administrador",
+            defaults={'descripcion': 'Administrador del sistema'}
+        )
+        
+        return self._create_user(nombre_usuario, password, **extra_fields)
+
+class Usuario(AbstractBaseUser, PermissionsMixin):
+    nombre_usuario = models.CharField(max_length=100, unique=True)
+    estado_usuario = models.CharField(max_length=20, default='activo')
+    ultimo_acceso = models.DateTimeField(auto_now=True)
+    rol = models.ForeignKey(Rol, on_delete=models.PROTECT)  # Cambiado a PROTECT para mayor seguridad
+    cliente = models.OneToOneField('Cliente', on_delete=models.SET_NULL, null=True, blank=True)
+
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+
+    objects = UsuarioManager()
+
+    USERNAME_FIELD = 'nombre_usuario'
+
+    def save(self, *args, **kwargs):
+        """Asigna automáticamente el rol de cliente si no tiene rol asignado"""
+        if not self.rol_id:
+            self.rol = Rol.objects.get_or_create(
+                nombre_rol="cliente",
+                defaults={'descripcion': 'Rol por defecto para clientes'}
+            )[0]
+        super().save(*args, **kwargs)

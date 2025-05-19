@@ -1,0 +1,94 @@
+/* estadisticas.css - Estilos para la página de estadísticas */
+
+.contenedor {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: var(--card-background);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+}
+
+.contenedor h2 {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.contenedor a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent-color);
+    text-decoration: none;
+    margin-bottom: 20px;
+    transition: color 0.3s;
+}
+
+.contenedor a:hover {
+    color: var(--highlight-color);
+}
+
+.grafico-container {
+    margin-top: 30px;
+    position: relative;
+    height: 400px;
+    width: 100%;
+}
+
+/* Estilos para la tabla de detalles */
+.tabla-detalles {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+    font-size: 0.9rem;
+}
+
+.tabla-detalles th {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px 15px;
+    text-align: left;
+}
+
+.tabla-detalles td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tabla-detalles tr:nth-child(even) {
+    background-color: rgba(52, 152, 219, 0.05);
+}
+
+.tabla-detalles tr:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+/* Estilos para el modo oscuro */
+body.dark-mode .contenedor {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .tabla-detalles tr:nth-child(even) {
+    background-color: rgba(15, 52, 96, 0.1);
+}
+
+body.dark-mode .tabla-detalles tr:hover {
+    background-color: rgba(15, 52, 96, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .contenedor {
+        padding: 15px;
+        margin: 15px;
+    }
+    
+    .grafico-container {
+        height: 300px;
+    }
+}

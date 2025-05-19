@@ -1,0 +1,102 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TecnoNacho | Autenticación</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/inicio_registro.css' %}">
+  <link rel="icon" href="{% static 'media/1.png' %}">
+</head>
+
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="logo-container">
+        <img src="{% static 'media/tecnonacho.png' %}" alt="Logo" class="logo">
+        <h2>Sistema de Alquiler </h2>
+      </div>
+      <!-- Reemplaza el computer-figure existente con este código -->
+      <div class="computer-figure">
+        <div class="screen">
+          <div class="face">
+            <div class="eyes">
+              <div class="eye left-eye">
+                <div class="mouse-cover left-mouse"></div>
+              </div>
+              <div class="eye right-eye">
+                <div class="mouse-cover right-mouse"></div>
+              </div>
+            </div>
+            <div class="mouth"></div>
+          </div>
+          <div class="screen-glow"></div>
+        </div>
+        <div class="base"></div>
+        <div class="keyboard"></div>
+      </div>
+      {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+        <div class="alert {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Tabs para Login/Registro -->
+      <div class="tabs">
+        <button class="tab {% if form_type == 'inicio' %}active{% endif %}" data-tab="login">Iniciar Sesión</button>
+        <button class="tab {% if form_type == 'registro' %}active{% endif %}" data-tab="register">Registrarse</button>
+      </div>
+
+      <!-- Formulario Login -->
+      <form method="post" action="{% url 'inicio_sesion' %}"
+        class="form {% if form_type == 'inicio' %}active{% endif %}" id="login-form">
+        {% csrf_token %}
+        <div class="input-group">
+          <input type="text" name="username" required>
+          <label>Usuario</label>
+        </div>
+        <div class="input-group">
+          <input type="password" name="password" required>
+          <label>Contraseña</label>
+          <span class="toggle-pw">👁️</span>
+        </div>
+        <button type="submit" class="btn">Acceder</button>
+      </form>
+
+      <!-- Formulario Registro -->
+      <form method="post" action="{% url 'registro' %}" class="form {% if form_type == 'registro' %}active{% endif %}"
+        id="register-form">
+        {% csrf_token %}
+        <div class="input-group">
+          <input type="text" name="nombre_usuario" required value="{{ form.nombre_usuario.value|default_if_none:'' }}">
+          <label>Usuario</label>
+          {% if form.nombre_usuario.errors %}
+          <span class="error">{{ form.nombre_usuario.errors.0 }}</span>
+          {% endif %}
+        </div>
+        <div class="input-group">
+          <input type="password" name="password1" required>
+          <label>Contraseña</label>
+          {% if form.password1.errors %}
+          <span class="error">{{ form.password1.errors.0 }}</span>
+          {% endif %}
+        </div>
+        <div class="input-group">
+          <input type="password" name="password2" required>
+          <label>Confirmar Contraseña</label>
+          {% if form.password2.errors %}
+          <span class="error">{{ form.password2.errors.0 }}</span>
+          {% endif %}
+        </div>
+        <button type="submit" class="btn">Registrarse</button>
+      </form>
+    </div>
+  </div>
+  <script src="{% static 'js/inicio_registro.js' %}"></script>
+</body>
+
+</html>

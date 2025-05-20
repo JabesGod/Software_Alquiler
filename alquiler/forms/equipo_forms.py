@@ -62,7 +62,9 @@ class EquipoBaseForm(forms.ModelForm):
         model = Equipo
         fields = [
             'marca', 'modelo', 'numero_serie', 'especificaciones',
-            'estado', 'ubicacion', 'descripcion_larga', 'es_html'
+            'estado', 'ubicacion', 'cantidad_total', 'cantidad_disponible',
+            'precio_dia', 'precio_semana', 'precio_mes', 'precio_trimestre',
+            'precio_semestre', 'precio_anio', 'descripcion_larga', 'es_html'
         ]
         widgets = {
             'marca': forms.TextInput(attrs={
@@ -89,18 +91,78 @@ class EquipoBaseForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Ubicación física del equipo'
             }),
+            'cantidad_total': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 1
+            }),
+            'cantidad_disponible': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 0
+            }),
+            'precio_dia': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 0,
+                'step': 0.01
+            }),
+            'precio_semana': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 0,
+                'step': 0.01
+            }),
+            'precio_mes': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 0,
+                'step': 0.01
+            }),
+            'precio_trimestre': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 0,
+                'step': 0.01
+            }),
+            'precio_semestre': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 0,
+                'step': 0.01
+            }),
+            'precio_anio': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 0,
+                'step': 0.01
+            }),
             'es_html': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
         }
         help_texts = {
             'es_html': mark_safe('Marcar si la descripción contiene formato HTML. <small class="text-muted">Use con cuidado.</small>'),
+            'precio_semana': 'Dejar en blanco para calcular automáticamente basado en el precio por día',
+            'precio_mes': 'Dejar en blanco para calcular automáticamente basado en el precio por día',
+            # Puedes agregar más help_texts para los otros campos de precio
         }
 
     def clean(self):
         cleaned_data = super().clean()
-        if cleaned_data.get('es_html') and not cleaned_data.get('descripcion_larga'):
-            self.add_error('descripcion_larga', 'Debe proporcionar una descripción cuando selecciona formato HTML')
+        
+        # Validación de cantidad disponible no puede ser mayor que cantidad total
+        cantidad_total = cleaned_data.get('cantidad_total', 1)
+        cantidad_disponible = cleaned_data.get('cantidad_disponible', 1)
+        
+        if cantidad_disponible > cantidad_total:
+            self.add_error('cantidad_disponible', 'La cantidad disponible no puede ser mayor que la cantidad total')
+        
+        # Validación de precios
+        precio_dia = cleaned_data.get('precio_dia', 0)
+        
+        # Si no se proporcionan precios para períodos mayores, calcular automáticamente
+        if precio_dia:
+            if not cleaned_data.get('precio_semana'):
+                cleaned_data['precio_semana'] = precio_dia * 7 * 0.9  # 10% de descuento por semana
+            
+            if not cleaned_data.get('precio_mes'):
+                cleaned_data['precio_mes'] = precio_dia * 30 * 0.8  # 20% de descuento por mes
+            
+            # Puedes agregar cálculos similares para otros períodos
+        
         return cleaned_data
 
 class EquipoForm(EquipoBaseForm):

@@ -1,9 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/crear_equipo.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h2>{{ titulo }}</h2>
+    <h2>{{ titulo }} </h2>
     <hr>
     
     <form method="post" enctype="multipart/form-data">
@@ -41,11 +45,77 @@
                     </div>
                 </div>
                 
+                <!-- Nuevos campos de cantidad y precios -->
                 <div class="row mt-3">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
+                        {{ form.cantidad_total.label_tag }}
+                        {{ form.cantidad_total }}
+                        {{ form.cantidad_total.errors }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.cantidad_disponible.label_tag }}
+                        {{ form.cantidad_disponible }}
+                        {{ form.cantidad_disponible.errors }}
+                    </div>
+                    <div class="col-md-4">
                         {{ form.ubicacion.label_tag }}
                         {{ form.ubicacion }}
                         {{ form.ubicacion.errors }}
+                    </div>
+                </div>
+                
+                <!-- Campos de precios -->
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        {{ form.precio_dia.label_tag }}
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ form.precio_dia }}
+                        </div>
+                        {{ form.precio_dia.errors }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.precio_semana.label_tag }}
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ form.precio_semana }}
+                        </div>
+                        {{ form.precio_semana.errors }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.precio_mes.label_tag }}
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ form.precio_mes }}
+                        </div>
+                        {{ form.precio_mes.errors }}
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        {{ form.precio_trimestre.label_tag }}
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ form.precio_trimestre }}
+                        </div>
+                        {{ form.precio_trimestre.errors }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.precio_semestre.label_tag }}
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ form.precio_semestre }}
+                        </div>
+                        {{ form.precio_semestre.errors }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.precio_anio.label_tag }}
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ form.precio_anio }}
+                        </div>
+                        {{ form.precio_anio.errors }}
                     </div>
                 </div>
                 
@@ -154,6 +224,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/crear_equipo.js' %}"></script>
 <script>
 // Script para manejar la selección de foto principal
 document.addEventListener('DOMContentLoaded', function() {
@@ -218,6 +289,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 fotoInput.after(previewContainer);
             }
             previewContainer.id = 'fotos-preview';
+        });
+    }
+
+    // Auto-calcular precios para periodos más largos si están vacíos
+    const precioDiaInput = document.getElementById('id_precio_dia');
+    if (precioDiaInput) {
+        precioDiaInput.addEventListener('change', function() {
+            const precioDia = parseFloat(this.value) || 0;
+            
+            // Solo calcular si los campos están vacíos
+            if (!document.getElementById('id_precio_semana').value) {
+                document.getElementById('id_precio_semana').value = (precioDia * 7 * 0.9).toFixed(2);
+            }
+            
+            if (!document.getElementById('id_precio_mes').value) {
+                document.getElementById('id_precio_mes').value = (precioDia * 30 * 0.8).toFixed(2);
+            }
+            
+            if (!document.getElementById('id_precio_trimestre').value) {
+                document.getElementById('id_precio_trimestre').value = (precioDia * 90 * 0.75).toFixed(2);
+            }
+            
+            if (!document.getElementById('id_precio_semestre').value) {
+                document.getElementById('id_precio_semestre').value = (precioDia * 180 * 0.7).toFixed(2);
+            }
+            
+            if (!document.getElementById('id_precio_anio').value) {
+                document.getElementById('id_precio_anio').value = (precioDia * 365 * 0.65).toFixed(2);
+            }
         });
     }
 });

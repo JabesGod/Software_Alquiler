@@ -38,9 +38,9 @@
             </a>
         </div>
     </div>
-
+    
     <!-- Grid de cards -->
-    {% if equipos %}
+       {% if equipos %}
     <div class="equipos-grid">
         {% for equipo in equipos %}
         <div class="equipo-card">
@@ -59,14 +59,39 @@
                 <h3 class="equipo-titulo">{{ equipo.marca }} {{ equipo.modelo }}</h3>
                 <p class="equipo-codigo">Código: {{ equipo.numero_serie }}</p>
 
-                <div class="equipo-precio">$ {{ equipo.precio|default:"0"|floatformat:0 }}</div>
-
-                <div class="equipo-especificaciones">
-                    <i class="fas fa-info-circle"></i>
-                    <p>{{ equipo.especificaciones|truncatechars:100|default:"Sin especificaciones" }}</p>
+                <!-- Sección de cantidad -->
+                <div class="equipo-cantidad mb-2">
+                    <span class="badge bg-secondary">
+                        <i class="fas fa-boxes me-1"></i>
+                        Disponibles: {{ equipo.cantidad_disponible }} de {{ equipo.cantidad_total }}
+                    </span>
                 </div>
 
-                <div class="equipo-estado">
+                <!-- Sección de precios -->
+                <div class="equipo-precios mb-3">
+                    <div class="precio-diario">
+                        <small class="text-muted">Precio por día:</small>
+                        <span class="fw-bold">$ {{ equipo.precio_dia|floatformat:0 }}</span>
+                    </div>
+
+                    {% if equipo.precio_semana %}
+                    <div class="precio-semanal">
+                        <small class="text-muted">Precio por semana:</small>
+                        <span class="fw-bold">$ {{ equipo.precio_semana|floatformat:0 }}</span>
+                        <small class="text-success">({{ equipo.descuento_semanal|floatformat:0 }}% dto.)</small>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Especificaciones -->
+                <div class="equipo-especificaciones mb-2">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <p class="d-inline">{{ equipo.especificaciones|truncatechars:100|default:"Sin especificaciones" }}
+                    </p>
+                </div>
+
+                <!-- Estado y acciones -->
+                <div class="equipo-estado d-flex justify-content-between align-items-center">
                     <span class="estado-badge {{ equipo.estado }}">
                         <i class="fas fa-{{ equipo.estado_icono }} me-1"></i>
                         {{ equipo.get_estado_display }}

@@ -7,11 +7,12 @@ from django.utils.html import strip_tags
 from django.utils.text import Truncator
 from django.conf import settings
 import os
+from decimal import Decimal
+from django.db.models import Q, Sum
 
 def equipo_foto_upload_path(instance, filename):
     """Función para definir la ruta de subida de fotos"""
     return f'equipos/{instance.equipo.numero_serie}/{filename}'
-
 class Equipo(models.Model):
     ESTADOS = [
         ('disponible', 'Disponible'),
@@ -29,7 +30,74 @@ class Equipo(models.Model):
     fecha_registro = models.DateField(auto_now_add=True)
     ubicacion = models.CharField(max_length=100)
     
-    # Nuevos campos
+    # Campos de inventario
+    cantidad_total = models.PositiveIntegerField(
+        default=1,
+        verbose_name="Cantidad total",
+        help_text="Número total de unidades idénticas de este equipo"
+    )
+    
+    cantidad_disponible = models.PositiveIntegerField(
+        default=1,
+        verbose_name="Cantidad disponible",
+        help_text="Número de unidades disponibles para alquiler"
+    )
+    
+    # Campos de precios de alquiler
+    precio_dia = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    
+    precio_semana = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Precio por semana",
+        help_text="Precio de alquiler por una semana (7 días)",
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0)]
+    )
+    
+    precio_mes = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Precio por mes",
+        help_text="Precio de alquiler por un mes (30 días)",
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0)]
+    )
+    
+    precio_trimestre = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Precio por trimestre",
+        help_text="Precio de alquiler por tres meses (90 días)",
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0)]
+    )
+    
+    precio_semestre = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Precio por semestre",
+        help_text="Precio de alquiler por seis meses (180 días)",
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0)]
+    )
+    
+    precio_anio = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Precio por año",
+        help_text="Precio de alquiler por un año (365 días)",
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0)]
+    )
+    
+    # Campos descriptivos
     descripcion_larga = models.TextField(
         blank=True,
         null=True,
@@ -43,13 +111,128 @@ class Equipo(models.Model):
         help_text="Marcar si la descripción contiene formato HTML"
     )
     
-    # Campos para valoración (opcional)
+    # Campos para valoración
     valoracion_promedio = models.FloatField(
         default=0.0,
         validators=[MinValueValidator(0.0)],
         verbose_name="Valoración promedio"
     )
+
+    # Métodos relacionados con inventario y precios
+    def actualizar_disponibilidad(self):
+        """Actualiza la cantidad disponible basada en alquileres activos"""
+        from django.db.models import Sum, Q
+        alquileres_activos = self.alquileres.filter(
+            Q(estado_alquiler='activo') | Q(estado_alquiler='reservado'),
+            fecha_fin__gte=timezone.now().date()
+        ).aggregate(total=Sum('cantidad'))['total'] or 0
+        
+        self.cantidad_disponible = max(0, self.cantidad_total - alquileres_activos)
+        
+        # Actualizar estado general basado en disponibilidad
+        if self.cantidad_disponible == 0:
+            self.estado = 'alquilado'
+        elif self.estado == 'alquilado' and self.cantidad_disponible > 0:
+            self.estado = 'disponible'
+        
+        self.save()
     
+    def obtener_precio_por_periodo(self, periodo):
+        """Devuelve el precio para el período especificado"""
+        periodos = {
+            'dia': self.precio_dia,
+            'semana': self.precio_semana or (self.precio_dia * 7 * Decimal('0.9')),  # 10% descuento
+            'mes': self.precio_mes or (self.precio_dia * 30 * Decimal('0.8')),      # 20% descuento
+            'trimestre': self.precio_trimestre or (self.precio_dia * 90 * Decimal('0.75')),
+            'semestre': self.precio_semestre or (self.precio_dia * 180 * Decimal('0.7')),
+            'anio': self.precio_anio or (self.precio_dia * 365 * Decimal('0.65'))
+        }
+        return periodos.get(periodo.lower(), Decimal('0'))
+    
+    def calcular_mejor_precio(self, dias):
+        """Calcula el precio óptimo para un número dado de días"""
+        from decimal import Decimal
+        opciones = []
+        
+        if dias >= 1:
+            opciones.append(('día', dias, self.precio_dia * dias))
+        
+        if dias >= 7:
+            semanas = dias // 7
+            resto = dias % 7
+            opciones.append((
+                'semana', 
+                semanas,
+                self.obtener_precio_por_periodo('semana') * semanas + 
+                self.precio_dia * resto
+            ))
+        
+        if dias >= 30:
+            meses = dias // 30
+            resto = dias % 30
+            opciones.append((
+                'mes',
+                meses,
+                self.obtener_precio_por_periodo('mes') * meses + 
+                self.precio_dia * resto
+            ))
+        
+        if dias >= 90:
+            trimestres = dias // 90
+            resto = dias % 90
+            opciones.append((
+                'trimestre',
+                trimestres,
+                self.obtener_precio_por_periodo('trimestre') * trimestres + 
+                self.precio_dia * resto
+            ))
+        
+        if dias >= 180:
+            semestres = dias // 180
+            resto = dias % 180
+            opciones.append((
+                'semestre',
+                semestres,
+                self.obtener_precio_por_periodo('semestre') * semestres + 
+                self.precio_dia * resto
+            ))
+        
+        if dias >= 365:
+            años = dias // 365
+            resto = dias % 365
+            opciones.append((
+                'año',
+                años,
+                self.obtener_precio_por_periodo('anio') * años + 
+                self.precio_dia * resto
+            ))
+        
+        if not opciones:
+            return ('día', self.precio_dia * dias)
+        
+        # Seleccionar la opción más económica
+        mejor_opcion = min(opciones, key=lambda x: x[2])
+        return (mejor_opcion[0], mejor_opcion[2])
+    
+    def hay_disponibilidad(self, cantidad=1, fecha_inicio=None, fecha_fin=None):
+        """
+        Verifica si hay suficientes equipos disponibles para un período específico.
+        Si no se especifican fechas, verifica disponibilidad actual.
+        """
+        if fecha_inicio and fecha_fin:
+            if fecha_inicio > fecha_fin:
+                raise ValueError("La fecha de inicio no puede ser posterior a la fecha de fin")
+                
+            # Verificar conflictos con alquileres existentes
+            alquileres_conflicto = self.alquileres.filter(
+                Q(estado_alquiler='activo') | Q(estado_alquiler='reservado'),
+                fecha_inicio__lt=fecha_fin,
+                fecha_fin__gt=fecha_inicio
+            ).aggregate(total=Sum('cantidad'))['total'] or 0
+            
+            return self.cantidad_total - alquileres_conflicto >= cantidad
+        return self.cantidad_disponible >= cantidad
+
     # Métodos relacionados con fotos
     def obtener_foto_principal(self):
         """Obtiene la foto principal o la predeterminada"""
@@ -81,12 +264,12 @@ class Equipo(models.Model):
             return mark_safe(self.descripcion_larga)
         return mark_safe(f"<p>{self.descripcion_larga}</p>" if self.descripcion_larga else "")
     
-    # Métodos existentes mejorados
+    # Métodos estándar
     def __str__(self):
-        return f"{self.marca} {self.modelo} - {self.numero_serie}"
+        return f"{self.marca} {self.modelo} - {self.numero_serie} ({self.cantidad_disponible}/{self.cantidad_total})"
     
     def esta_disponible(self):
-        return self.estado == 'disponible'
+        return self.estado == 'disponible' and self.cantidad_disponible > 0
     
     def historial_alquileres(self):
         return self.alquileres.select_related('cliente').order_by('-fecha_inicio')
@@ -96,12 +279,11 @@ class Equipo(models.Model):
     
     def proxima_fecha_disponible(self):
         alquiler_activo = self.alquileres.filter(
-            estado_alquiler='activo', fecha_fin__gte=timezone.now().date()
+            Q(estado_alquiler='activo') | Q(estado_alquiler='reservado'),
+            fecha_fin__gte=timezone.now().date()
         ).order_by('fecha_fin').first()
 
-        if alquiler_activo:
-            return alquiler_activo.fecha_fin
-        return timezone.now().date()
+        return alquiler_activo.fecha_fin if alquiler_activo else timezone.now().date()
     
     def actualizar_estado(self, nuevo_estado):
         if nuevo_estado in dict(self.ESTADOS):
@@ -110,10 +292,10 @@ class Equipo(models.Model):
             return True
         return False
     
-    def equipos_similares(self):
+    def equipos_similares(self, limit=5):
         return Equipo.objects.filter(
-            models.Q(marca__iexact=self.marca) | models.Q(modelo__iexact=self.modelo)
-        ).exclude(id=self.id)
+            Q(marca__iexact=self.marca) | Q(modelo__iexact=self.modelo)
+        ).exclude(id=self.id)[:limit]
     
     def duracion_promedio_alquiler(self):
         from django.db.models import Avg, F, ExpressionWrapper, DurationField
@@ -126,22 +308,31 @@ class Equipo(models.Model):
             )
         ).aggregate(promedio=Avg('duracion'))
 
-        if promedio['promedio']:
-            return promedio['promedio'].days
-        return 0
+        return promedio['promedio'].days if promedio['promedio'] else 0
     
     def exportar_informacion(self):
         return {
             'marca': self.marca,
             'modelo': self.modelo,
             'numero_serie': self.numero_serie,
-            'estado': self.estado,
+            'estado': self.get_estado_display(),
             'ubicacion': self.ubicacion,
+            'cantidad_total': self.cantidad_total,
+            'cantidad_disponible': self.cantidad_disponible,
+            'precios': {
+                'dia': float(self.precio_dia),
+                'semana': float(self.precio_semana) if self.precio_semana else None,
+                'mes': float(self.precio_mes) if self.precio_mes else None,
+                'trimestre': float(self.precio_trimestre) if self.precio_trimestre else None,
+                'semestre': float(self.precio_semestre) if self.precio_semestre else None,
+                'anio': float(self.precio_anio) if self.precio_anio else None,
+            },
             'fecha_registro': self.fecha_registro.strftime('%Y-%m-%d'),
             'foto_principal': self.obtener_foto_principal(),
             'descripcion_corta': self.descripcion_corta(),
+            'especificaciones': self.especificaciones,
         }
-    
+
     class Meta:
         verbose_name = "Equipo"
         verbose_name_plural = "Equipos"
@@ -150,8 +341,22 @@ class Equipo(models.Model):
             models.CheckConstraint(
                 check=models.Q(valoracion_promedio__gte=0.0) & models.Q(valoracion_promedio__lte=5.0),
                 name="valoracion_promedio_rango"
+            ),
+            models.CheckConstraint(
+                check=models.Q(cantidad_disponible__lte=models.F('cantidad_total')),
+                name="cantidad_disponible_no_mayor_total"
+            ),
+            models.CheckConstraint(
+                check=models.Q(precio_dia__gte=0),
+                name="precio_dia_positivo"
+            ),
+            models.CheckConstraint(
+                check=models.Q(cantidad_total__gte=0),
+                name="cantidad_total_positiva"
             )
         ]
+
+
 
 class FotoEquipo(models.Model):
     equipo = models.ForeignKey(

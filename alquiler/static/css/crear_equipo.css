@@ -1,0 +1,155 @@
+/* Estilos para el formulario de creación/edición de equipos */
+.equipo-info {
+    padding: 1rem;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background: white;
+}
+
+.equipo-titulo {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.equipo-codigo {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.equipo-precios {
+    background: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 6px;
+}
+
+.equipo-precios div {
+    margin-bottom: 0.5rem;
+}
+
+.precio-diario {
+    font-size: 1.1rem;
+}
+
+.estado-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+}
+
+.estado-badge.disponible {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.estado-badge.alquilado {
+    background: #f8d7da;
+    color: #842029;
+}
+
+.estado-badge.mantenimiento {
+    background: #fff3cd;
+    color: #664d03;
+}
+
+.btn-detalle {
+    background: #0d6efd;
+    color: white;
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    text-decoration: none;
+}
+
+.btn-detalle:hover {
+    background: #0b5ed7;
+    color: white;
+}
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    padding: 0.75rem 1.25rem;
+}
+
+.card-header h4 {
+    margin-bottom: 0;
+    font-size: 1.25rem;
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-check {
+    margin-bottom: 0.5rem;
+}
+
+/* Estilos para las tarjetas de fotos */
+.foto-card {
+    transition: all 0.3s ease;
+}
+
+.foto-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.foto-card img {
+    object-fit: cover;
+    height: 200px;
+}
+
+/* Estilos para los campos de precio */
+.input-group-text {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+/* Estilos para la vista previa de fotos */
+#fotos-preview .card {
+    height: 100%;
+}
+
+#fotos-preview img {
+    height: 150px;
+    object-fit: cover;
+}
+
+/* Estilos para los errores de formulario */
+.invalid-feedback {
+    display: block;
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.is-invalid {
+    border-color: #dc3545;
+}
+
+/* Estilos para el botón de guardar */
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+/* Estilos para los tooltips */
+.tooltip-inner {
+    max-width: 300px;
+    padding: 0.5rem 1rem;
+}

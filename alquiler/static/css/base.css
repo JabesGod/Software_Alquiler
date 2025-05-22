@@ -585,30 +585,85 @@ body:not(.dark-mode) .menu-toggle {
 .btn-delete {
     background-color: var(--error-color);
 }
+/* Estilos generales para botones */
+.btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+}
 
-/* Dark mode specific adjustments */
-body.dark-mode .equipos-table th {
+/* Botón primario */
+.btn-primary {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: darken(var(--accent-color), 10%);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Botón secundario */
+.btn-secondary {
     background-color: var(--secondary-color);
+    color: white;
 }
 
-body.dark-mode .equipos-table tr:hover {
-    background-color: rgba(15, 52, 96, 0.3);
+.btn-secondary:hover {
+    background-color: darken(var(--secondary-color), 10%);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-body.dark-mode .status-badge.disponible {
-    background-color: #144e2a;
-    color: #d4edda;
+/* Botón de éxito */
+.btn-success {
+    background-color: var(--success-color);
+    color: white;
 }
 
-body.dark-mode .status-badge.alquilado {
-    background-color: #5c1d1d;
-    color: #f8d7da;
+.btn-success:hover {
+    background-color: darken(var(--success-color), 10%);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-body.dark-mode .status-badge.reservado {
-    background-color: #5c4a00;
-    color: #fff3cd;
+/* Botón de advertencia */
+.btn-warning {
+    background-color: var(--warning-color);
+    color: white;
 }
+
+.btn-warning:hover {
+    background-color: darken(var(--warning-color), 10%);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Botón de error */
+.btn-error {
+    background-color: var(--error-color);
+    color: white;
+}
+
+.btn-error:hover {
+    background-color: darken(var(--error-color), 10%);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Botón de información */
+.btn-info {
+    background-color: var(--info-color);
+    color: white;
+}
+
+.btn-info:hover {
+    background-color: darken(var(--info-color), 10%);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+
+
 /* Añade esto a tu base.css */
 .search-container {
     position: relative;

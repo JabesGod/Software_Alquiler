@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     };
-
+    
     // Carrusel de equipos similares
     const initSimilarEquipmentCarousel = () => {
         const similaresScroller = document.querySelector('.similares-scroller');

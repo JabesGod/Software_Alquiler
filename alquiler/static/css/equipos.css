@@ -139,33 +139,6 @@
     font-style: italic;
 }
 
-/* Modo oscuro */
-body.dark-mode .clientes-container {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-body.dark-mode .clientes-table tr:nth-child(even) {
-    background-color: rgba(15, 52, 96, 0.1);
-}
-
-body.dark-mode .clientes-table tr:hover {
-    background-color: rgba(15, 52, 96, 0.2);
-}
-
-body.dark-mode .verificacion-badge.verificado {
-    background-color: #144e2a;
-    color: #d4edda;
-}
-
-body.dark-mode .verificacion-badge.pendiente {
-    background-color: #5c4a00;
-    color: #fff3cd;
-}
-
-body.dark-mode .verificacion-badge.rechazado {
-    background-color: #5c1d1d;
-    color: #f8d7da;
-}
 
 /* Responsive */
 @media (max-width: 768px) {

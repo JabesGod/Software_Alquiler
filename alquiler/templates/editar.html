@@ -1,6 +1,291 @@
-<h2>{% if equipo %}Editar Equipo{% else %}Nuevo Equipo{% endif %}</h2>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Guardar</button>
-</form>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Equipo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/crear_equipo.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="form-header">
+        <h2><i class="fas fa-edit me-2"></i>{{ titulo }}</h2>
+        <div class="header-actions">
+            <a href="{% url 'detalle_equipo' equipo.pk %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Volver al detalle
+            </a>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="horizontal-form">
+        {% csrf_token %}
+
+        <!-- Primera Fila: Información Básica + Especificaciones -->
+        <div class="form-row">
+            <!-- Columna 1: Información Básica -->
+            <div class="form-column">
+                <div class="form-section">
+                    <h4 class="section-title"><i class="fas fa-info-circle me-2"></i>Información Básica</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            {{ form.marca.label_tag }}
+                            {{ form.marca }}
+                            <div class="invalid-feedback">{{ form.marca.errors }}</div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.modelo.label_tag }}
+                            {{ form.modelo }}
+                            <div class="invalid-feedback">{{ form.modelo.errors }}</div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.numero_serie.label_tag }}
+                            {{ form.numero_serie }}
+                            <div class="invalid-feedback">{{ form.numero_serie.errors }}</div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.estado.label_tag }}
+                            {{ form.estado }}
+                            <div class="invalid-feedback">{{ form.estado.errors }}</div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.cantidad_total.label_tag }}
+                            {{ form.cantidad_total }}
+                            <div class="invalid-feedback">{{ form.cantidad_total.errors }}</div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.cantidad_disponible.label_tag }}
+                            {{ form.cantidad_disponible }}
+                            <div class="invalid-feedback">{{ form.cantidad_disponible.errors }}</div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.ubicacion.label_tag }}
+                            {{ form.ubicacion }}
+                            <div class="invalid-feedback">{{ form.ubicacion.errors }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna 2: Especificaciones -->
+            <div class="form-column">
+                <div class="form-section">
+                    <h4 class="section-title"><i class="fas fa-list-alt me-2"></i>Especificaciones Técnicas</h4>
+                    <div class="form-group">
+                        {{ form.especificaciones.label_tag }}
+                        {{ form.especificaciones }}
+                        <div class="invalid-feedback">{{ form.especificaciones.errors }}</div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4 class="section-title"><i class="fas fa-align-left me-2"></i>Descripción</h4>
+                    <div class="form-group">
+                        {{ form.descripcion_larga.label_tag }}
+                        {{ form.descripcion_larga }}
+                        <div class="invalid-feedback">{{ form.descripcion_larga.errors }}</div>
+                    </div>
+                    <div class="form-check form-switch">
+                        {{ form.es_html }}
+                        <label class="form-check-label" for="{{ form.es_html.id_for_label }}">
+                            {{ form.es_html.label }}
+                        </label>
+                        <small class="form-text text-muted">{{ form.es_html.help_text }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Segunda Fila: Precios -->
+        <div class="form-section">
+            <h4 class="section-title"><i class="fas fa-tags me-2"></i>Precios de Alquiler</h4>
+            <div class="pricing-grid">
+                <div class="price-card">
+                    <h5>Por Día</h5>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.precio_dia }}
+                    </div>
+                    <div class="invalid-feedback">{{ form.precio_dia.errors }}</div>
+                </div>
+
+                <div class="price-card">
+                    <h5>Por Semana</h5>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.precio_semana }}
+                    </div>
+                    <div class="invalid-feedback">{{ form.precio_semana.errors }}</div>
+                </div>
+
+                <div class="price-card">
+                    <h5>Por Mes</h5>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.precio_mes }}
+                    </div>
+                    <div class="invalid-feedback">{{ form.precio_mes.errors }}</div>
+                </div>
+
+                <div class="price-card">
+                    <h5>Por Trimestre</h5>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.precio_trimestre }}
+                    </div>
+                    <div class="invalid-feedback">{{ form.precio_trimestre.errors }}</div>
+                </div>
+
+                <div class="price-card">
+                    <h5>Por Semestre</h5>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.precio_semestre }}
+                    </div>
+                    <div class="invalid-feedback">{{ form.precio_semestre.errors }}</div>
+                </div>
+
+                <div class="price-card">
+                    <h5>Por Año</h5>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.precio_anio }}
+                    </div>
+                    <div class="invalid-feedback">{{ form.precio_anio.errors }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tercera Fila: Fotos -->
+        <div class="form-section">
+            <h4 class="section-title"><i class="fas fa-camera me-2"></i>Fotos del Equipo</h4>
+
+            <div class="existing-photos">
+                <h5 class="subsection-title">Fotos existentes</h5>
+                {{ formset.management_form }}
+                <div class="photos-grid">
+                    {% for foto_form in formset %}
+                    <div class="photo-card">
+                        {% if foto_form.instance.foto %}
+                        <img src="{{ foto_form.instance.foto.url }}" class="photo-img" alt="Foto del equipo">
+                        {% else %}
+                        <div class="photo-placeholder">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        {% endif %}
+                        <div class="photo-actions">
+                            {{ foto_form.id }}
+                            <div class="form-check">
+                                {{ foto_form.es_principal }}
+                                <label class="form-check-label" for="{{ foto_form.es_principal.id_for_label }}">
+                                    {{ foto_form.es_principal.label }}
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                {{ foto_form.descripcion.label_tag }}
+                                {{ foto_form.descripcion }}
+                            </div>
+                            {% if foto_form.instance.pk %}
+                            <div class="form-check">
+                                {{ foto_form.DELETE }}
+                                <label class="form-check-label text-danger" for="{{ foto_form.DELETE.id_for_label }}">
+                                    {{ foto_form.DELETE.label }}
+                                </label>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="upload-area">
+                <h5 class="subsection-title">Agregar más fotos</h5>
+                <div class="file-upload-card">
+                    <label class="file-upload-label">
+                        <input type="file" name="nuevas_fotos" multiple accept="image/*">
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Arrastra fotos aquí o haz clic para seleccionar</p>
+                            <small class="text-muted">Formatos: JPG, PNG. Máx. 5MB por imagen.</small>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-footer">
+            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+                <i class="fas fa-trash-alt me-1"></i> Eliminar Equipo
+            </button>
+            
+            <div>
+                <button type="button" class="btn btn-outline-secondary me-2" onclick="location.href='{% url 'detalle_equipo' equipo.pk %}'">
+                    <i class="fas fa-times me-1"></i> Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary btn-save">
+                    <i class="fas fa-save me-1"></i> Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmDeleteModalLabel"><i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar permanentemente este equipo?</p>
+                <p class="fw-bold">"{{ equipo.marca }} {{ equipo.modelo }}" ({{ equipo.numero_serie }})</p>
+                <p class="text-danger">Esta acción no se puede deshacer y se perderán todos los datos asociados.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Cancelar
+                </button>
+                <form action="{% url 'eliminar_equipo' equipo.pk %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-1"></i> Sí, Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/crear_equipo.js' %}"></script>
+<script>
+// Script específico para edición
+document.addEventListener('DOMContentLoaded', function() {
+    // Manejar la selección de foto principal
+    document.querySelectorAll('.photo-card input[name$="-es_principal"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                // Desmarcar las otras fotos principales
+                document.querySelectorAll('.photo-card input[name$="-es_principal"]').forEach(otherRadio => {
+                    if (otherRadio !== this) {
+                        otherRadio.checked = false;
+                    }
+                });
+            }
+        });
+    });
+    
+    // Previsualización de nuevas fotos
+    const fileInput = document.querySelector('input[name="nuevas_fotos"]');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            // Implementar previsualización de nuevas fotos aquí
+        });
+    }
+});
+</script>
+{% endblock %}

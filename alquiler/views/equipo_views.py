@@ -11,16 +11,18 @@ from datetime import timedelta
 from reportlab.pdfgen import canvas
 from django.contrib import messages
 from django.db.models import Count, Max
-from ..models import Equipo, Alquiler
+from ..models import Equipo, Alquiler, FotoEquipo
 import json
-from ..forms import EquipoForm, FotoEquipoFormSet
+from ..forms import EquipoForm, FotoEquipoForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
+from django.forms.models import inlineformset_factory
 
 
 def listar_equipos(request):
     equipos = Equipo.objects.all()
-    return render(request, 'lista.html', {'equipos': equipos})
+    form = EquipoForm() if request.user.is_staff else None
+    return render(request, 'lista.html', {'equipos': equipos, 'form': form})
 
 
 def crear_equipo(request):
@@ -50,6 +52,18 @@ def crear_equipo(request):
 def editar_equipo(request, id):
     equipo = get_object_or_404(Equipo, pk=id)
     
+    if not request.user.is_staff:
+        messages.error(request, 'No tienes permiso para editar equipos.')
+        return redirect('detalle_equipo', pk=equipo.pk)
+
+    FotoEquipoFormSet = inlineformset_factory(
+        Equipo, 
+        FotoEquipo, 
+        form=FotoEquipoForm, 
+        extra=1,
+        can_delete=True
+    )
+
     if request.method == 'POST':
         form = EquipoForm(request.POST, request.FILES, instance=equipo)
         formset = FotoEquipoFormSet(request.POST, request.FILES, instance=equipo)
@@ -61,12 +75,11 @@ def editar_equipo(request, id):
             # Asegurar que solo haya una foto principal
             fotos_principales = equipo.fotos.filter(es_principal=True)
             if fotos_principales.count() > 1:
-                # Mantener solo la más reciente como principal
                 ultima_principal = fotos_principales.order_by('-id').first()
                 equipo.fotos.exclude(id=ultima_principal.id).update(es_principal=False)
             
             messages.success(request, f'Equipo {equipo} actualizado exitosamente!')
-            return redirect('detalle_equipo', pk=equipo.pk)
+            return redirect('detalle_equipo', id=equipo.id)
     else:
         form = EquipoForm(instance=equipo)
         formset = FotoEquipoFormSet(instance=equipo)
@@ -75,7 +88,7 @@ def editar_equipo(request, id):
         'form': form,
         'formset': formset,
         'equipo': equipo,
-        'titulo': f'Editar Equipo: {equipo}'
+        'titulo': f'Editar {equipo.marca} {equipo.modelo}'
     })
 
 @require_POST

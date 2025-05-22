@@ -68,18 +68,6 @@
     background-color: rgba(52, 152, 219, 0.1);
 }
 
-/* Estilos para el modo oscuro */
-body.dark-mode .contenedor {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-body.dark-mode .tabla-detalles tr:nth-child(even) {
-    background-color: rgba(15, 52, 96, 0.1);
-}
-
-body.dark-mode .tabla-detalles tr:hover {
-    background-color: rgba(15, 52, 96, 0.2);
-}
 
 /* Responsive */
 @media (max-width: 768px) {

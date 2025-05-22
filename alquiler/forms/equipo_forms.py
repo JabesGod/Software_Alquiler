@@ -150,19 +150,13 @@ class EquipoBaseForm(forms.ModelForm):
         if cantidad_disponible > cantidad_total:
             self.add_error('cantidad_disponible', 'La cantidad disponible no puede ser mayor que la cantidad total')
         
-        # Validación de precios
         precio_dia = cleaned_data.get('precio_dia', 0)
         
-        # Si no se proporcionan precios para períodos mayores, calcular automáticamente
         if precio_dia:
             if not cleaned_data.get('precio_semana'):
-                cleaned_data['precio_semana'] = precio_dia * 7 * 0.9  # 10% de descuento por semana
-            
+                cleaned_data['precio_semana'] = precio_dia * 7 
             if not cleaned_data.get('precio_mes'):
-                cleaned_data['precio_mes'] = precio_dia * 30 * 0.8  # 20% de descuento por mes
-            
-            # Puedes agregar cálculos similares para otros períodos
-        
+                cleaned_data['precio_mes'] = precio_dia * 30  
         return cleaned_data
 
 class EquipoForm(EquipoBaseForm):

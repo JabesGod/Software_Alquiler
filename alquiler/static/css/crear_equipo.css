@@ -1,135 +1,217 @@
-/* Estilos para el formulario de creación/edición de equipos */
-.equipo-info {
-    padding: 1rem;
-    border: 1px solid #eee;
-    border-radius: 8px;
+/* Estilos base y variables */
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --accent-color: #4cc9f0;
+    --success-color: #4ad66d;
+    --danger-color: #f72585;
+    --warning-color: #f8961e;
+    --light-bg: #f8f9fa;
+    --dark-text: #212529;
+    --muted-text: #6c757d;
+    --border-radius: 8px;
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+    
+}
+
+body {
+    background-color: #f5f7fa;
+    color: var(--dark-text);
+}
+
+
+/* Estructura principal */
+.container {
+    max-width: 1400px;
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.horizontal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Filas y columnas */
+.form-row {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.form-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Secciones del formulario */
+.form-section {
     background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
-.equipo-titulo {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
-    color: #333;
+.section-title {
+
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
 }
 
-.equipo-codigo {
-    font-size: 0.9rem;
-    color: #666;
+.subsection-title {
+    font-size: 1rem;
+    color: #6c757d;
     margin-bottom: 1rem;
 }
 
-.equipo-precios {
-    background: #f8f9fa;
-    padding: 0.75rem;
-    border-radius: 6px;
+/* Grid de campos */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
 }
 
-.equipo-precios div {
-    margin-bottom: 0.5rem;
-}
-
-.precio-diario {
-    font-size: 1.1rem;
-}
-
-.estado-badge {
-    padding: 0.35rem 0.75rem;
-    border-radius: 50px;
-    font-size: 0.85rem;
-}
-
-.estado-badge.disponible {
-    background: #d1e7dd;
-    color: #0f5132;
-}
-
-.estado-badge.alquilado {
-    background: #f8d7da;
-    color: #842029;
-}
-
-.estado-badge.mantenimiento {
-    background: #fff3cd;
-    color: #664d03;
-}
-
-.btn-detalle {
-    background: #0d6efd;
-    color: white;
-    padding: 0.35rem 0.75rem;
-    border-radius: 50px;
-    font-size: 0.85rem;
-    text-decoration: none;
-}
-
-.btn-detalle:hover {
-    background: #0b5ed7;
-    color: white;
-}
-.card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    margin-bottom: 1.5rem;
-}
-
-.card-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
-    padding: 0.75rem 1.25rem;
-}
-
-.card-header h4 {
-    margin-bottom: 0;
-    font-size: 1.25rem;
-}
-
-.card-body {
-    padding: 1.25rem;
-}
-
+/* Campos del formulario */
 .form-group {
     margin-bottom: 1rem;
 }
 
-.form-check {
+.form-group label {
+    font-weight: 500;
     margin-bottom: 0.5rem;
-}
-
-/* Estilos para las tarjetas de fotos */
-.foto-card {
-    transition: all 0.3s ease;
-}
-
-.foto-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
-.foto-card img {
-    object-fit: cover;
-    height: 200px;
-}
-
-/* Estilos para los campos de precio */
-.input-group-text {
-    background-color: #e9ecef;
     color: #495057;
+    display: block;
 }
 
-/* Estilos para la vista previa de fotos */
-#fotos-preview .card {
-    height: 100%;
+.form-control, .form-select {
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ced4da;
+    width: 100%;
 }
 
-#fotos-preview img {
+.input-group-text {
+    background-color: #f8f9fa;
+}
+
+/* Precios */
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.price-card {
+    background: #f8f9fe;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e6e8ff;
+}
+
+.price-card h5 {
+    font-size: 0.95rem;
+ 
+    margin-bottom: 0.75rem;
+}
+
+/* Fotos */
+.photos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.photo-card {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.photo-img {
+    width: 100%;
     height: 150px;
     object-fit: cover;
 }
 
-/* Estilos para los errores de formulario */
+.photo-placeholder {
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    color: #adb5bd;
+}
+
+.photo-actions {
+    padding: 1rem;
+}
+
+/* Subida de archivos */
+.upload-area {
+    margin-top: 1.5rem;
+}
+
+.file-upload-card {
+    border: 2px dashed #dee2e6;
+    border-radius: 10px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.file-upload-label {
+    display: block;
+    cursor: pointer;
+}
+
+.file-upload-card:hover {
+
+    background: #f8f9fe;
+}
+
+.upload-content i {
+    font-size: 2.5rem;
+
+    margin-bottom: 1rem;
+}
+
+.upload-content p {
+    margin-bottom: 0.5rem;
+    color: #495057;
+    font-weight: 500;
+}
+
+/* Pie del formulario */
+.form-footer {
+    text-align: right;
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #eee;
+}
+
+.btn-save {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+}
+
+/* Validación */
 .invalid-feedback {
     display: block;
     color: #dc3545;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     margin-top: 0.25rem;
 }
 
@@ -137,19 +219,377 @@
     border-color: #dc3545;
 }
 
-/* Estilos para el botón de guardar */
+/* Responsive */
+@media (max-width: 992px) {
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .pricing-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .form-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .header-actions {
+        margin-top: 1rem;
+        width: 100%;
+    }
+    
+    .pricing-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .photos-grid {
+        grid-template-columns: 1fr;
+    }
+}
+/* Títulos */
+h2 {
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+h2:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    border-radius: 3px;
+}
+
+h4 {
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+/* Cards mejoradas */
+.card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    background: white;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border-bottom: none;
+    padding: 1rem 1.5rem;
+}
+
+.card-header h4 {
+    color: white;
+    margin: 0;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Formularios y campos */
+.form-label {
+    font-weight: 500;
+    color: var(--dark-text);
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+    border: 1px solid #ced4da;
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1rem;
+    transition: var(--transition);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+}
+
+.input-group-text {
+    background-color: #e9ecef;
+    color: var(--muted-text);
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+}
+
+/* Especial para campos de precio */
+.price-input-group .form-control {
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+}
+
+/* Textarea */
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* Checkboxes personalizados */
+.form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+    margin-top: 0.1em;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.form-check-label {
+    margin-left: 0.5rem;
+}
+
+/* Fotos del equipo */
+.foto-card {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: var(--transition);
+    margin-bottom: 1.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.foto-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.foto-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.foto-card .card-body {
+    padding: 1rem;
+}
+
+.foto-card .form-check {
+    margin-bottom: 0.75rem;
+}
+
+/* Subida de archivos */
+.custom-file-upload {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: var(--light-bg);
+    border: 2px dashed #ced4da;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: center;
+    width: 100%;
+}
+
+.custom-file-upload:hover {
+    border-color: var(--primary-color);
+    background: rgba(67, 97, 238, 0.05);
+}
+
+.custom-file-upload i {
+    font-size: 2rem;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* Botones */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    transition: var(--transition);
+    border: none;
+}
+
 .btn-primary {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    box-shadow: 0 4px 6px rgba(67, 97, 238, 0.2);
 }
 
 .btn-primary:hover {
-    background-color: #0b5ed7;
-    border-color: #0a58ca;
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(67, 97, 238, 0.3);
 }
 
-/* Estilos para los tooltips */
-.tooltip-inner {
-    max-width: 300px;
-    padding: 0.5rem 1rem;
+.btn-secondary {
+    background: #6c757d;
+    color: white;
 }
+
+.btn-secondary:hover {
+    background: #5a6268;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Errores de formulario */
+.is-invalid {
+    border-color: var(--danger-color);
+}
+
+.invalid-feedback {
+    color: var(--danger-color);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+/* Sección de precios */
+.price-section {
+    background: linear-gradient(135deg, rgba(67, 97, 238, 0.05), rgba(76, 201, 240, 0.05));
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--primary-color);
+}
+
+.price-section h5 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+/* Efectos y transiciones */
+.transition-all {
+    transition: var(--transition);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .btn {
+        padding: 0.6rem 1rem;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+/* Tooltips personalizados */
+.tooltip-inner {
+    background-color: var(--dark-text);
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+}
+
+.bs-tooltip-auto[data-popper-placement^=top] .tooltip-arrow::before,
+.bs-tooltip-top .tooltip-arrow::before {
+    border-top-color: var(--dark-text);
+}
+
+/* Estado del equipo */
+.estado-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.estado-badge.disponible {
+    background-color: rgba(74, 214, 109, 0.2);
+    color: #2a9134;
+}
+
+.estado-badge.alquilado {
+    background-color: rgba(247, 37, 133, 0.2);
+    color: #c1121f;
+}
+
+.estado-badge.mantenimiento {
+    background-color: rgba(248, 150, 30, 0.2);
+    color: #b36a00;
+}
+
+.estado-badge.reservado {
+    background-color: rgba(76, 201, 240, 0.2);
+    color: #1a759f;
+}
+
+/* Separador */
+hr {
+    border: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1), transparent);
+    margin: 2rem 0;
+}
+
+/* Vista previa de imágenes */
+#fotos-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.preview-image {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+}
+
+.preview-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.preview-image .remove-image {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    background-color: var(--danger-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.preview-image:hover .remove-image {
+    opacity: 1;
+}
+

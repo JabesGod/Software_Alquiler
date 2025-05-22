@@ -1,221 +1,229 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}Crear Equipo{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/crear_equipo.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h2>{{ titulo }} </h2>
-    <hr>
-    
-    <form method="post" enctype="multipart/form-data">
+    <div class="form-header">
+        <h2><i class="fas fa-laptop-code me-2"></i>{{ titulo }}</h2>
+        <div class="header-actions">
+            <a href="{% if equipo %}{% url 'detalle_equipo' equipo.pk %}{% else %}{% url 'listar_equipos' %}{% endif %}"
+                class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="horizontal-form">
         {% csrf_token %}
-        
-        <!-- Formulario principal -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>Información Básica</h4>
+
+        <!-- Primera Fila: Información Básica + Especificaciones -->
+        <div class="form-row">
+            <!-- Columna 1: Información Básica -->
+            <div class="form-column">
+                <div class="form-section">
+                    <h4 class="section-title"><i class="fas fa-info-circle me-2"></i>Información Básica</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            {{ form.marca.label_tag }}
+                            {{ form.marca }}
+                            <div class="invalid-feedback">{{ form.marca.errors }}</div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.modelo.label_tag }}
+                            {{ form.modelo }}
+                            <div class="invalid-feedback">{{ form.modelo.errors }}</div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.numero_serie.label_tag }}
+                            {{ form.numero_serie }}
+                            <div class="invalid-feedback">{{ form.numero_serie.errors }}</div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.estado.label_tag }}
+                            {{ form.estado }}
+                            <div class="invalid-feedback">{{ form.estado.errors }}</div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.cantidad_total.label_tag }}
+                            {{ form.cantidad_total }}
+                            <div class="invalid-feedback">{{ form.cantidad_total.errors }}</div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.cantidad_disponible.label_tag }}
+                            {{ form.cantidad_disponible }}
+                            <div class="invalid-feedback">{{ form.cantidad_disponible.errors }}</div>
+                        </div>
+                        <div class="form-group">
+                            {{ form.ubicacion.label_tag }}
+                            {{ form.ubicacion }}
+                            <div class="invalid-feedback">{{ form.ubicacion.errors }}</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        {{ form.marca.label_tag }}
-                        {{ form.marca }}
-                        {{ form.marca.errors }}
-                    </div>
-                    <div class="col-md-6">
-                        {{ form.modelo.label_tag }}
-                        {{ form.modelo }}
-                        {{ form.modelo.errors }}
-                    </div>
-                </div>
-                
-                <div class="row mt-3">
-                    <div class="col-md-6">
-                        {{ form.numero_serie.label_tag }}
-                        {{ form.numero_serie }}
-                        {{ form.numero_serie.errors }}
-                    </div>
-                    <div class="col-md-6">
-                        {{ form.estado.label_tag }}
-                        {{ form.estado }}
-                        {{ form.estado.errors }}
-                    </div>
-                </div>
-                
-                <!-- Nuevos campos de cantidad y precios -->
-                <div class="row mt-3">
-                    <div class="col-md-4">
-                        {{ form.cantidad_total.label_tag }}
-                        {{ form.cantidad_total }}
-                        {{ form.cantidad_total.errors }}
-                    </div>
-                    <div class="col-md-4">
-                        {{ form.cantidad_disponible.label_tag }}
-                        {{ form.cantidad_disponible }}
-                        {{ form.cantidad_disponible.errors }}
-                    </div>
-                    <div class="col-md-4">
-                        {{ form.ubicacion.label_tag }}
-                        {{ form.ubicacion }}
-                        {{ form.ubicacion.errors }}
-                    </div>
-                </div>
-                
-                <!-- Campos de precios -->
-                <div class="row mt-3">
-                    <div class="col-md-4">
-                        {{ form.precio_dia.label_tag }}
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            {{ form.precio_dia }}
-                        </div>
-                        {{ form.precio_dia.errors }}
-                    </div>
-                    <div class="col-md-4">
-                        {{ form.precio_semana.label_tag }}
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            {{ form.precio_semana }}
-                        </div>
-                        {{ form.precio_semana.errors }}
-                    </div>
-                    <div class="col-md-4">
-                        {{ form.precio_mes.label_tag }}
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            {{ form.precio_mes }}
-                        </div>
-                        {{ form.precio_mes.errors }}
-                    </div>
-                </div>
-                
-                <div class="row mt-3">
-                    <div class="col-md-4">
-                        {{ form.precio_trimestre.label_tag }}
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            {{ form.precio_trimestre }}
-                        </div>
-                        {{ form.precio_trimestre.errors }}
-                    </div>
-                    <div class="col-md-4">
-                        {{ form.precio_semestre.label_tag }}
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            {{ form.precio_semestre }}
-                        </div>
-                        {{ form.precio_semestre.errors }}
-                    </div>
-                    <div class="col-md-4">
-                        {{ form.precio_anio.label_tag }}
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            {{ form.precio_anio }}
-                        </div>
-                        {{ form.precio_anio.errors }}
-                    </div>
-                </div>
-                
-                <div class="row mt-3">
-                    <div class="col-12">
+
+            <!-- Columna 2: Especificaciones -->
+            <div class="form-column">
+                <div class="form-section">
+                    <h4 class="section-title"><i class="fas fa-list-alt me-2"></i>Especificaciones Técnicas</h4>
+                    <div class="form-group">
                         {{ form.especificaciones.label_tag }}
                         {{ form.especificaciones }}
-                        {{ form.especificaciones.errors }}
+                        <div class="invalid-feedback">{{ form.especificaciones.errors }}</div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4 class="section-title"><i class="fas fa-align-left me-2"></i>Descripción</h4>
+                    <div class="form-group">
+                        {{ form.descripcion_larga.label_tag }}
+                        {{ form.descripcion_larga }}
+                        <div class="invalid-feedback">{{ form.descripcion_larga.errors }}</div>
+                    </div>
+                    <div class="form-check form-switch">
+                        {{ form.es_html }}
+                        <label class="form-check-label" for="{{ form.es_html.id_for_label }}">
+                            {{ form.es_html.label }}
+                        </label>
+                        <small class="form-text text-muted">{{ form.es_html.help_text }}</small>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Descripción -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>Descripción Detallada</h4>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    {{ form.descripcion_larga.label_tag }}
-                    {{ form.descripcion_larga }}
-                    {{ form.descripcion_larga.errors }}
+
+        <!-- Segunda Fila: Precios -->
+        <div class="form-section">
+            <h4 class="section-title"><i class="fas fa-tags me-2"></i>Precios de Alquiler</h4>
+            <div class="pricing-grid">
+                <div class="price-card">
+                    <h5>Por Día</h5>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.precio_dia }}
+                    </div>
+                    <div class="invalid-feedback">{{ form.precio_dia.errors }}</div>
                 </div>
-                <div class="form-check">
-                    {{ form.es_html }}
-                    <label class="form-check-label" for="{{ form.es_html.id_for_label }}">
-                        {{ form.es_html.label }}
-                    </label>
-                    <small class="form-text text-muted">{{ form.es_html.help_text }}</small>
+
+                <div class="price-card">
+                    <h5>Por Semana</h5>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.precio_semana }}
+                    </div>
+                    <div class="invalid-feedback">{{ form.precio_semana.errors }}</div>
+                </div>
+
+                <div class="price-card">
+                    <h5>Por Mes</h5>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.precio_mes }}
+                    </div>
+                    <div class="invalid-feedback">{{ form.precio_mes.errors }}</div>
+                </div>
+
+                <div class="price-card">
+                    <h5>Por Trimestre</h5>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.precio_trimestre }}
+                    </div>
+                    <div class="invalid-feedback">{{ form.precio_trimestre.errors }}</div>
+                </div>
+
+                <div class="price-card">
+                    <h5>Por Semestre</h5>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.precio_semestre }}
+                    </div>
+                    <div class="invalid-feedback">{{ form.precio_semestre.errors }}</div>
+                </div>
+
+                <div class="price-card">
+                    <h5>Por Año</h5>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.precio_anio }}
+                    </div>
+                    <div class="invalid-feedback">{{ form.precio_anio.errors }}</div>
                 </div>
             </div>
         </div>
-        
-        <!-- Fotos -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>Fotos del Equipo</h4>
-            </div>
-            <div class="card-body">
-                {% if formset %}
-                    <!-- Edición: Mostrar formset para fotos existentes -->
-                    <h5>Fotos existentes</h5>
-                    {{ formset.management_form }}
-                    <div class="row">
-                        {% for foto_form in formset %}
-                            <div class="col-md-4 mb-3">
-                                <div class="card">
-                                    {% if foto_form.instance.foto %}
-                                        <img src="{{ foto_form.instance.foto.url }}" class="card-img-top" alt="Foto del equipo">
-                                    {% else %}
-                                        <div class="text-center py-5 bg-light">
-                                            <i class="fas fa-camera fa-3x text-muted"></i>
-                                        </div>
-                                    {% endif %}
-                                    <div class="card-body">
-                                        {{ foto_form.id }}
-                                        <div class="mb-2">
-                                            <div class="form-check">
-                                                {{ foto_form.es_principal }}
-                                                <label class="form-check-label" for="{{ foto_form.es_principal.id_for_label }}">
-                                                    {{ foto_form.es_principal.label }}
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="mb-2">
-                                            {{ foto_form.descripcion.label_tag }}
-                                            {{ foto_form.descripcion }}
-                                        </div>
-                                        {% if foto_form.instance.pk %}
-                                            <div class="form-check">
-                                                {{ foto_form.DELETE }}
-                                                <label class="form-check-label text-danger" for="{{ foto_form.DELETE.id_for_label }}">
-                                                    {{ foto_form.DELETE.label }}
-                                                </label>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
+
+        <!-- Tercera Fila: Fotos -->
+        <div class="form-section">
+            <h4 class="section-title"><i class="fas fa-camera me-2"></i>Fotos del Equipo</h4>
+
+            {% if formset %}
+            <div class="existing-photos">
+                <h5 class="subsection-title">Fotos existentes</h5>
+                {{ formset.management_form }}
+                <div class="photos-grid">
+                    {% for foto_form in formset %}
+                    <div class="photo-card">
+                        {% if foto_form.instance.foto %}
+                        <img src="{{ foto_form.instance.foto.url }}" class="photo-img" alt="Foto del equipo">
+                        {% else %}
+                        <div class="photo-placeholder">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        {% endif %}
+                        <div class="photo-actions">
+                            {{ foto_form.id }}
+                            <div class="form-check">
+                                {{ foto_form.es_principal }}
+                                <label class="form-check-label" for="{{ foto_form.es_principal.id_for_label }}">
+                                    {{ foto_form.es_principal.label }}
+                                </label>
                             </div>
-                        {% endfor %}
+                            <div class="form-group">
+                                {{ foto_form.descripcion.label_tag }}
+                                {{ foto_form.descripcion }}
+                            </div>
+                            {% if foto_form.instance.pk %}
+                            <div class="form-check">
+                                {{ foto_form.DELETE }}
+                                <label class="form-check-label text-danger" for="{{ foto_form.DELETE.id_for_label }}">
+                                    {{ foto_form.DELETE.label }}
+                                </label>
+                            </div>
+                            {% endif %}
+                        </div>
                     </div>
-                {% endif %}
-                
-                <!-- Campo para subir nuevas fotos -->
-                <div class="mt-4">
-                    <h5>{% if formset %}Subir fotos adicionales{% else %}Subir fotos del equipo{% endif %}</h5>
-                    {{ form.fotos.label_tag }}
-                    {{ form.fotos }}
-                    <small class="form-text text-muted">{{ form.fotos.help_text }}</small>
-                    {{ form.fotos.errors }}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="upload-area">
+                <div class="file-upload-card">
+                    <label class="file-upload-label">
+                        {{ form.fotos }}
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Arrastra fotos aquí o haz clic para seleccionar</p>
+                            <small class="text-muted">Formatos: JPG, PNG. Máx. 5MB por imagen.</small>
+                        </div>
+                    </label>
+                    <div class="invalid-feedback">{{ form.fotos.errors }}</div>
                 </div>
             </div>
         </div>
-        
-        <div class="d-flex justify-content-between">
-            <a href="{% if equipo %}{% url 'detalle_equipo' equipo.pk %}{% else %}{% url 'listar_equipos' %}{% endif %}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Cancelar
-            </a>
-            <button type="submit" class="btn btn-primary">
+
+        <div class="form-footer">
+            <button type="button" class="btn btn-outline-secondary"
+                onclick="location.href='{% if equipo %}{% url 'detalle_equipo' equipo.pk %}{% else %}{% url 'listar_equipos' %}{% endif %}'">
+                <i class="fas fa-arrow-left me-1"></i> Cancelar
+            </button>
+
+            <button type="submit" class="btn btn-primary btn-save">
                 <i class="fas fa-save"></i> Guardar Equipo
             </button>
         </div>
@@ -225,101 +233,4 @@
 
 {% block extra_js %}
 <script src="{% static 'js/crear_equipo.js' %}"></script>
-<script>
-// Script para manejar la selección de foto principal
-document.addEventListener('DOMContentLoaded', function() {
-    const principalRadios = document.querySelectorAll('input[name$="-es_principal"]');
-    
-    principalRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.checked) {
-                principalRadios.forEach(r => {
-                    if (r !== this) r.checked = false;
-                });
-            }
-        });
-    });
-    
-    // Mostrar vista previa de las fotos seleccionadas
-    const fotoInput = document.getElementById('id_fotos');
-    if (fotoInput) {
-        fotoInput.addEventListener('change', function(e) {
-            const files = e.target.files;
-            const previewContainer = document.createElement('div');
-            previewContainer.className = 'row mt-3';
-            
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                if (!file.type.match('image.*')) continue;
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const col = document.createElement('div');
-                    col.className = 'col-md-3 mb-3';
-                    
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.className = 'card-img-top';
-                    img.style.maxHeight = '150px';
-                    img.style.objectFit = 'cover';
-                    
-                    const cardBody = document.createElement('div');
-                    cardBody.className = 'card-body p-2';
-                    
-                    const fileName = document.createElement('small');
-                    fileName.className = 'text-muted';
-                    fileName.textContent = file.name;
-                    
-                    cardBody.appendChild(fileName);
-                    card.appendChild(img);
-                    card.appendChild(cardBody);
-                    col.appendChild(card);
-                    previewContainer.appendChild(col);
-                };
-                reader.readAsDataURL(file);
-            }
-            
-            const existingPreview = document.getElementById('fotos-preview');
-            if (existingPreview) {
-                existingPreview.replaceWith(previewContainer);
-            } else {
-                fotoInput.after(previewContainer);
-            }
-            previewContainer.id = 'fotos-preview';
-        });
-    }
-
-    // Auto-calcular precios para periodos más largos si están vacíos
-    const precioDiaInput = document.getElementById('id_precio_dia');
-    if (precioDiaInput) {
-        precioDiaInput.addEventListener('change', function() {
-            const precioDia = parseFloat(this.value) || 0;
-            
-            // Solo calcular si los campos están vacíos
-            if (!document.getElementById('id_precio_semana').value) {
-                document.getElementById('id_precio_semana').value = (precioDia * 7 * 0.9).toFixed(2);
-            }
-            
-            if (!document.getElementById('id_precio_mes').value) {
-                document.getElementById('id_precio_mes').value = (precioDia * 30 * 0.8).toFixed(2);
-            }
-            
-            if (!document.getElementById('id_precio_trimestre').value) {
-                document.getElementById('id_precio_trimestre').value = (precioDia * 90 * 0.75).toFixed(2);
-            }
-            
-            if (!document.getElementById('id_precio_semestre').value) {
-                document.getElementById('id_precio_semestre').value = (precioDia * 180 * 0.7).toFixed(2);
-            }
-            
-            if (!document.getElementById('id_precio_anio').value) {
-                document.getElementById('id_precio_anio').value = (precioDia * 365 * 0.65).toFixed(2);
-            }
-        });
-    }
-});
-</script>
 {% endblock %}

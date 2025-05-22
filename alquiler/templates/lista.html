@@ -13,34 +13,57 @@
         <h1 class="mb-0">
             <i class="fas fa-laptop-code me-2"></i>Listado de Equipos
         </h1>
-        <a href="{% url 'crear_equipo' %}" class="btn btn-primary">
+
+        {% if request.user.is_staff %}
+        <button type="button" class="btn btn-primary" id="btnAbrirModalEquipo">
             <i class="fas fa-plus-circle me-2"></i>Nuevo Equipo
-        </a>
+        </button>
+        {% endif %}
     </div>
 
-    <!-- Filtros rápidos -->
-    <div class="mb-4">
-        <div class="d-flex flex-wrap gap-2">
-            <a href="{% url 'listar_equipos' %}" class="btn btn-sm btn-outline-secondary">
+    <!-- Filtros rápidos como botones -->
+    <div class="mb-4 mt-5">
+        <div class="d-flex flex-wrap justify-content-start align-items-center gap-3 mt-3 filtro-botones mt-5">
+            {% if request.user.is_staff %}
+            <button type="button" class="btn btn-sm btn-outline-secondary"
+                onclick="window.location.href='{% url 'listar_equipos' %}'">
                 <i class="fas fa-list-ol me-1"></i>Todos
-            </a>
-            <a href="{% url 'equipos_por_estado' 'disponible' %}" class="btn btn-sm btn-outline-success">
+            </button>
+            {% endif %}
+            <button type="button" class="btn btn-sm btn-outline-success"
+                onclick="window.location.href='{% url 'equipos_por_estado' 'disponible' %}'">
                 <i class="fas fa-check-circle me-1"></i>Disponibles
-            </a>
-            <a href="{% url 'equipos_por_estado' 'alquilado' %}" class="btn btn-sm btn-outline-danger">
+            </button>
+            {% if request.user.is_staff %}
+            <button type="button" class="btn btn-sm btn-outline-danger"
+                onclick="window.location.href='{% url 'equipos_por_estado' 'alquilado' %}'">
                 <i class="fas fa-handshake me-1"></i>Alquilados
-            </a>
-            <a href="{% url 'equipos_por_estado' 'reservado' %}" class="btn btn-sm btn-outline-warning">
+            </button>
+            {% endif %}
+            {% if request.user.is_staff %}
+            <button type="button" class="btn btn-sm btn-outline-warning"
+                onclick="window.location.href='{% url 'equipos_por_estado' 'reservado' %}'">
                 <i class="fas fa-calendar-check me-1"></i>Reservados
-            </a>
-            <a href="{% url 'equipos_mas_alquilados' %}" class="btn btn-sm btn-outline-info">
+            </button>
+            {% endif %}
+            {% if request.user.is_staff %}
+            <button type="button" class="btn btn-sm btn-outline-info"
+                onclick="window.location.href='{% url 'equipos_por_estado' 'mantenimiento' %}'">
+                <i class="fas fa-tools me-1"></i>Mantenimiento
+            </button>
+            {% endif %}
+            {% if request.user.is_staff %}
+            <button type="button" class="btn btn-sm btn-outline-info"
+                onclick="window.location.href='{% url 'equipos_mas_alquilados' %}'">
                 <i class="fas fa-chart-line me-1"></i>Más Alquilados
-            </a>
+            </button>
+            {% endif %}
         </div>
     </div>
-    
+
+
     <!-- Grid de cards -->
-       {% if equipos %}
+    {% if equipos %}
     <div class="equipos-grid">
         {% for equipo in equipos %}
         <div class="equipo-card">
@@ -140,7 +163,7 @@
 
                         <div class="quick-view-detail">
                             <i class="fas fa-info-circle"></i>
-                            <span>Especificaciones: <strong>{{ equipo.especificaciones|truncatechars:200}}</strong></span>
+                            <span>Especificaciones: <strong>{{equipo.especificaciones|truncatechars:200}}</strong></span>
                         </div>
                     </div>
                 </div>
@@ -212,6 +235,7 @@
     </nav>
     {% endif %}
 </div>
+
 {% endblock %}
 
 {% block extra_js %}

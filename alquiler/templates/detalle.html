@@ -9,85 +9,94 @@
 
 {% block content %}
 <div class="container equipo-detalle">
-    <!-- Sección Acciones -->
-    <div class="card actions-card mb-4">
-        <div class="card-body">
-            <div class="d-flex flex-wrap justify-content-between gap-2">
-                <a href="{% url 'editar_equipo' equipo.id %}" class="btn btn-warning flex-grow-1">
-                    <i class="fas fa-edit me-2"></i>Editar Equipo
-                </a>
-                <a href="{% url 'listar_equipos' %}" class="btn btn-outline-secondary flex-grow-1">
-                    <i class="fas fa-arrow-left me-2"></i>Volver
-                </a>
-                {% if user.is_staff %}
-                <button type="button" class="btn btn-danger flex-grow-1" data-bs-toggle="modal"
-                    data-bs-target="#eliminarEquipoModal">
-                    <i class="fas fa-trash-alt me-2"></i>Eliminar
-                </button>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    <!-- Sección Principal -->
-    <div class="card main-card mb-4">
-        <div class="card-header bg-primary text-white">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2 class="mb-0">{{ equipo.marca }} {{ equipo.modelo }}</h2>
-                <span class="badge estado-badge {{ equipo.estado }}">
-                    {{ equipo.get_estado_display }}
-                </span>
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <!-- Columna Imagen -->
-                <div class="col-lg-4 col-md-5 mb-3 mb-md-0">
-                    <div class="card img-card h-100">
-                        <div class="card-body text-center p-2 d-flex flex-column">
-                            <div class="img-container">
-                                <img src="{{ equipo.obtener_foto_principal }}" class="img-fluid main-img"
-                                    alt="{{ equipo.marca }} {{ equipo.modelo }}" id="mainEquipoImage"
-                                    onerror="this.onerror=null; this.src='{% static 'img/default-equipo.png' %}'">
-                            </div>
-                            {% if equipo.fotos.count > 1 %}
-                            <div class="card-footer thumbnails-container p-2 mt-auto">
-                                <div class="thumbnails-scroller">
-                                    {% for foto in equipo.fotos.all %}
-                                    <img src="{{ foto.foto.url }}"
-                                        class="thumbnail-img {% if forloop.first %}active{% endif %}"
-                                        alt="Miniatura {{ forloop.counter }}" data-full-img="{{ foto.foto.url }}">
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
+    <!-- Sección Principal - 50/50 -->
+    <div class="row g-4 mb-4">
+        <!-- Columna Imagen (50%) -->
+        <div class="col-lg-6 col-md-6">
+            <div class="card img-card">
+                <div class="card-body">
+                    <!-- Botón de edición para admin -->
+                    {% if user.is_staff %}
+                    <div class="mb-3">
+                        <a href="{% url 'editar_equipo' equipo.id %}" class="btn btn-warning">
+                            <i class="fas fa-edit me-2"></i>Editar Equipo
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Imagen principal -->
+                    <div class="img-container mb-3">
+                        <img src="{{ equipo.obtener_foto_principal }}" class="img-fluid main-img"
+                            alt="{{ equipo.marca }} {{ equipo.modelo }}" id="mainEquipoImage"
+                            onerror="this.onerror=null; this.src='{% static 'img/default-equipo.png' %}'">
+                    </div>
+                    
+                    <!-- Miniaturas -->
+                    {% if equipo.fotos.count > 1 %}
+                    <div class="thumbnails-scroller">
+                        {% for foto in equipo.fotos.all %}
+                        <img src="{{ foto.foto.url }}"
+                            class="thumbnail-img {% if forloop.first %}active{% endif %}"
+                            alt="Miniatura {{ forloop.counter }}" data-full-img="{{ foto.foto.url }}">
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Nombre y marca -->
+                    <div class="equipo-header mt-3">
+                        <h2>{{ equipo.marca }}</h2>
+                        <h3>{{ equipo.modelo }}</h3>
                     </div>
                 </div>
-
-                <!-- Columna Información -->
-                <div class="col-lg-8 col-md-7">
-                    <div class="card info-card h-100">
-                        <div class="card-body">
-                            <div class="info-grid">
-                                <div class="info-item">
-                                    <span class="info-label">Número de Serie:</span>
-                                    <span class="info-value">{{ equipo.numero_serie }}</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Ubicación:</span>
-                                    <span class="info-value">{{ equipo.ubicacion }}</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Fecha Registro:</span>
-                                    <span class="info-value">{{ equipo.fecha_registro|date:"d/m/Y" }}</span>
-                                </div>
-                                <div class="info-item full-width">
-                                    <span class="info-label">Especificaciones:</span>
-                                    <div class="info-value specs">
-                                        {{ equipo.especificaciones|linebreaks }}
-                                    </div>
-                                </div>
-                            </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-6">
+            <div class="card info-card">
+                <div class="card-body">
+                    <div class="info-grid">
+                        <!-- Estado -->
+                        <div class="info-item">
+                            <span class="info-label">Estado:</span>
+                            <span class="badge estado-badge {{ equipo.estado }}">
+                                {{ equipo.get_estado_display }}
+                            </span>
+                        </div>
+                        
+                        <!-- Detalles del equipo -->
+                        <div class="info-item">
+                            <span class="info-label">Número de Serie:</span>
+                            <span class="info-value">{{ equipo.numero_serie }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Ubicación:</span>
+                            <span class="info-value">{{ equipo.ubicacion }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Cantidad:</span>
+                            <span class="info-value">{{ equipo.cantidad_disponible }} de {{ equipo.cantidad_total }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Precio diario:</span>
+                            <span class="info-value">${{ equipo.precio_dia|floatformat:0 }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Fecha Registro:</span>
+                            <span class="info-value">{{ equipo.fecha_registro|date:"d/m/Y" }}</span>
+                        </div>
+                        
+                        <!-- Descripción y especificaciones -->
+                        <div class="info-item full-width">
+                            <span class="info-label">Descripción:</span>
+                            <div class="info-value">{{ equipo.descripcion_larga|linebreaksbr }}</div>
+                        </div>
+                        
+                        <div class="info-item full-width">
+                            <span class="info-label">Especificaciones técnicas:</span>
+                            <div class="info-value specs">{{ equipo.especificaciones|linebreaks }}</div>
                         </div>
                     </div>
                 </div>
@@ -97,10 +106,12 @@
 
     <!-- Sección Historial -->
     <div class="card historial-card mb-4">
-        <div class="card-header bg-secondary text-white">
-            <h3 class="mb-0"><i class="fas fa-history me-2"></i>Historial de Alquiler</h3>
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0"><i class="fas fa-history me-2"></i>Historial de Alquiler</h3>
+            </div>
         </div>
-        <div class="card-body p-0">
+        <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover historial-table mb-0">
                     <thead class="table-light">
@@ -128,6 +139,12 @@
                                     class="btn btn-sm btn-outline-primary" title="Ver detalle">
                                     <i class="fas fa-eye"></i>
                                 </a>
+                                {% if user.is_staff %}
+                                <a href="{% url 'editar' alquiler.id %}"
+                                    class="btn btn-sm btn-outline-warning" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% endif %}
                             </td>
                         </tr>
                         {% empty %}
@@ -143,44 +160,10 @@
         </div>
     </div>
 
-
-    {% if user.is_staff %}
-    <div class="modal fade" id="eliminarEquipoModal" tabindex="-1" aria-labelledby="eliminarEquipoModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="eliminarEquipoModalLabel">
-                        <i class="fas fa-trash-alt me-2"></i>Confirmar Eliminación
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <form method="post" action="{% url 'eliminar_equipo' equipo.id %}">
-                    {% csrf_token %}
-                    <div class="modal-body">
-                        <p>¿Estás seguro que deseas eliminar permanentemente este equipo?</p>
-                        <p class="fw-bold">{{ equipo.marca }} {{ equipo.modelo }} ({{ equipo.numero_serie }})</p>
-                        <p class="text-muted"><small>Esta acción no se puede deshacer y eliminará todos los datos
-                                asociados.</small></p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="fas fa-times me-1"></i> Cancelar
-                        </button>
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash-alt me-1"></i> Sí, Eliminar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    {% endif %}
     <!-- Sección Equipos Similares -->
     {% if equipos_similares %}
-    <div class="card similares-card mt-5">
-        <div class="card-header bg-info text-white">
+    <div class="card similares-card">
+        <div class="card-header">
             <h3 class="mb-0"><i class="fas fa-laptop-code me-2"></i> Equipos Similares</h3>
         </div>
         <div class="card-body">
@@ -192,7 +175,7 @@
                 <div class="similares-scroller">
                     {% for similar in equipos_similares %}
                     <div class="equipo-similar">
-                        <a href="{% url 'detalle_equipo' similar.id %}" class="text-decoration-none text-dark">
+                        <a href="{% url 'detalle_equipo' similar.id %}" class="text-decoration-none">
                             <div class="similar-img-container">
                                 <img src="{{ similar.obtener_foto_principal }}"
                                     alt="{{ similar.marca }} {{ similar.modelo }}"
@@ -203,7 +186,7 @@
                                 <span class="badge estado-badge {{ similar.estado }}">
                                     {{ similar.get_estado_display }}
                                 </span>
-                                <p class="precio mt-2 mb-0">${{ similar.precio|default:"0"|floatformat:0 }}</p>
+                                <p class="precio mt-2 mb-0">${{ similar.precio_dia|floatformat:0 }}</p>
                             </div>
                         </a>
                     </div>

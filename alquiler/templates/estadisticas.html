@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% load humanize %}
 {% block title %} Estadísticas de Alquileres {% endblock %}
 
 {% block page_title %} Estadísticas de Alquileres {% endblock %}
@@ -90,7 +90,8 @@
             </div>
             <div class="resumen-content">
                 <h3>Ingresos Totales</h3>
-                <p>${{ ingresos_totales|floatformat:2 }}</p>
+                {% load humanize %}
+                <p>${{ ingresos_totales|floatformat:2|intcomma }}</p>
             </div>
         </div>
     </div>

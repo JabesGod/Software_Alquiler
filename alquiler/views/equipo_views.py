@@ -2,22 +2,34 @@ from django.shortcuts import render, redirect, get_object_or_404
 from alquiler.models import Equipo, Alquiler, Cliente, Pago
 from alquiler.forms.equipo_forms import EquipoForm
 import csv
-from django.http import HttpResponse
 from django.db import models
 from django.http import JsonResponse
 from django.core.mail import send_mail
 from django.utils import timezone
 from datetime import timedelta
-from reportlab.pdfgen import canvas
 from django.contrib import messages
 from django.db.models import Count, Max
 from ..models import Equipo, Alquiler, FotoEquipo
-import json
 from ..forms import EquipoForm, FotoEquipoForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
 from django.forms.models import inlineformset_factory
-
+from django.db.models.functions import Coalesce
+from django.http import HttpResponse
+from django.shortcuts import render
+import json
+import xlsxwriter
+import io
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from django.db.models import Sum, Count, Avg, Max, F, Q, ExpressionWrapper, FloatField
+from django.db.models.functions import ExtractMonth, ExtractYear, TruncMonth
+from datetime import datetime
+from decimal import Decimal
 
 def listar_equipos(request):
     equipos = Equipo.objects.all()
@@ -144,22 +156,7 @@ def equipos_por_estado(request, estado):
     return render(request, 'lista.html', {'equipos': equipos})
 
 
-def buscar_equipos(request):
-    query = request.GET.get('q', '')
-    estado = request.GET.get('estado', '')
-    equipos = Equipo.objects.all()
 
-    if query:
-        equipos = equipos.filter
-        (models.Q(marca__icontains=query) |
-        models.Q(modelo__icontains=query) |
-        models.Q(especificaciones__icontains=query) |
-        models.Q(numero_serie__icontains=query))
-
-    if estado:
-        equipos = equipos.filter(estado=estado)
-
-    return render(request, 'buscar.html', {'equipos': equipos, 'query': query})
 
 def dashboard_admin(request):
     total_equipos = Equipo.objects.count()
@@ -173,9 +170,6 @@ def dashboard_admin(request):
         'pagos_pendientes': pagos_pendientes,
         'clientes_verificados': clientes_verificados,
     })
-
-
-
 
 
 def actualizar_estados_masivo(request):
@@ -227,13 +221,6 @@ def exportar_equipos_json(request):
     data = [equipo.exportar_informacion() for equipo in equipos]
     return JsonResponse({'equipos': data}, safe=False)
 
-def equipos_similares(request, id):
-    equipo = get_object_or_404(Equipo, id=id)
-    similares = equipo.equipos_similares()
-    return render(request, 'equipos_similares.html', {
-        'equipo': equipo,
-        'similares': similares
-    })
 
 def dashboard_equipo(request, id):
     equipo = get_object_or_404(Equipo, id=id)
@@ -290,42 +277,495 @@ def ejecutar_alertas_vencimiento(request):
     return redirect('dashboard_admin')  # cambia al nombre de tu vista de inicio
 
 def equipos_mas_alquilados(request):
-    # Obtener los 10 equipos más alquilados con información adicional
+    # Obtener parámetros de filtro
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    marca = request.GET.get('tipo_equipo')
+    agrupar_por = request.GET.get('agrupar_por', 'equipo')  # equipo o mes
+
+    # Filtros para Equipo (relación con Alquileres)
+    filtros_equipos = Q(alquileres__isnull=False)
+    if fecha_inicio and fecha_fin:
+        filtros_equipos &= Q(alquileres__fecha_inicio__gte=fecha_inicio, alquileres__fecha_fin__lte=fecha_fin)
+    if marca:
+        filtros_equipos &= Q(marca__iexact=marca)
+
+    # Filtros para Alquiler directamente
+    filtros_alquiler = Q()
+    if fecha_inicio and fecha_fin:
+        filtros_alquiler &= Q(fecha_inicio__gte=fecha_inicio, fecha_fin__lte=fecha_fin)
+
+    # Redirigir si se agrupa por mes
+    if agrupar_por == 'mes':
+        return estadisticas_por_mes(request, filtros_alquiler)
+
+    # Obtener los 10 equipos más alquilados
     equipos = (
         Equipo.objects.annotate(
-            total_alquileres=Count('alquileres'),
-            ultimo_alquiler_fecha=Max('alquileres__fecha_inicio')
+            total_alquileres=Count('alquileres', filter=filtros_equipos),
+            ingresos_generados=Coalesce(Sum('alquileres__precio_total', filter=filtros_equipos), Decimal('0.00')),
+            precio_promedio=Coalesce(Avg('alquileres__precio_total', filter=filtros_equipos), Decimal('0.00')),
+            ultimo_alquiler_fecha=Max('alquileres__fecha_inicio', filter=filtros_equipos)
         )
         .filter(total_alquileres__gt=0)
         .order_by('-total_alquileres')[:10]
     )
-    
-    # Obtener clientes frecuentes para cada equipo
+
+    total_equipos = Equipo.objects.count()
+    total_alquileres = Alquiler.objects.filter(filtros_alquiler).count()
+    total_clientes = Cliente.objects.filter(alquileres__in=Alquiler.objects.filter(filtros_alquiler)).distinct().count()
+    ingresos_totales = Alquiler.objects.filter(filtros_alquiler).aggregate(
+        total=Sum('precio_total')
+    )['total'] or Decimal('0.00')
+
+    marcas = Equipo.objects.values_list('marca', flat=True).distinct().order_by('marca')
+
+    # Añadir datos personalizados a cada equipo
     for equipo in equipos:
-        # Obtenemos los 3 clientes que más han alquilado este equipo
+        # Clientes frecuentes por equipo
+        cliente_filtros = Q(equipo=equipo)
+        if fecha_inicio and fecha_fin:
+            cliente_filtros &= Q(fecha_inicio__gte=fecha_inicio, fecha_fin__lte=fecha_fin)
+
         clientes = (
             Alquiler.objects
-            .filter(equipo=equipo)
+            .filter(cliente_filtros)
             .values('cliente__id', 'cliente__nombre')
             .annotate(total=Count('cliente'))
             .order_by('-total')[:3]
         )
         equipo.clientes_frecuentes = [c['cliente__nombre'] for c in clientes]
-        
-        # Obtenemos el último alquiler completo (si existe)
-        ultimo_alquiler = Alquiler.objects.filter(equipo=equipo).order_by('-fecha_inicio').first()
-        equipo.ultimo_alquiler = ultimo_alquiler
-    
-    # Preparar datos para el gráfico - CORREGIDO
-    labels = [f"{e.marca} {e.modelo} (ID: {e.id})" for e in equipos]
-    datos = [e.total_alquileres for e in equipos]
-    
-    # Serializa correctamente los datos para JavaScript
+
+        # Último alquiler
+        equipo.ultimo_alquiler = (
+            Alquiler.objects
+            .filter(equipo=equipo)
+            .order_by('-fecha_inicio')
+            .first()
+        )
+
+    # Datos para gráficos
+    labels = [f"{e.marca} {e.modelo}" for e in equipos]
+    datos_alquileres = [e.total_alquileres for e in equipos]
+    datos_ingresos = [float(e.ingresos_generados) for e in equipos]
+
     labels_json = json.dumps(labels)
-    datos_json = json.dumps(datos)
+    datos_alquileres_json = json.dumps(datos_alquileres)
+    datos_ingresos_json = json.dumps(datos_ingresos)
+
+    # Exportaciones
+    if 'export' in request.GET:
+        if request.GET['export'] == 'excel':
+            return exportar_a_excel(equipos, labels, datos_alquileres, datos_ingresos)
+        elif request.GET['export'] == 'pdf':
+            return exportar_a_pdf(equipos, labels, datos_alquileres, datos_ingresos,
+                                  total_equipos, total_alquileres, total_clientes, ingresos_totales)
+
+    # Renderizar plantilla
+    return render(request, 'estadisticas.html', {
+        'labels': labels_json,
+        'datos': datos_alquileres_json,
+        'ingresos_equipos': datos_ingresos_json,
+        'equipos': equipos,
+        'total_equipos': total_equipos,
+        'total_alquileres': total_alquileres,
+        'total_clientes': total_clientes,
+        'ingresos_totales': ingresos_totales,
+        'marcas': marcas,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+        'marca_seleccionada': marca,
+        'agrupar_por': agrupar_por
+    })
+
+def estadisticas_por_mes(request, filtros_base):
+    # Obtener alquileres agrupados por mes
+    alquileres_por_mes = (
+        Alquiler.objects
+        .filter(filtros_base)
+        .annotate(
+            mes=ExtractMonth('fecha_inicio'),
+            año=ExtractYear('fecha_inicio')
+        )
+        .values('mes', 'año')
+        .annotate(
+            total=Count('id'),
+            ingresos=Sum('precio_total')
+        )
+        .order_by('año', 'mes')
+    )
+    
+    # Preparar datos para los gráficos
+    meses = [
+        'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+        'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+    ]
+    
+    labels = []
+    datos_alquileres = []
+    datos_ingresos = []
+    
+    for dato in alquileres_por_mes:
+        labels.append(f"{meses[dato['mes']-1]} {dato['año']}")
+        datos_alquileres.append(dato['total'])
+        datos_ingresos.append(float(dato['ingresos']))
+    
+    # Obtener estadísticas generales
+    total_equipos = Equipo.objects.count()
+    total_alquileres = sum(datos_alquileres)
+    total_clientes = Cliente.objects.filter(alquileres__in=Alquiler.objects.filter(filtros_base)).distinct().count()
+    ingresos_totales = sum(datos_ingresos)
+    
+    # Obtener marcas para el filtro
+    marcas = Equipo.objects.values_list('marca', flat=True).distinct().order_by('marca')
+    
+    # Serializar datos para JavaScript
+    labels_json = json.dumps(labels)
+    datos_alquileres_json = json.dumps(datos_alquileres)
+    datos_ingresos_json = json.dumps(datos_ingresos)
+    
+    # Manejar exportación
+    if 'export' in request.GET:
+        if request.GET['export'] == 'excel':
+            return exportar_a_excel_mensual(labels, datos_alquileres, datos_ingresos)
+        elif request.GET['export'] == 'pdf':
+            return exportar_a_pdf_mensual(labels, datos_alquileres, datos_ingresos, 
+                                        total_equipos, total_alquileres, total_clientes, ingresos_totales)
     
     return render(request, 'estadisticas.html', {
         'labels': labels_json,
-        'datos': datos_json,
-        'equipos': equipos
+        'datos': datos_alquileres_json,
+        'ingresos_equipos': datos_ingresos_json,
+        'equipos': [],  # No mostramos tabla de equipos en vista mensual
+        'total_equipos': total_equipos,
+        'total_alquileres': total_alquileres,
+        'total_clientes': total_clientes,
+        'ingresos_totales': ingresos_totales,
+        'marcas': marcas,
+        'fecha_inicio': request.GET.get('fecha_inicio'),
+        'fecha_fin': request.GET.get('fecha_fin'),
+        'marca_seleccionada': request.GET.get('tipo_equipo'),
+        'agrupar_por': 'mes',
+        'vista_mensual': True
     })
+
+def exportar_a_excel(equipos, labels, datos_alquileres, datos_ingresos):
+    output = io.BytesIO()
+    
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet('Estadísticas')
+    
+    # Formatos
+    header_format = workbook.add_format({
+        'bold': True,
+        'bg_color': '#3498db',
+        'font_color': 'white',
+        'align': 'center',
+        'valign': 'vcenter',
+        'border': 1
+    })
+    
+    data_format = workbook.add_format({
+        'border': 1,
+        'align': 'left'
+    })
+    
+    number_format = workbook.add_format({
+        'border': 1,
+        'num_format': '#,##0'
+    })
+    
+    currency_format = workbook.add_format({
+        'border': 1,
+        'num_format': '$#,##0.00'
+    })
+    
+    # Escribir encabezados
+    worksheet.write_row(0, 0, [
+        'Equipo', 'Total Alquileres', 'Ingresos Generados', 
+        'Precio Promedio', 'Disponibilidad', 'Clientes Frecuentes'
+    ], header_format)
+    
+    # Escribir datos
+    for row_num, equipo in enumerate(equipos, start=1):
+        clientes_frecuentes = ', '.join(equipo.clientes_frecuentes) if equipo.clientes_frecuentes else 'N/A'
+        
+        worksheet.write(row_num, 0, f"{equipo.marca} {equipo.modelo}", data_format)
+        worksheet.write_number(row_num, 1, equipo.total_alquileres, number_format)
+        worksheet.write_number(row_num, 2, float(equipo.ingresos_generados), currency_format)
+        worksheet.write_number(row_num, 3, float(equipo.precio_promedio), currency_format)
+        worksheet.write(row_num, 4, f"{equipo.cantidad_disponible}/{equipo.cantidad_total}", data_format)
+        worksheet.write(row_num, 5, clientes_frecuentes, data_format)
+    
+    # Añadir gráficos al Excel
+    chart_sheet = workbook.add_worksheet('Gráficos')
+    
+    # Gráfico de barras para alquileres
+    chart_alquileres = workbook.add_chart({'type': 'column'})
+    chart_alquileres.add_series({
+        'name': 'Total Alquileres',
+        'categories': f'=Estadísticas!$A$2:$A${len(equipos)+1}',
+        'values': f'=Estadísticas!$B$2:$B${len(equipos)+1}',
+        'data_labels': {'value': True},
+        'fill': {'color': '#3498db'}
+    })
+    chart_alquileres.set_title({'name': 'Equipos más alquilados'})
+    chart_alquileres.set_x_axis({'name': 'Equipos'})
+    chart_alquileres.set_y_axis({'name': 'Número de alquileres'})
+    chart_sheet.insert_chart('B2', chart_alquileres, {'x_offset': 25, 'y_offset': 10})
+    
+    # Gráfico de barras para ingresos
+    chart_ingresos = workbook.add_chart({'type': 'column'})
+    chart_ingresos.add_series({
+        'name': 'Ingresos Generados',
+        'categories': f'=Estadísticas!$A$2:$A${len(equipos)+1}',
+        'values': f'=Estadísticas!$C$2:$C${len(equipos)+1}',
+        'data_labels': {'value': True, 'num_format': '$#,##0.00'},
+        'fill': {'color': '#2ecc71'}
+    })
+    chart_ingresos.set_title({'name': 'Ingresos por equipo'})
+    chart_ingresos.set_x_axis({'name': 'Equipos'})
+    chart_ingresos.set_y_axis({'name': 'Ingresos ($)'})
+    chart_sheet.insert_chart('B20', chart_ingresos, {'x_offset': 25, 'y_offset': 10})
+    
+    # Ajustar anchos de columna
+    worksheet.set_column('A:A', 30)
+    worksheet.set_column('B:B', 15)
+    worksheet.set_column('C:C', 18)
+    worksheet.set_column('D:D', 15)
+    worksheet.set_column('E:E', 15)
+    worksheet.set_column('F:F', 40)
+    
+    workbook.close()
+    output.seek(0)
+    
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=estadisticas_alquileres.xlsx'
+    return response
+
+def exportar_a_excel_mensual(labels, datos_alquileres, datos_ingresos):
+    output = io.BytesIO()
+    
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet('Estadísticas Mensuales')
+    
+    # Formatos
+    header_format = workbook.add_format({
+        'bold': True,
+        'bg_color': '#3498db',
+        'font_color': 'white',
+        'align': 'center',
+        'valign': 'vcenter',
+        'border': 1
+    })
+    
+    number_format = workbook.add_format({
+        'border': 1,
+        'num_format': '#,##0',
+        'align': 'center'
+    })
+    
+    currency_format = workbook.add_format({
+        'border': 1,
+        'num_format': '$#,##0.00',
+        'align': 'center'
+    })
+    
+    # Escribir encabezados
+    worksheet.write_row(0, 0, [
+        'Mes', 'Total Alquileres', 'Ingresos Generados'
+    ], header_format)
+    
+    # Escribir datos
+    for row_num, (mes, alquileres, ingresos) in enumerate(zip(labels, datos_alquileres, datos_ingresos), start=1):
+        worksheet.write(row_num, 0, mes)
+        worksheet.write_number(row_num, 1, alquileres, number_format)
+        worksheet.write_number(row_num, 2, ingresos, currency_format)
+    
+    # Añadir gráficos al Excel
+    chart_sheet = workbook.add_worksheet('Gráficos')
+    
+    # Gráfico de barras para alquileres
+    chart_alquileres = workbook.add_chart({'type': 'column'})
+    chart_alquileres.add_series({
+        'name': 'Total Alquileres',
+        'categories': f'=Estadísticas Mensuales!$A$2:$A${len(labels)+1}',
+        'values': f'=Estadísticas Mensuales!$B$2:$B${len(labels)+1}',
+        'data_labels': {'value': True},
+        'fill': {'color': '#3498db'}
+    })
+    chart_alquileres.set_title({'name': 'Alquileres por mes'})
+    chart_alquileres.set_x_axis({'name': 'Mes'})
+    chart_alquileres.set_y_axis({'name': 'Número de alquileres'})
+    chart_sheet.insert_chart('B2', chart_alquileres, {'x_offset': 25, 'y_offset': 10})
+    
+    # Gráfico de barras para ingresos
+    chart_ingresos = workbook.add_chart({'type': 'column'})
+    chart_ingresos.add_series({
+        'name': 'Ingresos Generados',
+        'categories': f'=Estadísticas Mensuales!$A$2:$A${len(labels)+1}',
+        'values': f'=Estadísticas Mensuales!$C$2:$C${len(labels)+1}',
+        'data_labels': {'value': True, 'num_format': '$#,##0.00'},
+        'fill': {'color': '#2ecc71'}
+    })
+    chart_ingresos.set_title({'name': 'Ingresos por mes'})
+    chart_ingresos.set_x_axis({'name': 'Mes'})
+    chart_ingresos.set_y_axis({'name': 'Ingresos ($)'})
+    chart_sheet.insert_chart('B20', chart_ingresos, {'x_offset': 25, 'y_offset': 10})
+    
+    # Ajustar anchos de columna
+    worksheet.set_column('A:A', 20)
+    worksheet.set_column('B:B', 18)
+    worksheet.set_column('C:C', 20)
+    
+    workbook.close()
+    output.seek(0)
+    
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=estadisticas_mensuales.xlsx'
+    return response
+
+def exportar_a_pdf(equipos, labels, datos_alquileres, datos_ingresos, 
+                  total_equipos, total_alquileres, total_clientes, ingresos_totales):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="estadisticas_alquileres.pdf"'
+    
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    
+    styles = getSampleStyleSheet()
+    elements = []
+    
+    # Título
+    elements.append(Paragraph("Estadísticas de Alquileres", styles['Title']))
+    elements.append(Paragraph(f"Fecha de generación: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
+    elements.append(Paragraph(" ", styles['Normal']))  # Espacio
+    
+    # Resumen estadístico
+    resumen_data = [
+        ["Total Equipos", total_equipos],
+        ["Total Alquileres", total_alquileres],
+        ["Clientes Activos", total_clientes],
+        ["Ingresos Totales", f"${ingresos_totales:,.2f}"]
+    ]
+    
+    resumen_table = Table(resumen_data, colWidths=[200, 100])
+    resumen_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3498db')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#f8f9fa')),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#dee2e6'))
+    ]))
+    elements.append(resumen_table)
+    elements.append(Paragraph(" ", styles['Normal']))  # Espacio
+    
+    # Tabla de equipos
+    if equipos:
+        elements.append(Paragraph("Detalle por Equipo", styles['Heading2']))
+        
+        equipo_data = [["Equipo", "Alquileres", "Ingresos", "Precio Prom.", "Disponibilidad"]]
+        
+        for equipo in equipos:
+            equipo_data.append([
+                f"{equipo.marca} {equipo.modelo}",
+                equipo.total_alquileres,
+                f"${equipo.ingresos_generados:,.2f}",
+                f"${equipo.precio_promedio:,.2f}",
+                f"{equipo.cantidad_disponible}/{equipo.cantidad_total}"
+            ])
+        
+        equipo_table = Table(equipo_data, colWidths=[180, 80, 90, 80, 100])
+        equipo_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3498db')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#dee2e6'))
+        ]))
+        elements.append(equipo_table)
+    
+    doc.build(elements)
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    
+    return response
+
+def exportar_a_pdf_mensual(labels, datos_alquileres, datos_ingresos, 
+                          total_equipos, total_alquileres, total_clientes, ingresos_totales):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="estadisticas_mensuales.pdf"'
+    
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    
+    styles = getSampleStyleSheet()
+    elements = []
+    
+    # Título
+    elements.append(Paragraph("Estadísticas Mensuales de Alquileres", styles['Title']))
+    elements.append(Paragraph(f"Fecha de generación: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
+    elements.append(Paragraph(" ", styles['Normal']))  # Espacio
+    
+    # Resumen estadístico
+    resumen_data = [
+        ["Total Equipos", total_equipos],
+        ["Total Alquileres", total_alquileres],
+        ["Clientes Activos", total_clientes],
+        ["Ingresos Totales", f"${ingresos_totales:,.2f}"]
+    ]
+    
+    resumen_table = Table(resumen_data, colWidths=[200, 100])
+    resumen_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3498db')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#f8f9fa')),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#dee2e6'))
+    ]))
+    elements.append(resumen_table)
+    elements.append(Paragraph(" ", styles['Normal']))  # Espacio
+    
+    # Tabla mensual
+    elements.append(Paragraph("Detalle Mensual", styles['Heading2']))
+    
+    mensual_data = [["Mes", "Alquileres", "Ingresos"]]
+    
+    for mes, alquileres, ingresos in zip(labels, datos_alquileres, datos_ingresos):
+        mensual_data.append([
+            mes,
+            alquileres,
+            f"${ingresos:,.2f}"
+        ])
+    
+    mensual_table = Table(mensual_data, colWidths=[120, 100, 120])
+    mensual_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3498db')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#dee2e6'))
+    ]))
+    elements.append(mensual_table)
+    
+    doc.build(elements)
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    
+    return response

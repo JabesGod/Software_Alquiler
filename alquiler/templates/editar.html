@@ -262,30 +262,5 @@
 
 {% block extra_js %}
 <script src="{% static 'js/crear_equipo.js' %}"></script>
-<script>
-// Script específico para edición
-document.addEventListener('DOMContentLoaded', function() {
-    // Manejar la selección de foto principal
-    document.querySelectorAll('.photo-card input[name$="-es_principal"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.checked) {
-                // Desmarcar las otras fotos principales
-                document.querySelectorAll('.photo-card input[name$="-es_principal"]').forEach(otherRadio => {
-                    if (otherRadio !== this) {
-                        otherRadio.checked = false;
-                    }
-                });
-            }
-        });
-    });
-    
-    // Previsualización de nuevas fotos
-    const fileInput = document.querySelector('input[name="nuevas_fotos"]');
-    if (fileInput) {
-        fileInput.addEventListener('change', function(e) {
-            // Implementar previsualización de nuevas fotos aquí
-        });
-    }
-});
-</script>
+<script src="{% static 'js/editar_equipo.js' %}"></script>
 {% endblock %}

@@ -13,6 +13,7 @@ from django.db.models import Q, Sum
 def equipo_foto_upload_path(instance, filename):
     """Función para definir la ruta de subida de fotos"""
     return f'equipos/{instance.equipo.numero_serie}/{filename}'
+
 class Equipo(models.Model):
     ESTADOS = [
         ('disponible', 'Disponible'),
@@ -429,7 +430,7 @@ class Alquiler(models.Model):
         ('reservado', 'Reservado'),
     ]
 
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='alquileres')
     equipo = models.ForeignKey(Equipo, on_delete=models.CASCADE, related_name="alquileres")    
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()

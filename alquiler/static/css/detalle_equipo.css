@@ -1,134 +1,131 @@
-/* ============ ESTILOS BASE ============ */
+/* Estructura base */
 .equipo-detalle {
-    padding: 1.5rem;
     max-width: 1200px;
     margin: 0 auto;
-    color: #333; /* Color oscuro por defecto para modo claro */
+    padding: 20px;
+    color: #333; /* Color de texto por defecto */
 }
 
 body.dark-mode .equipo-detalle {
-    color: var(--text-color); /* Usar el color claro en modo oscuro */
+    color: var(--text-color);
 }
 
-/* ============ TARJETAS GENERALES ============ */
-.card {
-    border: 1px solid var(--border-color);
+/* Encabezado del equipo */
+.equipo-header {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.equipo-header h1 {
+    color: var(--primary-color);
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.equipo-header h2 {
+    color: #555;
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+body.dark-mode .equipo-header h2 {
+    color: var(--text-secondary);
+}
+
+/* Contenedor de imagen */
+.img-container-wrapper {
+    position: relative;
     border-radius: 8px;
-    background-color: var(--card-background);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-    margin-bottom: 1.5rem;
     overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 15px;
 }
 
-.card:hover {
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.card-header {
-    background-color: var(--primary-color);
-    color: var(--text-color); /* Correcto - el texto en header debe ser claro siempre */
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.card-body {
-    padding: 1.5rem;
-    color: #333; /* Color oscuro por defecto para modo claro */
-}
-
-body.dark-mode .card-body {
-    color: var(--text-color); /* Color claro en modo oscuro */
-}
-
-/* ============ SECCIÓN IMAGEN ============ */
-.img-card {
-    height: 100%;
+.edit-btn-top-right {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 10;
 }
 
 .img-container {
     width: 100%;
-    height: 300px;
+    height: 400px;
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: #f8f9fa;
+}
+
+body.dark-mode .img-container {
     background-color: var(--background-color);
-    padding: 1rem;
-    border-radius: 6px;
-    margin-bottom: 1rem;
 }
 
 .main-img {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
-    border-radius: 4px;
 }
 
-.equipo-header {
-    padding: 1rem 0;
-    border-top: 1px solid var(--border-color);
-    margin-top: 1rem;
+/* Galería de miniaturas */
+.thumbnails-container {
+    margin-bottom: 20px;
 }
 
-.equipo-header h2 {
-    color: var(--primary-color); /* Correcto - usa el color primario */
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-}
-
-.equipo-header h3 {
-    color: #333; /* Color oscuro por defecto para modo claro */
-    font-weight: 500;
-}
-
-body.dark-mode .equipo-header h3 {
-    color: var(--text-color); /* Color claro en modo oscuro */
-}
-
-/* Miniaturas */
 .thumbnails-scroller {
     display: flex;
-    gap: 0.75rem;
+    gap: 10px;
     overflow-x: auto;
-    padding: 0.5rem 0;
+    padding: 10px 0;
     scrollbar-width: none;
 }
 
 .thumbnails-scroller::-webkit-scrollbar {
     display: none;
 }
+.similares-list-horizontal::-webkit-scrollbar {
+    display: none;
+}
+
 
 .thumbnail-img {
-    width: 70px;
-    height: 70px;
+    width: 80px;
+    height: 80px;
     object-fit: cover;
     border-radius: 4px;
     cursor: pointer;
     border: 2px solid transparent;
-    opacity: 0.8;
     transition: all 0.3s ease;
 }
 
 .thumbnail-img:hover,
 .thumbnail-img.active {
-    opacity: 1;
     border-color: var(--accent-color);
+    opacity: 1;
 }
 
-/* ============ SECCIÓN INFORMACIÓN ============ */
-.info-card {
-    height: 100%;
+/* Información del equipo */
+.info-container {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+body.dark-mode .info-container {
+    background: var(--card-background);
 }
 
 .info-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 15px;
 }
 
 .info-item {
-    margin-bottom: 0.75rem;
+    margin-bottom: 10px;
 }
 
 .info-item.full-width {
@@ -137,37 +134,190 @@ body.dark-mode .equipo-header h3 {
 
 .info-label {
     font-weight: 600;
-    color: var(--primary-color); /* Correcto - usa el color primario */
+    color: var(--primary-color);
     display: block;
-    margin-bottom: 0.25rem;
+    margin-bottom: 5px;
     font-size: 0.95rem;
 }
 
 .info-value {
-    color: #333; /* Color oscuro por defecto para modo claro */
     font-size: 1rem;
-}
-
-body.dark-mode .info-value {
-    color: var(--text-color); /* Color claro en modo oscuro */
 }
 
 .specs {
     white-space: pre-line;
-    line-height: 1.7;
-    background-color: var(--background-color);
-    padding: 1rem;
+    background-color: #f8f9fa;
+    padding: 15px;
     border-radius: 6px;
     border-left: 4px solid var(--accent-color);
-    color: #333; /* Color oscuro por defecto para modo claro */
 }
 
 body.dark-mode .specs {
-    color: var(--text-color); /* Color claro en modo oscuro */
+    background-color: var(--background-color);
 }
 
-/* Badges de estado */
-.estado-badge {
+/* Historial de alquiler */
+.historial-container {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+body.dark-mode .historial-container {
+    background: var(--card-background);
+}
+
+.historial-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px 20px;
+}
+
+.historial-scrollable {
+    overflow-x: auto;
+    padding: 15px;
+}
+
+.historial-table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+}
+
+.historial-table th {
+    background-color: rgba(0,0,0,0.05);
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+}
+
+body.dark-mode .historial-table th {
+    background-color: rgba(255,255,255,0.05);
+}
+
+.historial-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+body.dark-mode .historial-table td {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.historial-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Barra lateral de equipos similares */
+.similares-sidebar {
+    padding-left: 20px;
+}
+.similares-list-horizontal {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 15px;
+    padding: 15px;
+    scroll-snap-type: x mandatory;
+}
+
+.equipo-similar-horizontal {
+    flex: 0 0 auto;
+    width: 220px;
+    display: flex;
+    flex-direction: column;
+    scroll-snap-align: start;
+    background: #fff;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.similares-container {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 20px;
+}
+
+body.dark-mode .similares-container {
+    background: var(--card-background);
+}
+
+.similares-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px 20px;
+}
+
+.similares-list {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.equipo-similar {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+body.dark-mode .equipo-similar {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.equipo-similar:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.similar-img-container {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+body.dark-mode .similar-img-container {
+    background-color: var(--background-color);
+}
+
+.similar-img-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.similar-info {
+    flex-grow: 1;
+}
+
+.similar-info h4 {
+    margin: 0 0 5px 0;
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.precio {
+    font-weight: 700;
+    color: var(--success-color);
+    margin-top: 5px;
+}
+
+/* Badges */
+.badge {
     font-size: 0.85rem;
     padding: 0.35rem 0.75rem;
     font-weight: 600;
@@ -190,231 +340,29 @@ body.dark-mode .specs {
     color: white;
 }
 
-/* ============ SECCIÓN HISTORIAL ============ */
-.historial-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.historial-table th {
-    background-color: var(--primary-color);
-    color: var(--text-color); /* Correcto - texto claro en headers */
-    padding: 0.75rem 1rem;
-    text-align: left;
-    font-weight: 500;
-}
-
-.historial-table td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border-color);
-    color: #333; /* Color oscuro por defecto para modo claro */
-}
-
-body.dark-mode .historial-table td {
-    color: var(--text-color); /* Color claro en modo oscuro */
-}
-
-.historial-table tr:hover {
-    background-color: rgba(var(--accent-color-rgb), 0.05);
-}
-
-.estado-alquiler {
-    font-size: 0.8rem;
-    padding: 0.3rem 0.6rem;
-    border-radius: 20px;
-    font-weight: 500;
-}
-
-.estado-alquiler.activo {
-    background-color: var(--success-color);
-    color: white;
-}
-
-.estado-alquiler.finalizado {
-    background-color: var(--secondary-color);
-    color: white;
-}
-
-.estado-alquiler.pendiente {
-    background-color: var(--warning-color);
-    color: white;
-}
-
-/* ============ EQUIPOS SIMILARES ============ */
-.similares-container {
-    position: relative;
-    padding: 0 2.5rem;
-}
-
-.similares-scroller {
-    display: flex;
-    gap: 1.25rem;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    padding: 1rem 0;
-    scrollbar-width: none;
-}
-
-.similares-scroller::-webkit-scrollbar {
-    display: none;
-}
-
-.equipo-similar {
-    flex: 0 0 220px;
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: var(--card-background);
-    border: 1px solid var(--border-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-}
-
-.equipo-similar:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-.similar-img-container {
-    height: 150px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--background-color);
-    padding: 1rem;
-}
-
-.similar-img-container img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
-.similar-info {
-    padding: 1rem;
-    border-top: 1px solid var(--border-color);
-}
-
-.similar-info h5 {
-    font-size: 1rem;
-    color: var(--primary-color); /* Correcto - usa el color primario */
-    margin-bottom: 0.5rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.precio {
-    font-weight: 700;
-    color: var(--success-color);
-    margin-top: 0.5rem;
-}
-
-.scroll-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 50%;
-    background-color: var(--card-background);
-    border: 1px solid var(--border-color);
-    color: var(--primary-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 2;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.scroll-btn:hover {
-    background-color: var(--primary-color);
-    color: var(--text-color);
-}
-
-.left-btn {
-    left: 0;
-}
-
-.right-btn {
-    right: 0;
-}
-
-/* ============ BOTONES ============ */
-.btn {
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-warning {
-    background-color: var(--warning-color);
-    color: white;
-    border: none;
-}
-
-.btn-warning:hover {
-    background-color: #e67e22;
-    color: white;
-}
-
-.btn-primary {
-    background-color: var(--accent-color);
-    color: white;
-    border: none;
-}
-
-.btn-primary:hover {
-    background-color: #2980b9;
-    color: white;
-}
-
-.btn-outline-primary {
-    background-color: transparent;
-    border: 1px solid var(--accent-color);
-    color: var(--accent-color);
-}
-
-.btn-outline-primary:hover {
-    background-color: var(--accent-color);
-    color: white;
-}
-
-.btn-outline-warning {
-    background-color: transparent;
-    border: 1px solid var(--warning-color);
-    color: var(--warning-color);
-}
-
-.btn-outline-warning:hover {
-    background-color: var(--warning-color);
-    color: white;
-}
-
-.btn-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.85rem;
-}
-
-/* ============ RESPONSIVE ============ */
+/* Responsive */
 @media (max-width: 992px) {
-    .img-container {
-        height: 250px;
+    .similares-sidebar {
+        padding-left: 0;
+        margin-top: 20px;
     }
     
-    .equipo-similar {
-        flex: 0 0 200px;
+    .img-container {
+        height: 350px;
     }
 }
 
 @media (max-width: 768px) {
-    .row {
-        flex-direction: column;
+    .equipo-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .equipo-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .img-container {
+        height: 300px;
     }
     
     .info-grid {
@@ -425,69 +373,28 @@ body.dark-mode .historial-table td {
         grid-column: span 1;
     }
     
-    .img-container {
-        height: 220px;
-    }
-    
     .thumbnail-img {
-        width: 60px;
-        height: 60px;
+        width: 70px;
+        height: 70px;
     }
     
-    .similares-container {
-        padding: 0 2rem;
-    }
-    
-    .scroll-btn {
-        width: 2rem;
-        height: 2rem;
+    .similar-img-container {
+        width: 70px;
+        height: 70px;
     }
 }
 
 @media (max-width: 576px) {
     .equipo-detalle {
-        padding: 1rem;
-    }
-    
-    .card-body {
-        padding: 1rem;
+        padding: 15px;
     }
     
     .img-container {
-        height: 200px;
+        height: 250px;
     }
     
-    .similar-img-container {
-        height: 120px;
+    .edit-btn-top-right .btn {
+        padding: 5px 10px;
+        font-size: 0.8rem;
     }
-    
-    .equipo-similar {
-        flex: 0 0 180px;
-    }
-    
-    .similares-container {
-        padding: 0 1.5rem;
-    }
-}
-
-/* Asegurar que el texto sea legible en modo oscuro */
-body.dark-mode .card,
-body.dark-mode .card-body,
-body.dark-mode .info-value,
-body.dark-mode .specs,
-body.dark-mode .historial-table td {
-    color: var(--text-color) !important;
-}
-
-body.dark-mode .text-muted {
-    color: var(--text-secondary) !important;
-}
-
-/* Añadir variable RGB para el accent color */
-:root {
-    --accent-color-rgb: 52, 152, 219;
-}
-
-body.dark-mode {
-    --accent-color-rgb: 15, 52, 96;
 }

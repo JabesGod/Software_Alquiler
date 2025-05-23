@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %} Equipos más alquilados{% endblock %}
+{% block title %} Estadísticas de Alquileres {% endblock %}
 
-{% block page_title %} Equipos más alquilados{% endblock %}
-
+{% block page_title %} Estadísticas de Alquileres {% endblock %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'alquiler/css/estadisticas.css' %}">
+<link rel="stylesheet" href="{% static 'css/estadisticas.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -15,59 +15,191 @@
         <i class="fas fa-arrow-left"></i> Volver a la lista
     </a>
 
+    <div class="header-estadisticas">
+        <h2><i class="fas fa-chart-bar"></i> Estadísticas de Alquileres</h2>
+        <div class="export-buttons">
+            <button id="export-excel" class="btn-export">
+                <i class="fas fa-file-excel"></i> Exportar a Excel
+            </button>
+            <button id="export-pdf" class="btn-export">
+                <i class="fas fa-file-pdf"></i> Exportar a PDF
+            </button>
+        </div>
+    </div>
+
+    <div class="filtros">
+        <form method="get" class="form-filtros">
+            <div class="form-group">
+                <label for="rango-fechas">Rango de fechas:</label>
+                <input type="text" id="rango-fechas" name="rango_fechas" class="date-range-picker" 
+                       placeholder="Seleccione rango de fechas" value="{% if fecha_inicio and fecha_fin %}{{ fecha_inicio }} a {{ fecha_fin }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label for="tipo-equipo">Tipo de equipo:</label>
+                <select id="tipo-equipo" name="tipo_equipo" class="form-control">
+                    <option value="">Todos los equipos</option>
+                    {% for marca in marcas %}
+                    <option value="{{ marca }}" {% if marca == marca_seleccionada %}selected{% endif %}>{{ marca }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="agrupar-por">Agrupar por:</label>
+                <select id="agrupar-por" name="agrupar_por" class="form-control">
+                    <option value="equipo" {% if agrupar_por == 'equipo' %}selected{% endif %}>Equipo</option>
+                    <option value="mes" {% if agrupar_por == 'mes' %}selected{% endif %}>Mes</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-filtrar">
+                <i class="fas fa-filter"></i> Filtrar
+            </button>
+        </form>
+    </div>
+
+    <div class="resumen-estadisticas">
+        <div class="resumen-card">
+            <div class="resumen-icon">
+                <i class="fas fa-cubes"></i>
+            </div>
+            <div class="resumen-content">
+                <h3>Total Equipos</h3>
+                <p>{{ total_equipos }}</p>
+            </div>
+        </div>
+        <div class="resumen-card">
+            <div class="resumen-icon">
+                <i class="fas fa-hand-holding-usd"></i>
+            </div>
+            <div class="resumen-content">
+                <h3>Alquileres Totales</h3>
+                <p>{{ total_alquileres }}</p>
+            </div>
+        </div>
+        <div class="resumen-card">
+            <div class="resumen-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="resumen-content">
+                <h3>Clientes Activos</h3>
+                <p>{{ total_clientes }}</p>
+            </div>
+        </div>
+        <div class="resumen-card">
+            <div class="resumen-icon">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="resumen-content">
+                <h3>Ingresos Totales</h3>
+                <p>${{ ingresos_totales|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+
+    {% if vista_mensual %}
     <div class="grafico-container">
-        <!-- CORREGIDO: Los datos ya están en formato JSON -->
+        <h3><i class="fas fa-chart-line"></i> Alquileres por mes</h3>
         <canvas id="grafico" width="800" height="400" 
                 data-labels='{{ labels }}' 
                 data-datos='{{ datos }}'>
         </canvas>
     </div>
 
-    {% if equipos %}
-    <h3>Detalles por equipo</h3>
-    <table class="tabla-detalles">
-        <thead>
-            <tr>
-                <th>Equipo</th>
-                <th>Total Alquileres</th>
-                <th>Clientes frecuentes</th>
-                <th>Último alquiler</th>
-                <th>Cliente último alquiler</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for equipo in equipos %}
-            <tr>
-                <td>{{ equipo.marca }} {{ equipo.modelo }}</td>
-                <td class="text-center">{{ equipo.total_alquileres }}</td>
-                <td>
-                    {% if equipo.clientes_frecuentes %}
-                        {% for cliente in equipo.clientes_frecuentes %}
-                            {{ cliente }}{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-                    {% else %}
-                        Sin datos
-                    {% endif %}
-                </td>
-                <td>
-                    {% if equipo.ultimo_alquiler %}
-                        {{ equipo.ultimo_alquiler.fecha_inicio|date:"d/m/Y" }}
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </td>
-                <td>
-                    {% if equipo.ultimo_alquiler %}
-                        {{ equipo.ultimo_alquiler.cliente.nombre }}
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="grafico-container">
+        <h3><i class="fas fa-money-bill-wave"></i> Ingresos por mes</h3>
+        <canvas id="graficoIngresos" width="800" height="400"
+                data-labels='{{ labels }}'
+                data-datos='{{ ingresos_equipos }}'>
+        </canvas>
+    </div>
     {% else %}
+    <div class="grafico-container">
+        <h3><i class="fas fa-chart-pie"></i> Equipos más alquilados</h3>
+        <canvas id="grafico" width="800" height="400" 
+                data-labels='{{ labels }}' 
+                data-datos='{{ datos }}'>
+        </canvas>
+    </div>
+
+    <div class="grafico-container">
+        <h3><i class="fas fa-money-bill-wave"></i> Ingresos por equipo</h3>
+        <canvas id="graficoIngresos" width="800" height="400"
+                data-labels='{{ labels }}'
+                data-datos='{{ ingresos_equipos }}'>
+        </canvas>
+    </div>
+    {% endif %}
+
+    {% if equipos and not vista_mensual %}
+    <div class="tabla-container">
+        <h3><i class="fas fa-table"></i> Detalles por equipo</h3>
+        <table class="tabla-detalles">
+            <thead>
+                <tr>
+                    <th>Equipo</th>
+                    <th>Disponibilidad</th>
+                    <th>Total Alquileres</th>
+                    <th>Ingresos Generados</th>
+                    <th>Precio Promedio</th>
+                    <th>Clientes frecuentes</th>
+                    <th>Último alquiler</th>
+                    <th>Cliente último alquiler</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for equipo in equipos %}
+                <tr>
+                    <td>
+                        <div class="equipo-info">
+                            <img src="{{ equipo.obtener_foto_principal }}" alt="{{ equipo.marca }} {{ equipo.modelo }}" class="equipo-thumbnail">
+                            <div>
+                                <strong>{{ equipo.marca }} {{ equipo.modelo }}</strong><br>
+                                <small>Serie: {{ equipo.numero_serie }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <span class="disponibilidad-badge {% if equipo.cantidad_disponible > 0 %}disponible{% else %}no-disponible{% endif %}">
+                            {{ equipo.cantidad_disponible }}/{{ equipo.cantidad_total }}
+                        </span>
+                    </td>
+                    <td class="text-center">{{ equipo.total_alquileres }}</td>
+                    <td class="text-right">${{ equipo.ingresos_generados|floatformat:2 }}</td>
+                    <td class="text-right">${{ equipo.precio_promedio|floatformat:2 }}</td>
+                    <td>
+                        {% if equipo.clientes_frecuentes %}
+                            {% for cliente in equipo.clientes_frecuentes %}
+                                <span class="cliente-tag">{{ cliente }}</span>{% if not forloop.last %}{% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <span class="sin-datos">Sin datos</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if equipo.ultimo_alquiler %}
+                            {{ equipo.ultimo_alquiler.fecha_inicio|date:"d/m/Y" }}
+                        {% else %}
+                            <span class="sin-datos">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if equipo.ultimo_alquiler %}
+                            {{ equipo.ultimo_alquiler.cliente.nombre }}
+                        {% else %}
+                            <span class="sin-datos">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <a href="{% url 'detalle_equipo' equipo.id %}" class="btn-action" title="Ver detalle">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% elif not vista_mensual %}
     <div class="alert alert-info">
         No hay suficientes datos de alquileres para mostrar estadísticas.
     </div>
@@ -77,5 +209,13 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="{% static 'js/grafico_equipos.js' %}"></script>
+<script src="{% static 'js/exportar_excel.js' %}"></script>
+<script src="{% static 'js/generar_pdf.js' %}"></script>
+<script src="{% static 'js/filtros_estadisticas.js' %}"></script>
 {% endblock %}

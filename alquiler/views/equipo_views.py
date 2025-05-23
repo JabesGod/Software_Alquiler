@@ -176,10 +176,36 @@ def actualizar_estados_masivo(request):
     if request.method == 'POST':
         ids_equipos = request.POST.getlist('ids_equipos')
         nuevo_estado = request.POST.get('nuevo_estado')
-        Equipo.objects.filter(id__in=ids_equipos).update(estado=nuevo_estado)
+        
+        if not ids_equipos:
+            messages.error(request, "Debes seleccionar al menos un equipo")
+            return redirect('actualizar_estados_masivo')
+        
+        if not nuevo_estado:
+            messages.error(request, "Debes seleccionar un estado válido")
+            return redirect('actualizar_estados_masivo')
+        
+        # Validar que el estado sea uno de los permitidos
+        estados_validos = [estado[0] for estado in Equipo.ESTADOS]
+        if nuevo_estado not in estados_validos:
+            messages.error(request, "Estado seleccionado no válido")
+            return redirect('actualizar_estados_masivo')
+        
+        # Actualizar los equipos seleccionados
+        equipos_actualizados = Equipo.objects.filter(id__in=ids_equipos)
+        count = equipos_actualizados.update(estado=nuevo_estado)
+        
+        messages.success(request, f"Se actualizaron {count} equipos correctamente")
         return redirect('listar_equipos')
-    equipos = Equipo.objects.all()
-    return render(request, 'actualizar_masivo.html', {'equipos': equipos})
+    
+    # Obtener todos los equipos y los estados disponibles
+    equipos = Equipo.objects.all().order_by('marca', 'modelo')
+    estados = Equipo.ESTADOS  # Esto obtiene las tuplas (valor, nombre) de los estados
+    
+    return render(request, 'actualizar_masivo.html', {
+        'equipos': equipos,
+        'estados': estados  # Pasar los estados al template
+    })
 
 
 def exportar_equipos_csv(request):

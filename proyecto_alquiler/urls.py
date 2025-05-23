@@ -58,8 +58,8 @@ urlpatterns = [
     path('equipos/exportar-csv/', exportar_equipos_csv, name='exportar_equipos_csv'),
     path('equipos/<int:id>/historial/', historial_equipo, name='historial_equipo'),
     path('dashboard/', dashboard_admin, name='dashboard_admin'),
-    
     path('equipos/actualizar-masivo/', actualizar_estados_masivo, name='actualizar_estados_masivo'),
+    
     path('equipos/<int:id>/proxima-disponibilidad/', proxima_disponibilidad, name='proxima_disponibilidad'),
     path('equipos/<int:id>/dashboard/', dashboard_equipo, name='dashboard_equipo'),
     path('alertas/vencimiento/manual/', ejecutar_alertas_vencimiento, name='enviar_alertas_vencimiento'),

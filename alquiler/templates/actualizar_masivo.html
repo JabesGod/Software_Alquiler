@@ -1,50 +1,99 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
 
-<head>
-    <meta charset="UTF-8">
-    <title>Actualizar Estado de Equipos Masivamente</title>
-    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
-</head>
+{% block title %}Actualización Masiva de Estados{% endblock %}
 
-<body>
-    <h2>🔄 Actualizar Estados Masivamente</h2>
+{% block page_title %}Actualización Masiva de Estados{% endblock %}
 
-    <form method="post">
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/actualizacion_estados.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor-actualizacion">
+    <div class="header-acciones">
+        <a href="{% url 'listar_equipos' %}" class="btn-volver">
+            <i class="fas fa-arrow-left"></i> Volver a la lista
+        </a>
+        
+        <div class="acciones-rapidas">
+            <button id="seleccionar-todos" class="btn-accion">
+                <i class="fas fa-check-square"></i> Seleccionar todos
+            </button>
+            <button id="deseleccionar-todos" class="btn-accion">
+                <i class="far fa-square"></i> Deseleccionar todos
+            </button>
+        </div>
+    </div>
+
+    <form method="post" class="form-actualizacion">
         {% csrf_token %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Seleccionar</th>
-                    <th>Marca</th>
-                    <th>Modelo</th>
-                    <th>Estado Actual</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for equipo in equipos %}
-                <tr>
-                    <td><input type="checkbox" name="ids_equipos" value="{{ equipo.id }}"></td>
-                    <td>{{ equipo.marca }}</td>
-                    <td>{{ equipo.modelo }}</td>
-                    <td>{{ equipo.get_estado_display }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4">No hay equipos.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <select name="nuevo_estado" required>
-            <option value="disponible">Disponible</option>
-            <option value="alquilado">Alquilado</option>
-            <option value="reservado">Reservado</option>
-        </select>
-        <button type="submit">Actualizar Estado</button>
+        
+        <div class="filtros-rapidos">
+            <input type="text" id="filtro-equipos" placeholder="Filtrar equipos..." class="input-filtro">
+            
+            <div class="controles-estado">
+                <select name="nuevo_estado" class="select-estado" required>
+                    <option value="" disabled selected>Seleccione nuevo estado</option>
+                    {% for valor, nombre in estados %}
+                    <option value="{{ valor }}" data-color="estado-{{ valor }}">
+                        {{ nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+                
+                <button type="submit" class="btn-actualizar">
+                    <i class="fas fa-sync-alt"></i> Actualizar Estados
+                </button>
+            </div>
+        </div>
+        
+        <div class="tabla-container">
+            <table class="tabla-equipos">
+                <thead>
+                    <tr>
+                        <th width="50px"><input type="checkbox" id="check-todos"></th>
+                        <th>Marca</th>
+                        <th>Modelo</th>
+                        <th>N° Serie</th>
+                        <th>Estado Actual</th>
+                        <th>Disponibilidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for equipo in equipos %}
+                    <tr class="equipo-fila">
+                        <td>
+                            <input type="checkbox" name="ids_equipos" value="{{ equipo.id }}" 
+                                   class="check-equipo" id="equipo-{{ equipo.id }}">
+                            <label for="equipo-{{ equipo.id }}"></label>
+                        </td>
+                        <td>{{ equipo.marca }}</td>
+                        <td>{{ equipo.modelo }}</td>
+                        <td>{{ equipo.numero_serie }}</td>
+                        <td>
+                            <span class="badge-estado estado-{{ equipo.estado }}">
+                                {{ equipo.get_estado_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge-disponibilidad {% if equipo.cantidad_disponible > 0 %}disponible{% else %}no-disponible{% endif %}">
+                                {{ equipo.cantidad_disponible }}/{{ equipo.cantidad_total }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="sin-equipos">No hay equipos registrados</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </form>
+</div>
+{% endblock %}
 
-</body>
-</html>
+{% block extra_js %}
+<script src="{% static 'js/actualizacion_estados.js' %}"></script>
+{% endblock %}

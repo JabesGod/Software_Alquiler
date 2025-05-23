@@ -67,6 +67,7 @@
                         <li><a href="{% url 'equipos_mas_alquilados' %}"><i class="fas fa-chart-bar"></i>
                                 Estadísticas</a></li>
                                 {% endif %}
+                                <li><a href="{% url 'actualizar_estados_masivo' %}"><i class="fas fa-sync-alt"></i> Actualización Masiva</a></li>
                                 {% if user.is_staff %}
                         <li><a href="{% url 'exportar_equipos_csv' %}"><i class="fas fa-file-csv"></i> Exportar</a></li>
                             {% endif %}
@@ -134,9 +135,6 @@
                         <li><a href="{% url 'pagos_pendientes' user.id %}"><i class="fas fa-clock"></i> Pendientes</a>
                         </li>
                         {% endif %}
-
-
-                        
                         <li><a href="{% url 'pasarela_pago' %}"><i class="fas fa-credit-card"></i> Pasarela</a></li>
                     </ul>
                 </li>

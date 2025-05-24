@@ -9,7 +9,7 @@ from alquiler.views.equipo_views import (
     equipos_disponibles, cambiar_estado_equipo, equipos_por_estado,
     equipos_mas_alquilados, dashboard_admin,
     actualizar_estados_masivo, exportar_equipos_csv,
-    historial_equipo, proxima_disponibilidad, dashboard_equipo,
+    historial_equipo, proxima_disponibilidad,
     ejecutar_alertas_vencimiento, eliminar_equipo
 )
 from alquiler.views.cliente_views import (
@@ -60,8 +60,6 @@ urlpatterns = [
     path('dashboard/', dashboard_admin, name='dashboard_admin'),
     path('equipos/actualizar-masivo/', actualizar_estados_masivo, name='actualizar_estados_masivo'),
     path('equipos/<int:id>/proxima-disponibilidad/', proxima_disponibilidad, name='proxima_disponibilidad'),
-    
-    path('equipos/<int:id>/dashboard/', dashboard_equipo, name='dashboard_equipo'),
     path('alertas/vencimiento/manual/', ejecutar_alertas_vencimiento, name='enviar_alertas_vencimiento'),
     #Urls clientes
     path('clientes/', listar_clientes, name='listar_clientes'),

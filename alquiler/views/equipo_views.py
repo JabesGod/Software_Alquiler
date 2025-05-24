@@ -248,18 +248,6 @@ def exportar_equipos_json(request):
     return JsonResponse({'equipos': data}, safe=False)
 
 
-def dashboard_equipo(request, id):
-    equipo = get_object_or_404(Equipo, id=id)
-    datos = {
-        'total_alquileres': equipo.total_alquileres(),
-        'duracion_promedio_dias': equipo.duracion_promedio_alquiler(),
-        'estado_actual': equipo.estado,
-        'fecha_proxima_disponibilidad': equipo.proxima_fecha_disponible(),
-    }
-    return render(request, 'dashboard_equipo.html', {
-        'equipo': equipo,
-        'datos': datos
-    })
 
 
 def enviar_alertas_vencimiento():

@@ -1,17 +1,115 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Próxima Disponibilidad</title>
-    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
-</head>
-<body>
-    <h2>📅 Próxima Disponibilidad del Equipo</h2>
-    <p><strong>Equipo:</strong> {{ equipo.marca }} {{ equipo.modelo }}</p>
-    <p><strong>Número de Serie:</strong> {{ equipo.numero_serie }}</p>
-    <p><strong>Estado Actual:</strong> {{ equipo.get_estado_display }}</p>
-    <p><strong>Próxima Fecha Disponible:</strong> {{ fecha_disponible }}</p>
-    <a href="{% url 'listar_equipos' %}">⬅️ Volver a Equipos</a>
-</body>
-</html>
+
+{% block title %}Disponibilidad de {{ equipo.numero_serie }} - Alquileres{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/proxima_disponibilidad.css' %}">
+{% endblock %}
+{% block content %}
+{% if request.user.is_staff %}
+<div class="container disponibilidad-container">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0"><i class="fas fa-calendar-alt me-2"></i> Próxima Disponibilidad</h2>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row mb-4">
+                <!-- Columna de Información del Equipo -->
+                <div class="col-md-6">
+                    <div class="equipo-info p-3 border rounded">
+                        <h4 class="text-primary"><i class="fas fa-toolbox me-2"></i> Información del Equipo</h4>
+
+                        <div class="info-item">
+                            <span class="fw-bold"><i class="fas fa-tag me-2"></i> Marca/Modelo:</span>
+                            {{ equipo.marca }} | {{ equipo.modelo }}
+                        </div>
+
+                        <div class="info-item">
+                            <span class="fw-bold"><i class="fas fa-barcode me-2"></i> Número de Serie:</span>
+                            <span class="badge bg-secondary">{{ equipo.numero_serie }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="fw-bold"><i class="fas fa-boxes me-2"></i> Inventario:</span>
+                            <span
+                                class="badge bg-{% if equipo.cantidad_disponible > 0 %}success{% else %}danger{% endif %}">
+                                {{ equipo.cantidad_disponible }} disponible(s) de {{ equipo.cantidad_total }}
+                            </span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="fw-bold"><i class="fas fa-chart-line me-2"></i> Historial:</span>
+                            <div class="d-flex align-items-center mt-2">
+                                <div class="progress flex-grow-1" style="height: 8px;">
+                                    <div class="progress-bar bg-info" role="progressbar"
+                                        style="width: {{ equipo.frecuencia_alquiler }}%"
+                                        aria-valuenow="{{ equipo.frecuencia_alquiler }}" aria-valuemin="0"
+                                        aria-valuemax="100"></div>
+                                </div>
+                                <small class="ms-2">{{ equipo.total_alquileres }} alquileres</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna de Disponibilidad y Precios -->
+                <div class="col-md-6">
+                    <div class="disponibilidad-info p-3 border rounded bg-light">
+                        <h4 class="text-success"><i class="fas fa-clock me-2"></i> Disponibilidad</h4>
+
+                        <div class="info-item">
+                            <span class="fw-bold"><i class="fas fa-calendar-check me-2"></i> Estado:</span>
+                            <span
+                                class="badge bg-{% if equipo.estado == 'disponible' %}success{% elif equipo.estado == 'alquilado' %}danger{% else %}warning{% endif %}">
+                                {{ equipo.get_estado_display }}
+                            </span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="fw-bold"><i class="fas fa-calendar-day me-2"></i> Próxima
+                                disponibilidad:</span>
+                            <span class="fecha-disponible">
+                                {% if equipo.proxima_fecha_disponible|date:"U" > now|date:"U" %}
+                                {{ equipo.proxima_fecha_disponible|date:"d/m/Y" }}
+                                <small class="text-muted">(en {{ equipo.proxima_fecha_disponible|timeuntil }})</small>
+                                {% else %}
+                                <span class="text-success">Disponible ahora</span>
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="fw-bold"><i class="fas fa-business-time me-2"></i> Duración promedio:</span>
+                            {{ equipo.duracion_promedio_alquiler }} días
+                        </div>
+
+                        <hr>
+
+                        <h5 class="mb-3"><i class="fas fa-tags me-2"></i> Tarifas de Alquiler</h5>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="pricing-card">
+                                    <div class="price-label">Día</div>
+                                    <div class="price-amount">${{ equipo.precio_dia|floatformat:2 }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer bg-light">
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'listar_equipos' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Volver a Equipos
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

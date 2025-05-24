@@ -46,6 +46,7 @@ body.dark-mode {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+
 body {
     font-family: 'Poppins', sans-serif;
     background-color: var(--background-color);

@@ -150,6 +150,20 @@
     background-color: #2980b9;
 }
 
+.btn-disponibilidad{
+    background-color: #17a2b8;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-block;
+    margin: 2px;
+}
+
+.btn-disponibilidad:hover {
+      background-color: #138496;
+    color: white;
+}
 /* Modal de vista rápida */
 .quick-view-modal {
     display: none;

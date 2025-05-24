@@ -26,7 +26,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 from reportlab.lib.units import inch
-from django.db.models import Sum, Count, Avg, Max, F, Q, ExpressionWrapper, FloatField
+from django.db.models import Sum, Count, Avg, Max, F, Q, ExpressionWrapper, FloatField, DurationField
 from django.db.models.functions import ExtractMonth, ExtractYear, TruncMonth
 from datetime import datetime
 from decimal import Decimal
@@ -155,20 +155,130 @@ def equipos_por_estado(request, estado):
     equipos = Equipo.objects.filter(estado=estado)
     return render(request, 'lista.html', {'equipos': equipos})
 
-
+def pagos_pendientes_admin(request):
+    pagos = Pago.objects.filter(estado_pago='pendiente').select_related('alquiler', 'alquiler__cliente')
+    return render(request, 'pagos_pendientes.html', {'pagos': pagos})
 
 
 def dashboard_admin(request):
+    # 1. Estadísticas básicas
     total_equipos = Equipo.objects.count()
     total_alquilados = Equipo.objects.filter(estado='alquilado').count()
-    pagos_pendientes = Pago.objects.filter(estado_pago='pendiente').count()  # Ahora sí está importado
+    pagos_pendientes = Pago.objects.filter(estado_pago='pendiente').count()
     clientes_verificados = Cliente.objects.filter(estado_verificacion='verificado').count()
-
+    
+    # 2. Cálculos porcentuales
+    total_clientes = Cliente.objects.count()
+    porcentaje_alquilados = (total_alquilados / total_equipos * 100) if total_equipos > 0 else 0
+    porcentaje_verificados = (clientes_verificados / total_clientes * 100) if total_clientes > 0 else 0
+    
+    # 3. Datos para el gráfico de estado de equipos
+    estados_equipos = [
+        {
+            'nombre': 'Disponible',
+            'cantidad': Equipo.objects.filter(estado='disponible').count(),
+            'color': '#4e73df'
+        },
+        {
+            'nombre': 'Alquilado',
+            'cantidad': total_alquilados,
+            'color': '#1cc88a'
+        },
+        {
+            'nombre': 'Mantenimiento',
+            'cantidad': Equipo.objects.filter(estado='mantenimiento').count(),
+            'color': '#36b9cc'
+        },
+        {
+            'nombre': 'Reservado',
+            'cantidad': Equipo.objects.filter(estado='reservado').count(),
+            'color': '#f6c23e'
+        }
+    ]
+    
+    # 4. Próximos vencimientos (7 días)
+    fecha_limite = timezone.now().date() + timedelta(days=7)
+    proximos_vencimientos = Alquiler.objects.filter(
+    fecha_fin__lte=fecha_limite,
+    fecha_fin__gte=timezone.now().date(),
+    estado_alquiler='activo'
+).select_related('cliente', 'equipo').annotate(
+    dias_restantes=ExpressionWrapper(
+        F('fecha_fin') - timezone.now(),
+        output_field=DurationField()
+    )
+).order_by('fecha_fin')[:5]
+    
+    # 5. Últimos alquileres registrados
+    ultimos_alquileres = Alquiler.objects.select_related(
+        'cliente', 'equipo'
+    ).order_by('-fecha_inicio')[:5]
+    
+    # 6. Equipos más alquilados (top 5)
+    equipos_populares = Equipo.objects.annotate(
+        total_alquileres=Count('alquileres')
+    ).order_by('-total_alquileres')[:5]
+    
+    # 7. Ingresos mensuales (últimos 6 meses)
+    meses = []
+    ingresos_mensuales = []
+    for i in range(5, -1, -1):
+        mes = timezone.now().date() - timedelta(days=30*i)
+        meses.append(mes.strftime('%b %Y'))
+        
+        inicio_mes = mes.replace(day=1)
+        fin_mes = (inicio_mes + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        
+        total = Pago.objects.filter(
+            fecha_pago__gte=inicio_mes,
+            fecha_pago__lte=fin_mes,
+            estado_pago='pagado'
+        ).aggregate(total=Sum('monto'))['total'] or 0
+        
+        ingresos_mensuales.append(float(total))
+    
+    # 8. Clientes con más alquileres
+    clientes_frecuentes = Cliente.objects.annotate(
+        total_alquileres=Count('alquileres'),
+        monto_total=Sum('alquileres__precio_total')
+    ).order_by('-total_alquileres')[:5]
+    
+    # 9. Equipos que generan más ingresos
+    equipos_rentables = Equipo.objects.annotate(
+        ingresos_totales=Sum('alquileres__precio_total')
+    ).order_by('-ingresos_totales')[:5]
+    
+    # 10. Pagos pendientes con mayor monto
+    pagos_pendientes_importantes = Pago.objects.filter(
+        estado_pago='pendiente'
+    ).order_by('-monto')[:5]
+    
     return render(request, 'dashboard.html', {
+        # Estadísticas principales
         'total_equipos': total_equipos,
         'total_alquilados': total_alquilados,
         'pagos_pendientes': pagos_pendientes,
         'clientes_verificados': clientes_verificados,
+        
+        # Porcentajes
+        'porcentaje_alquilados': porcentaje_alquilados,
+        'porcentaje_verificados': porcentaje_verificados,
+        
+        # Datos para gráficos
+        'estados_equipos': estados_equipos,
+        'meses_ingresos': meses,
+        'ingresos_mensuales': ingresos_mensuales,
+        
+        # Listados
+        'proximos_vencimientos': proximos_vencimientos,
+        'ultimos_alquileres': ultimos_alquileres,
+        'equipos_populares': equipos_populares,
+        'clientes_frecuentes': clientes_frecuentes,
+        'equipos_rentables': equipos_rentables,
+        'pagos_pendientes_importantes': pagos_pendientes_importantes,
+        
+        # Fecha actual para el dashboard
+        'fecha_actual': timezone.now().date().strftime('%d/%m/%Y')
     })
 
 

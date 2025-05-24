@@ -10,7 +10,7 @@ from alquiler.views.equipo_views import (
     equipos_mas_alquilados, dashboard_admin,
     actualizar_estados_masivo, exportar_equipos_csv,
     historial_equipo, proxima_disponibilidad,
-    ejecutar_alertas_vencimiento, eliminar_equipo
+    ejecutar_alertas_vencimiento, eliminar_equipo, pagos_pendientes_admin
 )
 from alquiler.views.cliente_views import (
 listar_clientes, crear_cliente, editar_cliente, detalle_cliente,
@@ -41,6 +41,7 @@ from alquiler.views.base_views import(
 )
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
     #Buscador
     path('buscar/', BusquedaGlobalView.as_view(), name='busqueda_global'),
     path('buscar/sugerencias/', sugerencias_busqueda, name='sugerencias_busqueda'),
@@ -60,6 +61,7 @@ urlpatterns = [
     path('dashboard/', dashboard_admin, name='dashboard_admin'),
     path('equipos/actualizar-masivo/', actualizar_estados_masivo, name='actualizar_estados_masivo'),
     path('equipos/<int:id>/proxima-disponibilidad/', proxima_disponibilidad, name='proxima_disponibilidad'),
+    path('pagos/pendientes/', pagos_pendientes_admin, name='pagos_pendientes_admin'),
     path('alertas/vencimiento/manual/', ejecutar_alertas_vencimiento, name='enviar_alertas_vencimiento'),
     #Urls clientes
     path('clientes/', listar_clientes, name='listar_clientes'),

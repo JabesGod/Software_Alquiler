@@ -1,34 +1,289 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard Administrativo</title>
-    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
-</head>
-<body>
-    <h2>📊 Dashboard Administrativo</h2>
 
-    <ul>
-        <li>Total de equipos registrados: <strong>{{ total_equipos }}</strong></li>
-        <li>Total de equipos alquilados: <strong>{{ total_alquilados }}</strong></li>
-        <li>Pagos pendientes: <strong>{{ pagos_pendientes }}</strong></li>
-        <li>Clientes verificados: <strong>{{ clientes_verificados }}</strong></li>
-    </ul>
+{% block title %}Dashboard Administrativo - TecnoNacho{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="container-fluid py-4">
+        <!-- Encabezado -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+            <!-- Título -->
+            <h1 class="h3 mb-0 text-gray-800 d-flex align-items-center">
+                <i class="fas fa-tachometer-alt me-2"></i>Dashboard Administrativo
+            </h1>
 
-    <!-- Botón para ejecutar alertas -->
-    <form action="{% url 'enviar_alertas_vencimiento' %}" method="post">
-        {% csrf_token %}
-        <button type="submit">⚠️ Enviar Alertas de Vencimiento Ahora</button>
-    </form>
-    
+            <!-- Botones de acción -->
+            <div class="d-flex flex-wrap gap-2">
+                <!-- Botón: Enviar alertas -->
+                <form action="{% url 'enviar_alertas_vencimiento' %}" method="post" class="d-inline m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning btn-sm btn-action d-flex align-items-center">
+                        <i class="fas fa-bell me-1"></i> Enviar Alertas
+                    </button>
+                </form>
 
-    <!-- Mostrar mensaje de éxito -->
-    {% if messages %}
-        {% for mensaje in messages %}
-            <p>{{ mensaje }}</p>
-        {% endfor %}
-    {% endif %}
+                <!-- Botón: Exportar CSV -->
+                <a href="{% url 'exportar_equipos_csv' %}"
+                    class="btn btn-primary btn-sm btn-action d-flex align-items-center">
+                    <i class="fas fa-file-export me-1"></i> Exportar Datos
+                </a>
+            </div>
+        </div>
 
-</body>
-</html>
+        <!-- Estadísticas Principales -->
+        <div class="row g-4 mb-4">
+            <!-- Equipos Registrados -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card border-left-primary shadow h-100">
+                    <div class="card-body py-3">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs fw-bold text-primary text-uppercase mb-1">
+                                    Equipos Registrados</div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">{{ total_equipos }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-laptop stats-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Equipos Alquilados -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card border-left-success shadow h-100">
+                    <div class="card-body py-3">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs fw-bold text-success text-uppercase mb-1">
+                                    Equipos Alquilados</div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">{{ total_alquilados }}</div>
+                                <div class="mt-2">
+                                    <span class="text-xs">
+                                        {{ porcentaje_alquilados|floatformat:1 }}% del total
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-handshake stats-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagos Pendientes -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card border-left-warning shadow h-100">
+                    <div class="card-body py-3">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs fw-bold text-warning text-uppercase mb-1">
+                                    Pagos Pendientes</div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">{{ pagos_pendientes }}</div>
+                                <div class="mt-2">
+                                    <a href="{% url 'pagos_pendientes_admin' %}" class="text-xs">Ver detalles</a>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-money-bill-wave stats-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clientes Verificados -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card border-left-info shadow h-100">
+                    <div class="card-body py-3">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs fw-bold text-info text-uppercase mb-1">
+                                    Clientes Verificados</div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">{{ clientes_verificados }}</div>
+                                <div class="mt-2">
+                                    <span class="text-xs">
+                                        {{ porcentaje_verificados|floatformat:1 }}% del total
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-user-check stats-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos y Tablas -->
+    <div class="row">
+        <!-- Gráfico de Equipos por Estado -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie me-1"></i>Estado de los Equipos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="estadoEquiposChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        {% for estado in estados_equipos %}
+                        <span class="me-2">
+                            <i class="fas fa-circle" style="color: {{ estado.color }}"></i> {{ estado.nombre }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Próximos Vencimientos -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-clock me-1"></i>Próximos Vencimientos (7 días)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Equipo</th>
+                                    <th>Vence</th>
+                                    <th>Días</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for alquiler in proximos_vencimientos %}
+                                <tr>
+                                    <td>{{ alquiler.cliente.nombre|truncatechars:15 }}</td>
+                                    <td>{{ alquiler.equipo.marca|truncatechars:15 }}</td>
+                                    <td>{{ alquiler.fecha_fin|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <span
+                                            class="badge bg-{% if alquiler.dias_restantes <= 3 %}danger{% else %}warning{% endif %}">
+                                            {{ alquiler.dias_restantes }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No hay alquileres por vencer</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Segunda Fila -->
+    <div class="row">
+        <!-- Últimos Alquileres -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-history me-1"></i>Últimos Alquileres
+                    </h6>
+                    <a href="{% url 'listar_alquileres' %}" class="btn btn-sm btn-success">Ver todos</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Cliente</th>
+                                    <th>Equipo</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for alquiler in ultimos_alquileres %}
+                                <tr>
+                                    <td>{{ alquiler.fecha_inicio|date:"d/m/Y" }}</td>
+                                    <td>{{ alquiler.cliente.nombre|truncatechars:15 }}</td>
+                                    <td>{{ alquiler.equipo.marca|truncatechars:15 }}</td>
+                                    <td>${{ alquiler.precio_total|floatformat:2 }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No hay alquileres recientes</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Equipos Más Alquilados -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-chart-bar me-1"></i>Equipos Más Alquilados
+                    </h6>
+                    <a href="{% url 'equipos_mas_alquilados' %}" class="btn btn-sm btn-info">Ver ranking</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Equipo</th>
+                                    <th>Alquileres</th>
+                                    <th>Disponibilidad</th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for equipo in equipos_populares %}
+                                <tr>
+                                    <td>{{ equipo.marca }} {{ equipo.modelo|truncatechars:10 }}</td>
+                                    <td>{{ equipo.total_alquileres }}</td>
+                                    <td>
+                                        <span
+                                            class="badge bg-{% if equipo.esta_disponible %}success{% else %}danger{% endif %}">
+                                            {{ equipo.get_estado_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No hay datos disponibles</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+
+{% endblock %}

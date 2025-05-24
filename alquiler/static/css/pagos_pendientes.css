@@ -1,0 +1,91 @@
+/* Pagos Pendientes Styles */
+.pagos-container {
+    background-color: #f8f9fc;
+    padding: 2rem 0;
+}
+
+.pagos-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.pagos-table {
+    background-color: white;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+}
+
+.pagos-table thead {
+    background-color: #4e73df;
+    color: white;
+}
+
+.pagos-table th {
+    padding: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+}
+
+.pagos-table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-top: 1px solid #e3e6f0;
+}
+
+.pagos-table tr:hover td {
+    background-color: rgba(78, 115, 223, 0.05);
+}
+
+.status-badge {
+    padding: 0.35em 0.65em;
+    font-size: 0.75em;
+    font-weight: 600;
+    border-radius: 0.25rem;
+}
+
+.status-pendiente {
+    background-color: #f6c23e;
+    color: #212529;
+}
+
+.status-pagado {
+    background-color: #1cc88a;
+    color: white;
+}
+
+.no-pagos-alert {
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+    background-color: white;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+}
+
+.no-pagos-icon {
+    font-size: 2rem;
+    color: #1cc88a;
+    margin-bottom: 1rem;
+}
+
+.back-button {
+    transition: all 0.2s;
+}
+
+.back-button:hover {
+    transform: translateX(-3px);
+}
+
+@media (max-width: 768px) {
+    .pagos-table th, 
+    .pagos-table td {
+        padding: 0.75rem;
+    }
+    
+    .pagos-header h2 {
+        font-size: 1.5rem;
+    }
+}

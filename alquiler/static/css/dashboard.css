@@ -107,12 +107,13 @@
     font-size: 0.9rem;
 }
 
-/* Badges */
+
 .badge {
     font-weight: 500;
     padding: 0.35em 0.65em;
     font-size: 0.75em;
     letter-spacing: 0.5px;
+    color: #000000;
 }
 
 .bg-primary {

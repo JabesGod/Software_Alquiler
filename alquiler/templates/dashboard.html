@@ -134,7 +134,11 @@
                 </div>
                 <div class="card-body">
                     <div class="chart-pie pt-4 pb-2">
-                        <canvas id="estadoEquiposChart"></canvas>
+                        <canvas id="estadoEquiposChart"
+                            data-labels='{% for estado in estados_equipos %}"{{ estado.nombre }}"{% if not forloop.last %},{% endif %}{% endfor %}'
+                            data-values='{% for estado in estados_equipos %}{{ estado.cantidad }}{% if not forloop.last %},{% endif %}{% endfor %}'
+                            data-colors='{% for estado in estados_equipos %}"{{ estado.color }}"{% if not forloop.last %},{% endif %}{% endfor %}'>
+                        </canvas>
                     </div>
                     <div class="mt-4 text-center small">
                         {% for estado in estados_equipos %}

@@ -1,8 +1,5 @@
-// dashboard.js - Enhanced with error handling
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize charts only if elements exist
     initEstadoEquiposChart();
-    // Add other chart initializations here if needed
 });
 
 function initEstadoEquiposChart() {
@@ -14,13 +11,19 @@ function initEstadoEquiposChart() {
     }
     
     try {
+        // Obtener los datos de los atributos data-*
+        const labels = JSON.parse(`[${ctx.getAttribute('data-labels')}]`);
+        const data = JSON.parse(`[${ctx.getAttribute('data-values')}]`);
+        const colors = JSON.parse(`[${ctx.getAttribute('data-colors')}]`);
+        
         const chartData = {
-            labels: JSON.parse(ctx.getAttribute('data-labels') || [],
+            labels: labels,
             datasets: [{
-                data: JSON.parse(ctx.getAttribute('data-values')) || [],
-                backgroundColor: JSON.parse(ctx.getAttribute('data-colors')) || [],
+                data: data,
+                backgroundColor: colors,
                 borderWidth: 1,
-                hoverOffset: 10
+                hoverOffset: 10,
+                hoverBorderColor: '#fff'
             }]
         };
         

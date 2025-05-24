@@ -434,7 +434,7 @@ class Alquiler(models.Model):
     equipo = models.ForeignKey(Equipo, on_delete=models.CASCADE, related_name="alquileres")    
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
-    precio_total = models.DecimalField(max_digits=10, decimal_places=2)
+    precio_total = models.IntegerField()
     estado_alquiler = models.CharField(max_length=20, choices=ESTADO_ALQUILER, default='activo')
     renovacion = models.BooleanField(default=False)
     aprobado_por = models.CharField(max_length=100, blank=True, null=True)

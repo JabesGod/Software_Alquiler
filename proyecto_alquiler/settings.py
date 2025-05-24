@@ -1,7 +1,7 @@
 """
 Django settings for proyecto_alquiler project.
 """
-
+from decouple import config
 from pathlib import Path
 import os
 from dotenv import load_dotenv
@@ -110,16 +110,17 @@ WSGI_APPLICATION = 'proyecto_alquiler.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'software_alquiler',
-        'USER': 'root',
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST', default='127.0.0.1'),
+        'PORT': config('DB_PORT', default='3306'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
         }
     }
 }
+
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [

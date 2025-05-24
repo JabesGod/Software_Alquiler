@@ -26,7 +26,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 from reportlab.lib.units import inch
-from django.db.models import Sum, Count, Avg, Max, F, Q, ExpressionWrapper, FloatField, DurationField
+from django.db.models import Sum, Count, Avg, Max, F, Q, ExpressionWrapper, FloatField, DurationField, DecimalField
 from django.db.models.functions import ExtractMonth, ExtractYear, TruncMonth
 from datetime import datetime
 from decimal import Decimal
@@ -400,6 +400,7 @@ def ejecutar_alertas_vencimiento(request):
     messages.success(request, "Se han procesado las alertas de vencimiento (3 días antes).")
     return redirect('dashboard_admin')  # cambia al nombre de tu vista de inicio
 
+
 def equipos_mas_alquilados(request):
     # Obtener parámetros de filtro
     fecha_inicio = request.GET.get('fecha_inicio')
@@ -410,36 +411,48 @@ def equipos_mas_alquilados(request):
     # Filtros para Equipo (relación con Alquileres)
     filtros_equipos = Q(alquileres__isnull=False)
     if fecha_inicio and fecha_fin:
-        filtros_equipos &= Q(alquileres__fecha_inicio__gte=fecha_inicio, alquileres__fecha_fin__lte=fecha_fin)
+        filtros_equipos &= Q(alquileres__fecha_inicio__gte=fecha_inicio, 
+                            alquileres__fecha_fin__lte=fecha_fin)
     if marca:
         filtros_equipos &= Q(marca__iexact=marca)
 
     # Filtros para Alquiler directamente
     filtros_alquiler = Q()
     if fecha_inicio and fecha_fin:
-        filtros_alquiler &= Q(fecha_inicio__gte=fecha_inicio, fecha_fin__lte=fecha_fin)
+        filtros_alquiler &= Q(fecha_inicio__gte=fecha_inicio, 
+                            fecha_fin__lte=fecha_fin)
 
     # Redirigir si se agrupa por mes
     if agrupar_por == 'mes':
         return estadisticas_por_mes(request, filtros_alquiler)
 
-    # Obtener los 10 equipos más alquilados
+    # Obtener los 10 equipos más alquilados con output_field especificado
     equipos = (
         Equipo.objects.annotate(
             total_alquileres=Count('alquileres', filter=filtros_equipos),
-            ingresos_generados=Coalesce(Sum('alquileres__precio_total', filter=filtros_equipos), Decimal('0.00')),
-            precio_promedio=Coalesce(Avg('alquileres__precio_total', filter=filtros_equipos), Decimal('0.00')),
+            ingresos_generados=Coalesce(
+                Sum('alquileres__precio_total', filter=filtros_equipos, output_field=DecimalField()),
+                Decimal('0.00')
+            ),
+            precio_promedio=Coalesce(
+                Avg('alquileres__precio_total', filter=filtros_equipos, output_field=DecimalField()),
+                Decimal('0.00')
+            ),
             ultimo_alquiler_fecha=Max('alquileres__fecha_inicio', filter=filtros_equipos)
         )
         .filter(total_alquileres__gt=0)
         .order_by('-total_alquileres')[:10]
     )
 
+    # Totales con output_field especificado para campos decimales
     total_equipos = Equipo.objects.count()
     total_alquileres = Alquiler.objects.filter(filtros_alquiler).count()
-    total_clientes = Cliente.objects.filter(alquileres__in=Alquiler.objects.filter(filtros_alquiler)).distinct().count()
+    total_clientes = Cliente.objects.filter(
+        alquileres__in=Alquiler.objects.filter(filtros_alquiler)
+    ).distinct().count()
+    
     ingresos_totales = Alquiler.objects.filter(filtros_alquiler).aggregate(
-        total=Sum('precio_total')
+        total=Sum('precio_total', output_field=DecimalField())
     )['total'] or Decimal('0.00')
 
     marcas = Equipo.objects.values_list('marca', flat=True).distinct().order_by('marca')
@@ -483,7 +496,7 @@ def equipos_mas_alquilados(request):
             return exportar_a_excel(equipos, labels, datos_alquileres, datos_ingresos)
         elif request.GET['export'] == 'pdf':
             return exportar_a_pdf(equipos, labels, datos_alquileres, datos_ingresos,
-                                  total_equipos, total_alquileres, total_clientes, ingresos_totales)
+                                total_equipos, total_alquileres, total_clientes, ingresos_totales)
 
     # Renderizar plantilla
     return render(request, 'estadisticas.html', {
@@ -501,6 +514,15 @@ def equipos_mas_alquilados(request):
         'marca_seleccionada': marca,
         'agrupar_por': agrupar_por
     })
+
+
+
+
+
+
+
+
+
 
 def estadisticas_por_mes(request, filtros_base):
     # Obtener alquileres agrupados por mes

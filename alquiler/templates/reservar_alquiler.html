@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
 </head>
 <body>
-<h2>📆 Reservar Equipo</h2>
+<h2> Reservar Equipo</h2>
 
 <form method="post">
     {% csrf_token %}
@@ -14,6 +14,6 @@
     <button type="submit">Reservar</button>
 </form>
 
-<a href="{% url 'listar_alquileres' %}">⬅️ Volver al listado</a>
+<a href="{% url 'listar_alquileres' %}"> Volver al listado</a>
 </body>
 </html>

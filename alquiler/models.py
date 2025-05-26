@@ -235,12 +235,12 @@ class Equipo(models.Model):
         return self.cantidad_disponible >= cantidad
 
     # Métodos relacionados con fotos
-    def obtener_foto_principal(self):
-        """Obtiene la foto principal o la predeterminada"""
+    def obtener_foto_principal_path(self):
+        """Retorna la ruta absoluta del archivo principal (si existe)"""
         foto = self.fotos.filter(es_principal=True).first() or self.fotos.first()
-        if foto:
-            return foto.foto.url
-        return os.path.join(settings.STATIC_URL, 'media/tecnonacho.png')
+        if foto and foto.foto:
+            return foto.foto.path  # Ruta absoluta en disco
+        return None
     
     def tiene_fotos(self):
         """Verifica si el equipo tiene fotos asociadas"""
@@ -406,20 +406,59 @@ class Cliente(models.Model):
         ('rechazado', 'Rechazado'),
     ]
 
+    TIPO_CLIENTE = [
+        ('natural', 'Persona Natural'),
+        ('juridica', 'Persona Jurídica'),
+    ]
+
+    TIPO_DOCUMENTO = [
+        ('CC', 'Cédula de Ciudadanía'),
+        ('CE', 'Cédula de Extranjería'),
+        ('NIT', 'Número de Identificación Tributaria'),
+        ('PAS', 'Pasaporte'),
+    ]
+
+    METODO_PAGO = [
+        ('transferencia', 'Transferencia Bancaria'),
+        ('nequi', 'Nequi'),
+        ('daviplata', 'Daviplata'),
+        ('tarjeta', 'Tarjeta de crédito/débito'),
+        ('efectivo', 'Efectivo'),
+    ]
+
+    # Información general
     nombre = models.CharField(max_length=100)
     email = models.EmailField()
     telefono = models.CharField(max_length=20)
     direccion = models.TextField()
+    ciudad = models.CharField(max_length=50, blank=True, null=True)
+    barrio = models.CharField(max_length=50, blank=True, null=True)
+
+    # Identificación y tipo de cliente
+    tipo_cliente = models.CharField(max_length=10, choices=TIPO_CLIENTE, default='Natural')
+    tipo_documento = models.CharField(max_length=3, choices=TIPO_DOCUMENTO, default='CC')
+    numero_documento = models.CharField(max_length=50, blank=True, null=True)
+
+    # Empresa (si aplica)
+    nombre_empresa = models.CharField(max_length=100, blank=True, null=True)
+    nit = models.CharField(max_length=20, blank=True, null=True)
+
+    # Preferencias y estado
+    metodo_pago_preferido = models.CharField(max_length=30, choices=METODO_PAGO, blank=True, null=True)
     informacion_facturacion = models.TextField(blank=True, null=True)
     estado_verificacion = models.CharField(max_length=20, choices=ESTADO_VERIFICACION, default='pendiente')
-    
-    # Para documentos subidos (puedes usar muchos campos o un JSON)
+
+    # Documentos
     documento_rut = models.FileField(upload_to='documentos/', blank=True, null=True)
     documento_cedula = models.FileField(upload_to='documentos/', blank=True, null=True)
     contrato_firmado = models.FileField(upload_to='contratos/', blank=True, null=True)
 
+    # Tiempos
+    fecha_creacion = models.DateTimeField(auto_now_add=True, null=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre} ({self.numero_documento})"
 
 
 class Alquiler(models.Model):

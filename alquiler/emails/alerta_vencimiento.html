@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .card {
+            border: 1px solid #ccc;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🔔 Alquiler por vencer en {{ dias_restantes }} día(s)</h2>
+        <p>Estimado/a <strong>{{ nombre_cliente }}</strong>,</p>
+
+        <p>Le informamos que su alquiler del equipo <strong>{{ equipo }}</strong> está próximo a vencer.</p>
+
+        <ul>
+            <li><strong>Fecha inicio:</strong> {{ fecha_inicio }}</li>
+            <li><strong>Fecha fin:</strong> {{ fecha_fin }}</li>
+            <li><strong>Duración:</strong> {{ duracion }} días</li>
+            <li><strong>Días restantes:</strong> {{ dias_restantes }}</li>
+        </ul>
+
+        {% if imagen_equipo %}
+        <p><img src="{{ imagen_equipo }}" alt="Imagen del equipo" width="300"/></p>
+        {% endif %}
+
+        <p>Por favor, gestione la renovación o devolución antes de la fecha indicada.</p>
+
+        <p>Saludos cordiales,<br>Equipo de Soporte</p>
+    </div>
+</body>
+</html>

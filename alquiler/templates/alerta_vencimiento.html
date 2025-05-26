@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Notificación de Alquiler - Tecnonacho</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f2f2f2;
+            padding: 30px;
+            color: #333;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card img.logo {
+            width: 80px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #007e33;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            line-height: 1.6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .logo {
+            width: 300px !important;
+            height: auto !important;
+            max-width: 100% !important;
+            display: block !important;
+            border: 0 !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <!-- Modifica la sección del logo en alerta_vencimiento.html -->
+        <center>
+            <img src="cid:logo_tecnonacho" alt="Logo Tecnonacho"
+                style="width: 200px; height: auto; max-width: 100%; border: 0;">
+        </center>
+
+        <h2>Alquiler por vencer en <strong>{{ dias_restantes }}</strong> día(s)</h2>
+
+        <p>Estimado/a <strong>{{ nombre_cliente }}</strong>,</p>
+
+        <p>
+            Le informamos que su alquiler del equipo <strong>{{ equipo }}</strong> está próximo a vencer. A
+            continuación, los detalles:
+        </p>
+
+        <table border="1">
+            <tr>
+                <th>Fecha de inicio</th>
+                <td><strong>{{ fecha_inicio }}</strong></td>
+            </tr>
+            <tr>
+                <th>Fecha de fin</th>
+                <td><strong>{{ fecha_fin }}</strong></td>
+            </tr>
+            <tr>
+                <th>Duración total</th>
+                <td><strong>{{ duracion }} días</strong></td>
+            </tr>
+            <tr>
+                <th>Días restantes</th>
+                <td><strong>{{ dias_restantes }}</strong></td>
+            </tr>
+        </table>
+
+        {% if imagen_equipo %}
+        <p><strong>Imagen del equipo:</strong></p>
+        <p><img src="{{ imagen_equipo }}" alt="Imagen del equipo" width="100%"></p>
+        {% endif %}
+
+        <p><strong>Por favor, gestione la renovación o devolución antes de la fecha indicada.</strong></p>
+
+        <p class="footer">
+            Saludos cordiales,<br>
+            <strong>Equipo de Soporte - Tecnonacho</strong>
+        </p>
+    </div>
+</body>
+
+</html>

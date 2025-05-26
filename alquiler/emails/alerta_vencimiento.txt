@@ -1,0 +1,9 @@
+Estimado/a {{ nombre_cliente }},
+
+Le informamos que el alquiler del equipo "{{ equipo }}" vencerá el {{ fecha_fin }}.
+Quedan {{ dias_restantes }} día(s) y el período total del alquiler ha sido de {{ duracion }} día(s).
+
+Por favor, asegúrese de realizar la renovación o devolución del equipo a tiempo.
+
+Atentamente,
+Equipo de Soporte

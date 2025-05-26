@@ -30,6 +30,15 @@ from django.db.models import Sum, Count, Avg, Max, F, Q, ExpressionWrapper, Floa
 from django.db.models.functions import ExtractMonth, ExtractYear, TruncMonth
 from datetime import datetime
 from decimal import Decimal
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from email.mime.image import MIMEImage
+import os
+import traceback
+from PIL import Image  
+from io import BytesIO
 
 def listar_equipos(request):
     equipos = Equipo.objects.all()
@@ -357,43 +366,116 @@ def exportar_equipos_json(request):
     data = [equipo.exportar_informacion() for equipo in equipos]
     return JsonResponse({'equipos': data}, safe=False)
 
-
-
-
 def enviar_alertas_vencimiento():
-    fecha_aviso = timezone.now().date() + timedelta(days=3)
-    proximos_a_vencer = Alquiler.objects.filter(
-        fecha_fin=fecha_aviso,
-        estado_alquiler='activo'
-    )
+    hoy = timezone.now().date()
+    fecha_limite = hoy + timedelta(days=7)
 
-    if not proximos_a_vencer.exists():
-        print(f"📭 No hay alquileres por vencer en 3 días ({fecha_aviso})")
+    alquileres_por_vencer = Alquiler.objects.filter(
+        fecha_fin__range=[hoy, fecha_limite],
+        estado_alquiler='activo'
+    ).select_related('cliente', 'equipo')
+
+    if not alquileres_por_vencer.exists():
+        print(f"📭 No hay alquileres por vencer en los próximos 7 días ({hoy} - {fecha_limite})")
         return
 
-    print(f"📨 Enviando alertas de vencimiento para: {fecha_aviso}")
+    sent_count = 0
+    error_count = 0
 
-    for alquiler in proximos_a_vencer:
-        asunto = '⚠️ Aviso: Su alquiler vence en 3 días'
-        mensaje = (
-            f'Estimado/a {alquiler.cliente.nombre},\n\n'
-            f'Le informamos que el alquiler del equipo "{alquiler.equipo}" '
-            f'vencerá el día {alquiler.fecha_fin}.\n\n'
-            'Por favor, realice la renovación o devolución del equipo a tiempo.\n\n'
-            'Gracias,\nEquipo de Soporte'
-        )
-
+    for alquiler in alquileres_por_vencer:
         try:
-            send_mail(
-                asunto,
-                mensaje,
-                'noreply@tusitio.com',  # asegúrate de tenerlo configurado en settings.py
-                [alquiler.cliente.email],
-                fail_silently=False,
+            dias_restantes = (alquiler.fecha_fin - hoy).days
+            duracion = (alquiler.fecha_fin - alquiler.fecha_inicio).days
+
+            # Ruta al logo - versión mejorada
+            logo_path = None
+            possible_paths = [
+                os.path.join(settings.STATIC_ROOT, 'media', 'tecnonacho.png'),
+                os.path.join(settings.BASE_DIR, 'alquiler', 'static', 'media', 'tecnonacho.png'),
+                os.path.join('C:', 'Users', 'User', 'Downloads', 'Software_Alquiler', 
+                           'Software_Alquiler', 'alquiler', 'static', 'media', 'tecnonacho.png')
+            ]
+            
+            for path in possible_paths:
+                if os.path.exists(path):
+                    logo_path = path
+                    break
+
+            contexto = {
+                'nombre_cliente': alquiler.cliente.nombre,
+                'equipo': alquiler.equipo.marca,
+                'fecha_inicio': alquiler.fecha_inicio.strftime("%d/%m/%Y"),
+                'fecha_fin': alquiler.fecha_fin.strftime("%d/%m/%Y"),
+                'dias_restantes': dias_restantes,
+                'duracion': duracion,
+                'imagen_equipo': 'cid:imagen_equipo',
+                'logo_empresa': 'cid:logo_tecnonacho',
+            }
+
+            # Render del HTML
+            html = render_to_string('alerta_vencimiento.html', contexto)
+            text = strip_tags(html)
+
+            # Configuración del email
+            email = EmailMultiAlternatives(
+                subject=f'Aviso: Su alquiler vence en {dias_restantes} día(s)',
+                body=text,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[alquiler.cliente.email],
             )
+            email.attach_alternative(html, "text/html")
+
+            # Adjuntar logo de empresa - VERSIÓN CORREGIDA
+            if logo_path:
+                try:
+                    with open(logo_path, 'rb') as logo_file:
+                        # Redimensionar con Pillow
+                        img = Image.open(logo_file)
+                        img.thumbnail((300, 300))  # Tamaño máximo 300px
+                        
+                        # Convertir a bytes
+                        img_byte_arr = BytesIO()
+                        img.save(img_byte_arr, format='PNG')
+                        img_byte_arr.seek(0)
+                        
+                        # Adjuntar al email
+                        logo = MIMEImage(img_byte_arr.read())
+                        logo.add_header('Content-ID', '<logo_tecnonacho>')
+                        logo.add_header('Content-Disposition', 'inline', filename='logo_tecnonacho.png')
+                        email.attach(logo)
+                except Exception as img_error:
+                    print(f"⚠️ Error procesando logo: {img_error}")
+                    # Adjuntar versión sin redimensionar como fallback
+                    with open(logo_path, 'rb') as logo_file:
+                        logo = MIMEImage(logo_file.read())
+                        logo.add_header('Content-ID', '<logo_tecnonacho>')
+                        email.attach(logo)
+
+            # Adjuntar imagen del equipo
+            if hasattr(alquiler.equipo, 'obtener_foto_principal_path'):
+                foto_path = alquiler.equipo.obtener_foto_principal_path()
+                if foto_path and os.path.exists(foto_path):
+                    try:
+                        with open(foto_path, 'rb') as img_file:
+                            img = MIMEImage(img_file.read())
+                            img.add_header('Content-ID', '<imagen_equipo>')
+                            img.add_header('Content-Disposition', 'inline', 
+                                         filename=os.path.basename(foto_path))
+                            email.attach(img)
+                    except Exception as foto_error:
+                        print(f"⚠️ Error adjuntando foto del equipo: {foto_error}")
+
+            # Enviar
+            email.send(fail_silently=False)
+            sent_count += 1
             print(f"✅ Alerta enviada a: {alquiler.cliente.email}")
+
         except Exception as e:
-            print(f"❌ Error al enviar a {alquiler.cliente.email}: {e}")
+            error_count += 1
+            print(f"❌ Error al enviar a {alquiler.cliente.email}: {str(e)}")
+            traceback.print_exc()
+
+    print(f"\n📤 Resumen: {sent_count} correos enviados, {error_count} errores")
 
 def ejecutar_alertas_vencimiento(request):
     enviar_alertas_vencimiento()
@@ -514,14 +596,6 @@ def equipos_mas_alquilados(request):
         'marca_seleccionada': marca,
         'agrupar_por': agrupar_por
     })
-
-
-
-
-
-
-
-
 
 
 def estadisticas_por_mes(request, filtros_base):

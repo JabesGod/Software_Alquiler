@@ -478,9 +478,19 @@ class Alquiler(models.Model):
     renovacion = models.BooleanField(default=False)
     aprobado_por = models.CharField(max_length=100, blank=True, null=True)
     contrato_firmado = models.BooleanField(default=False)
+    numero_factura = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True, blank=True, null=True) 
 
     def __str__(self):
-        return f"Alquiler de {self.equipo} a {self.cliente}"
+        return f"Factura #{self.numero_factura} - {self.cliente}"
+
+    def save(self, *args, **kwargs):
+        if not self.numero_factura:
+            # Generar número de factura automático si no existe
+            last_factura = Alquiler.objects.order_by('-fecha_creacion').first()
+            last_number = int(last_factura.numero_factura.split('-')[1]) if last_factura and last_factura.numero_factura else 0
+            self.numero_factura = f"FACT-{last_number + 1:04d}"
+        super().save(*args, **kwargs)
 
 
 

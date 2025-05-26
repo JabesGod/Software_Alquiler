@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    {% load humanize %}
     <meta charset="UTF-8">
     <title>Notificación de Alquiler - Tecnonacho</title>
     <style>
@@ -10,6 +11,7 @@
             background-color: #f2f2f2;
             padding: 30px;
             color: #333;
+            line-height: 1.6;
         }
 
         .card {
@@ -23,17 +25,15 @@
         }
 
         .card img.logo {
-            width: 80px;
+            width: 200px;
+            height: auto;
             margin-bottom: 20px;
         }
 
         .card h2 {
             color: #007e33;
             margin-bottom: 10px;
-        }
-
-        .card p {
-            line-height: 1.6;
+            font-size: 1.5em;
         }
 
         table {
@@ -44,78 +44,126 @@
 
         th,
         td {
-            padding: 8px 12px;
+            padding: 12px 15px;
             text-align: left;
+            border: 1px solid #ddd;
         }
 
         th {
-            background-color: #f0f0f0;
+            background-color: #f8f9fa;
             font-weight: bold;
+        }
+
+        .equipo-list {
+            margin: 25px 0;
+        }
+
+        .equipo-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            border-left: 4px solid #007e33;
+        }
+
+        .equipo-img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+
+        .legal-notice {
+            margin: 25px 0;
+            padding: 20px;
+            background-color: #fff8e1;
+            border-left: 4px solid #ffc107;
+            font-size: 0.95em;
+            line-height: 1.7;
         }
 
         .footer {
             margin-top: 30px;
             font-size: 0.9em;
             color: #666;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+            line-height: 1.6;
         }
 
-        .logo {
-            width: 300px !important;
-            height: auto !important;
-            max-width: 100% !important;
-            display: block !important;
-            border: 0 !important;
+        .highlight {
+            color: #d32f2f;
+            font-weight: bold;
         }
     </style>
 </head>
 
 <body>
     <div class="card">
-        <!-- Modifica la sección del logo en alerta_vencimiento.html -->
         <center>
-            <img src="cid:logo_tecnonacho" alt="Logo Tecnonacho"
-                style="width: 200px; height: auto; max-width: 100%; border: 0;">
+            <img src="cid:logo_tecnonacho" alt="Logo Tecnonacho" class="logo">
         </center>
 
-        <h2>Alquiler por vencer en <strong>{{ dias_restantes }}</strong> día(s)</h2>
+        <h2>Alquiler #{{ numero_factura }} por vencer en <span class="highlight">{{ dias_restantes }} día(s)</span></h2>
 
         <p>Estimado/a <strong>{{ nombre_cliente }}</strong>,</p>
 
-        <p>
-            Le informamos que su alquiler del equipo <strong>{{ equipo }}</strong> está próximo a vencer. A
-            continuación, los detalles:
-        </p>
+        <p>Le informamos que su alquiler está próximo a vencer. A continuación, los detalles:</p>
 
-        <table border="1">
+        <table>
+            <tr>
+                <th>Número de Factura</th>
+                <td><strong>{{ numero_factura }}</strong></td>
+            </tr>
             <tr>
                 <th>Fecha de inicio</th>
-                <td><strong>{{ fecha_inicio }}</strong></td>
+                <td>{{ fecha_inicio }}</td>
             </tr>
             <tr>
                 <th>Fecha de fin</th>
-                <td><strong>{{ fecha_fin }}</strong></td>
-            </tr>
-            <tr>
-                <th>Duración total</th>
-                <td><strong>{{ duracion }} días</strong></td>
+                <td>{{ fecha_fin }}</td>
             </tr>
             <tr>
                 <th>Días restantes</th>
-                <td><strong>{{ dias_restantes }}</strong></td>
+                <td><span class="highlight">{{ dias_restantes }}</span></td>
+            </tr>
+            <tr>
+                <th>Cantidad de equipos</th>
+                <td>{{ cantidad_equipos }}</td>
+            </tr>
+            <tr>
+                <th>Valor total</th>
+                <td><strong>${{ precio_total|intcomma }}</strong></td>
             </tr>
         </table>
 
-        {% if imagen_equipo %}
-        <p><strong>Imagen del equipo:</strong></p>
-        <p><img src="{{ imagen_equipo }}" alt="Imagen del equipo" width="100%"></p>
-        {% endif %}
+        <div class="equipo-list">
+            <h3>Equipos incluidos:</h3>
+            {% for equipo, imagen in equipos_imagenes %}
+            <div class="equipo-item">
+                <strong>{{ equipo.marca }} {{ equipo.modelo }}</strong><br>
+                N° Serie: {{ equipo.numero_serie }}
+                {% if imagen %}
+                <img src="{{ imagen }}" alt="{{ equipo.marca }}" class="equipo-img">
+                {% endif %}
+            </div>
+            {% endfor %}
+
+        </div>
+
+        <div class="legal-notice">
+            <h3>Notificación Legal</h3>
+            <p>{{ notificacion_legal }}</p>
+        </div>
 
         <p><strong>Por favor, gestione la renovación o devolución antes de la fecha indicada.</strong></p>
 
-        <p class="footer">
+        <div class="footer">
             Saludos cordiales,<br>
-            <strong>Equipo de Soporte - Tecnonacho</strong>
-        </p>
+            <strong>Equipo de Soporte - Tecnonacho</strong><br>
+            <small>Este es un mensaje automático, por favor no responda directamente a este correo.</small>
+        </div>
     </div>
 </body>
 

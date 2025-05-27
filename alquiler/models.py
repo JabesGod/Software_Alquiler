@@ -25,7 +25,6 @@ class Equipo(models.Model):
     # Campos básicos
     marca = models.CharField(max_length=50)
     modelo = models.CharField(max_length=50)
-    numero_serie = models.CharField(max_length=100, unique=True)
     especificaciones = models.TextField(blank=True, null=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='disponible')
     fecha_registro = models.DateField(auto_now_add=True)
@@ -357,6 +356,12 @@ class Equipo(models.Model):
             )
         ]
 
+class SerialEquipo(models.Model):
+    equipo = models.ForeignKey(Equipo, related_name='seriales', on_delete=models.CASCADE)
+    numero_serie = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.numero_serie
 
 
 class FotoEquipo(models.Model):

@@ -54,6 +54,8 @@ function calculatePrices() {
 }
 
 
+
+
 document.addEventListener('DOMContentLoaded', function() {
     const principalRadios = document.querySelectorAll('input[name$="-es_principal"]');
     
@@ -148,3 +150,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+
+document.addEventListener('DOMContentLoaded', function () {
+        const formsetDiv = document.getElementById('serial-formset');
+        const addBtn = document.getElementById('add-serial');
+        const totalForms = document.querySelector('[name="serialequipo_set-TOTAL_FORMS"]');
+
+        addBtn.addEventListener('click', () => {
+            const currentForms = parseInt(totalForms.value);
+            const newFormHtml = formsetDiv.querySelector('.serial-entry').outerHTML.replaceAll(`-${currentForms - 1}-`, `-${currentForms}-`).replaceAll(`_${currentForms - 1}`, `_${currentForms}`);
+            formsetDiv.insertAdjacentHTML('beforeend', newFormHtml);
+            totalForms.value = currentForms + 1;
+        });
+    });

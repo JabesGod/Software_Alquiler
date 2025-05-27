@@ -10,7 +10,7 @@ from datetime import timedelta
 from django.contrib import messages
 from django.db.models import Count, Max
 from ..models import Equipo, Alquiler, FotoEquipo
-from ..forms import EquipoForm, FotoEquipoForm
+from ..forms import EquipoForm, FotoEquipoForm, SerialEquipoFormSet
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
 from django.forms.models import inlineformset_factory
@@ -54,22 +54,23 @@ def crear_equipo(request):
 
     if request.method == 'POST':
         form = EquipoForm(request.POST, request.FILES)
-        if form.is_valid():
-            try:
-                equipo = form.save()
-                messages.success(request, f'Equipo {equipo.marca} {equipo.modelo} creado exitosamente!')
-                return redirect('detalle_equipo', id=equipo.pk)
-            except Exception as e:
-                messages.error(request, f'Error al guardar el equipo: {str(e)}')
-                # Reconstruir el formulario con los datos ingresados
-                form = EquipoForm(request.POST, request.FILES)
+        formset = SerialEquipoFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
+            equipo = form.save()
+            formset.instance = equipo
+            formset.save()
+            messages.success(request, f'Equipo {equipo.marca} {equipo.modelo} creado exitosamente!')
+            return redirect('detalle_equipo', id=equipo.pk)
     else:
         form = EquipoForm()
-    
+        formset = SerialEquipoFormSet()
+
     return render(request, 'crear.html', {
         'form': form,
+        'formset_seriales': formset,
         'titulo': 'Crear Nuevo Equipo'
     })
+
 
 def editar_equipo(request, id):
     equipo = get_object_or_404(Equipo, pk=id)

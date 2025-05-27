@@ -39,11 +39,25 @@
                             {{ form.modelo }}
                             <div class="invalid-feedback">{{ form.modelo.errors }}</div>
                         </div>
-                        <div class="form-group">
-                            {{ form.numero_serie.label_tag }}
-                            {{ form.numero_serie }}
-                            <div class="invalid-feedback">{{ form.numero_serie.errors }}</div>
+                        <div class="form-section">
+                            <h4><i class="fas fa-barcode me-2"></i>Números de Serie</h4>
+                            <div id="serial-formset">
+                                {{ formset_seriales.management_form }}
+                                {% for form in formset_seriales %}
+                                <div class="serial-entry">
+                                    {{ form.id }}
+                                    {{ form.numero_serie }}
+                                    {% if form.instance.pk %}
+                                    {{ form.DELETE }} <label>Eliminar</label>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-serial">
+                                <i class="fas fa-plus"></i> Agregar número de serie
+                            </button>
                         </div>
+
                         <div class="form-group">
                             {{ form.estado.label_tag }}
                             {{ form.estado }}

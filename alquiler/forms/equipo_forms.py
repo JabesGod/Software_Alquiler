@@ -2,7 +2,7 @@ from django import forms
 from django.forms import widgets
 from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
-from ..models import Equipo, FotoEquipo
+from ..models import Equipo, FotoEquipo, SerialEquipo
 
 # Widget personalizado para múltiples archivos
 class MultipleFileInput(widgets.ClearableFileInput):
@@ -61,7 +61,7 @@ class EquipoBaseForm(forms.ModelForm):
     class Meta:
         model = Equipo
         fields = [
-            'marca', 'modelo', 'numero_serie', 'especificaciones',
+            'marca', 'modelo', 'especificaciones',
             'estado', 'ubicacion', 'cantidad_total', 'cantidad_disponible',
             'precio_dia', 'precio_semana', 'precio_mes', 'precio_trimestre',
             'precio_semestre', 'precio_anio', 'descripcion_larga', 'es_html'
@@ -207,6 +207,25 @@ class EquipoForm(EquipoBaseForm):
                 )
         
         return equipo
+
+class SerialEquipoForm(forms.ModelForm):
+    class Meta:
+        model = SerialEquipo
+        fields = ['numero_serie']
+        widgets = {
+            'numero_serie': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Número de serie'
+            })
+        }
+
+SerialEquipoFormSet = forms.inlineformset_factory(
+    parent_model=Equipo,
+    model=SerialEquipo,
+    form=SerialEquipoForm,
+    extra=1,
+    can_delete=True
+)
 
 class EquipoEditForm(EquipoBaseForm):
     # Versión para edición que no requiere fotos

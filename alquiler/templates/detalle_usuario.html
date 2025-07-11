@@ -4,169 +4,134 @@
 {% block title %}Detalle de Usuario - {{ usuario.nombre_usuario }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/detalle_usuario.css' %}">
+
 {% endblock %}
 {% block page_title %}
 <i class="fas fa-user fa-fw"></i> Detalle de Usuario: {{ usuario.nombre_usuario }}
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-4">
-        <div class="card card-primary card-outline">
-            <div class="card-body box-profile">
-                <div class="text-center">
-                    <div class="profile-user-img img-circle bg-light" style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                        <i class="fas fa-user fa-3x text-secondary"></i>
-                    </div>
-                </div>
-
-                <h3 class="profile-username text-center">{{ usuario.nombre_usuario }}</h3>
-
-                <p class="text-muted text-center">
-                    {% if usuario.is_staff %}
-                    <span class="badge bg-info">Staff</span>
-                    {% endif %}
-                    <span class="badge bg-{% if usuario.is_active %}success{% else %}danger{% endif %}">
-                        {% if usuario.is_active %}Activo{% else %}Inactivo{% endif %}
-                    </span>
-                </p>
-
-                <ul class="list-group list-group-unbordered mb-3">
-                    <li class="list-group-item">
-                        <b>Rol</b> <span class="float-right">{{ usuario.rol.nombre_rol }}</span>
-                    </li>
-                    <li class="list-group-item">
-                        <b>Último acceso</b> 
-                        <span class="float-right">
-                            {% if usuario.last_login %}
-                                {{ usuario.last_login|date:"d/m/Y H:i" }}
-                            {% else %}
-                                Nunca
-                            {% endif %}
-                        </span>
-                    </li>
-                    <li class="list-group-item">
-                        <b>Fecha registro</b> 
-                        <span class="float-right">{{ usuario.date_joined|date:"d/m/Y" }}</span>
-                    </li>
-                </ul>
-
-                <div class="text-center">
-                    <div class="btn-group">
-                        <a href="{% url 'editar_usuario' usuario.id %}" class="btn btn-primary">
-                            <i class="fas fa-edit"></i> Editar
-                        </a>
-                        <a href="{% url 'cambiar_contrasena' usuario.id %}" class="btn btn-warning">
-                            <i class="fas fa-key"></i> Contraseña
-                        </a>
-                        {% if usuario.id != request.user.id %}
-                        <a href="{% url 'cambiar_estado_usuario' usuario.id %}" 
-                           class="btn btn-{% if usuario.is_active %}warning{% else %}success{% endif %}">
-                            <i class="fas fa-{% if usuario.is_active %}times{% else %}check{% endif %}"></i> 
-                            {% if usuario.is_active %}Desactivar{% else %}Activar{% endif %}
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
+<div class="user-detail-container">
+    <!-- Sección superior con información básica -->
+    <div class="user-header">
+        <div class="user-avatar">
+            <div class="avatar-circle">
+                <i class="fas fa-user"></i>
+            </div>
+            <h2>{{ usuario.nombre_usuario }}</h2>
+            <div class="user-badges">
+                {% if usuario.is_staff %}
+                <span class="badge staff">Staff</span>
+                {% endif %}
+                <span class="badge {% if usuario.is_active %}active{% else %}inactive{% endif %}">
+                    {% if usuario.is_active %}Activo{% else %}Inactivo{% endif %}
+                </span>
             </div>
         </div>
-
-        <div class="card card-primary">
-            <div class="card-header">
-                <h3 class="card-title">Acciones rápidas</h3>
-            </div>
-            <div class="card-body">
-                <div class="list-group">
-                    <a href="{% url 'auditoria_usuario' usuario.id %}" class="list-group-item list-group-item-action">
-                        <i class="fas fa-history mr-2"></i> Ver historial de auditoría
-                    </a>
-                    {% if usuario.id != request.user.id %}
-                    <a href="{% url 'confirmar_eliminar_usuario' usuario.id %}" class="list-group-item list-group-item-action text-danger">
-                        <i class="fas fa-trash mr-2"></i> Eliminar usuario
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
+        
+        <div class="user-actions">
+            <a href="{% url 'editar_usuario' usuario.id %}" class="btn btn-secondary">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            <a href="{% url 'cambiar_contrasena' usuario.id %}" class="btn btn-secondary">
+                <i class="fas fa-key"></i> Contraseña
+            </a>
+            {% if usuario.id != request.user.id %}
+            <a href="{% url 'cambiar_estado_usuario' usuario.id %}" 
+               class="btn {% if usuario.is_active %}btn-warning{% else %}btn-success{% endif %}">
+                <i class="fas fa-{% if usuario.is_active %}times{% else %}check{% endif %}"></i> 
+                {% if usuario.is_active %}Desactivar{% else %}Activar{% endif %}
+            </a>
+            {% endif %}
         </div>
     </div>
 
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header p-2">
-                <ul class="nav nav-pills">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#info" data-toggle="tab">
-                            <i class="fas fa-info-circle"></i> Información
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#actividad" data-toggle="tab">
-                            <i class="fas fa-chart-line"></i> Actividad
-                        </a>
-                    </li>
-                </ul>
+    <!-- Sección de bloques de información -->
+    <div class="user-info-grid">
+        <!-- Bloque 1: Información básica -->
+        <div class="info-block">
+            <div class="info-block-header">
+                <i class="fas fa-id-card"></i>
+                <h3>Información Básica</h3>
             </div>
-            <div class="card-body">
-                <div class="tab-content">
-                    <div class="tab-pane active" id="info">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Nombre de usuario</label>
-                                    <input type="text" class="form-control" value="{{ usuario.nombre_usuario }}" readonly>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Rol asignado</label>
-                                    <input type="text" class="form-control" value="{{ usuario.rol.nombre_rol }}" readonly>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Estado</label>
-                                    <input type="text" class="form-control" 
-                                           value="{% if usuario.is_active %}Activo{% else %}Inactivo{% endif %}" readonly>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Acceso al admin</label>
-                                    <input type="text" class="form-control" 
-                                           value="{% if usuario.is_staff %}Sí{% else %}No{% endif %}" readonly>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Fecha de registro</label>
-                                    <input type="text" class="form-control" 
-                                           value="{{ usuario.date_joined|date:'d/m/Y H:i' }}" readonly>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Último acceso</label>
-                                    <input type="text" class="form-control" 
-                                           value="{% if usuario.last_login %}{{ usuario.last_login|date:'d/m/Y H:i' }}{% else %}Nunca{% endif %}" readonly>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="tab-pane" id="actividad">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> 
-                            Módulo de actividad en desarrollo. Próximamente se mostrará el historial completo.
-                        </div>
-                        <a href="{% url 'auditoria_usuario' usuario.id %}" class="btn btn-primary">
-                            <i class="fas fa-history"></i> Ver historial de auditoría completo
-                        </a>
-                    </div>
+            <div class="info-block-content">
+                <div class="info-item">
+                    <span class="info-label">Nombre de usuario:</span>
+                    <span class="info-value">{{ usuario.nombre_usuario }}</span>
                 </div>
+                <div class="info-item">
+                    <span class="info-label">Rol asignado:</span>
+                    <span class="info-value">{{ usuario.rol.nombre_rol }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Acceso al admin:</span>
+                    <span class="info-value">{% if usuario.is_staff %}Sí{% else %}No{% endif %}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloque 2: Estado y actividad -->
+        <div class="info-block">
+            <div class="info-block-header">
+                <i class="fas fa-chart-line"></i>
+                <h3>Estado y Actividad</h3>
+            </div>
+            <div class="info-block-content">
+                <div class="info-item">
+                    <span class="info-label">Estado:</span>
+                    <span class="info-value {% if usuario.is_active %}text-success{% else %}text-danger{% endif %}">
+                        {% if usuario.is_active %}Activo{% else %}Inactivo{% endif %}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Fecha de registro:</span>
+                    <span class="info-value">{{ usuario.date_joined|date:'d/m/Y H:i' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Último acceso:</span>
+                    <span class="info-value">
+                        {% if usuario.last_login %}
+                            {{ usuario.last_login|date:'d/m/Y H:i' }}
+                        {% else %}
+                            Nunca
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloque 3: Acciones rápidas -->
+        <div class="info-block">
+            <div class="info-block-header">
+                <i class="fas fa-bolt"></i>
+                <h3>Acciones Rápidas</h3>
+            </div>
+            <div class="info-block-content actions">
+                <a href="{% url 'auditoria_usuario' usuario.id %}" class="action-link">
+                    <i class="fas fa-history"></i> Ver historial de auditoría
+                </a>
+                {% if usuario.id != request.user.id %}
+                <a href="{% url 'confirmar_eliminar_usuario' usuario.id %}" class="action-link text-danger">
+                    <i class="fas fa-trash"></i> Eliminar usuario
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Bloque 4: Actividad reciente -->
+        <div class="info-block activity-block">
+            <div class="info-block-header">
+                <i class="fas fa-clock"></i>
+                <h3>Actividad Reciente</h3>
+            </div>
+            <div class="info-block-content">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    Módulo de actividad en desarrollo. Próximamente se mostrará el historial completo.
+                </div>
+                <a href="{% url 'auditoria_usuario' usuario.id %}" class="btn btn-secondary">
+                    <i class="fas fa-history mt-5"></i> Ver historial completo
+                </a>
             </div>
         </div>
     </div>

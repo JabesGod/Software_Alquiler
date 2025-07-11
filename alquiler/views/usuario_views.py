@@ -8,6 +8,8 @@ from ..models import Rol, Usuario, UserAuditLog
 from django.contrib.auth import login
 from django.db.models import Count
 from datetime import datetime, timedelta
+from django.db.models.functions import TruncMonth
+from django.db.models import Q
 from django.views.decorators.http import require_GET
 import json
 from django.db.models import Max
@@ -234,17 +236,29 @@ def eliminar_usuario(request, usuario_id):
 def auditoria_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
-    # Filtrar logs del usuario
-    logs = UserAuditLog.objects.filter(user=usuario).order_by('-timestamp')
+    # 1. Filtrar logs del usuario con búsqueda si existe
+    query = request.GET.get('q', '')
+    logs = UserAuditLog.objects.filter(user=usuario)
     
-    # Estadísticas para el gráfico (últimos 6 meses)
+    if query:
+        logs = logs.filter(
+            Q(action__icontains=query) | 
+            Q(details__icontains=query) |
+            Q(ip_address__icontains=query)
+        )
+    
+    logs = logs.order_by('-timestamp')[:100]  # Limitar a 100 registros
+    
+    # 2. Estadísticas para el gráfico (últimos 6 meses)
     six_months_ago = datetime.now() - timedelta(days=180)
+    
+    # Consulta compatible con múltiples bases de datos
     stats = UserAuditLog.objects.filter(
         user=usuario,
         timestamp__gte=six_months_ago
-    ).extra({
-        'month': "strftime('%%Y-%%m', timestamp)"
-    }).values('month', 'action').annotate(
+    ).annotate(
+        month=TruncMonth('timestamp')
+    ).values('month', 'status').annotate(
         count=Count('id')
     ).order_by('month')
     
@@ -253,7 +267,27 @@ def auditoria_usuario(request, usuario_id):
     success_data = []
     failed_data = []
     
-    # Dispositivos conocidos
+    current_month = six_months_ago.replace(day=1)
+    while current_month <= datetime.now():
+        month_str = current_month.strftime('%b %Y')
+        months.append(month_str)
+        
+        # Buscar datos para este mes
+        month_stats = [s for s in stats if s['month'].month == current_month.month and s['month'].year == current_month.year]
+        
+        success = next((s['count'] for s in month_stats if s['status'] == 'success'), 0)
+        failed = next((s['count'] for s in month_stats if s['status'] == 'failed'), 0)
+        
+        success_data.append(success)
+        failed_data.append(failed)
+        
+        # Avanzar al siguiente mes
+        if current_month.month == 12:
+            current_month = current_month.replace(year=current_month.year+1, month=1)
+        else:
+            current_month = current_month.replace(month=current_month.month+1)
+    
+    # 3. Dispositivos conocidos
     devices = UserAuditLog.objects.filter(
         user=usuario,
         user_agent__isnull=False
@@ -264,11 +298,12 @@ def auditoria_usuario(request, usuario_id):
     
     return render(request, 'auditoria_usuario.html', {
         'usuario': usuario,
-        'logs': logs[:100],  # Mostrar solo los 100 más recientes
+        'logs': logs,
         'devices': devices,
-        'stats_data': json.dumps({
+        'stats_data': {
             'months': months,
             'success': success_data,
             'failed': failed_data
-        })
+        },
+        'query': query  # Para mantener el valor de búsqueda
     })

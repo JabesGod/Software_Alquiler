@@ -16,6 +16,8 @@
     gap: 15px;
 }
 
+
+
 .card-header h3 {
 
     font-size: 1.25rem;
@@ -90,12 +92,110 @@
     margin-top: 4px;
 }
 
-/* Badges de estado */
+/* auditoria.css */
+
+/* Estilos generales */
+.card-primary.card-outline {
+    border-top: 3px solid #007bff;
+}
+
+.card-header {
+    padding: 0.75rem 1.25rem;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-title {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+/* Estilos para la tabla de auditoría */
+.audit-log-table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+}
+
+.audit-log-table th {
+    background-color: #f8f9fa;
+    vertical-align: bottom;
+    border-bottom: 2px solid #dee2e6;
+    padding: 0.75rem;
+}
+
+.audit-log-table td {
+    padding: 0.75rem;
+    vertical-align: top;
+    border-top: 1px solid #dee2e6;
+}
+
+.audit-log-table tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.075);
+}
+
+.audit-details {
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Badges para estados */
 .badge {
-    font-weight: 500;
-    padding: 5px 8px;
-    font-size: 0.75rem;
-    border-radius: 4px;
+    display: inline-block;
+    padding: 0.25em 0.4em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+}
+
+.bg-success {
+    background-color: #28a745!important;
+}
+
+.bg-danger {
+    background-color: #dc3545!important;
+}
+
+.bg-warning {
+    background-color: #ffc107!important;
+    color: #212529!important;
+}
+
+/* Estilos para dispositivos */
+.list-group-item {
+    padding: 0.75rem 1.25rem;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.device-icon {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    width: 40px;
+    text-align: center;
+}
+
+/* Estilos responsive */
+@media (max-width: 768px) {
+    .card-tools .input-group {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+    
+    .audit-log-table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .audit-details {
+        max-width: 150px;
+    }
 }
 
 .bg-success {

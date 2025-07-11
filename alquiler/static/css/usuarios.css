@@ -253,7 +253,8 @@
 }
 
 .delete {
-    background-color: var(--danger-color);
+    background-color: red;
+    color: red;
 }
 
 /* Estado vacío */

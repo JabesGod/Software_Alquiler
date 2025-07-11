@@ -1,3 +1,4 @@
+
 /* Estructura principal */
 .users-management-container {
     padding: 20px;
@@ -253,8 +254,7 @@
 }
 
 .delete {
-    background-color: red;
-    color: red;
+    background-color: var(--danger-color);
 }
 
 /* Estado vacío */

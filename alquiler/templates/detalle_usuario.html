@@ -2,7 +2,9 @@
 {% load static %}
 
 {% block title %}Detalle de Usuario - {{ usuario.nombre_usuario }}{% endblock %}
-
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/detalle_usuario.css' %}">
+{% endblock %}
 {% block page_title %}
 <i class="fas fa-user fa-fw"></i> Detalle de Usuario: {{ usuario.nombre_usuario }}
 {% endblock %}

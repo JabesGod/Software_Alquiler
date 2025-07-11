@@ -1,0 +1,273 @@
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\proyecto_alquiler\settings.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\middleware\security.py", line 28, in process_request
+    host = self.redirect_host or request.get_host()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Bad Request: /pagos/
+"GET /pagos/ HTTP/1.1" 400 143
+Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\middleware\security.py", line 28, in process_request
+    host = self.redirect_host or request.get_host()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Bad Request: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 400 143
+Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\middleware\security.py", line 28, in process_request
+    host = self.redirect_host or request.get_host()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Bad Request: /
+"GET / HTTP/1.1" 400 143
+Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\middleware\security.py", line 28, in process_request
+    host = self.redirect_host or request.get_host()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Bad Request: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 400 143
+Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\middleware\security.py", line 28, in process_request
+    host = self.redirect_host or request.get_host()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Bad Request: /
+"GET / HTTP/1.1" 400 143
+Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\middleware\security.py", line 28, in process_request
+    host = self.redirect_host or request.get_host()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Bad Request: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 400 143
+Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\middleware\security.py", line 28, in process_request
+    host = self.redirect_host or request.get_host()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Bad Request: /
+"GET / HTTP/1.1" 400 143
+Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\middleware\security.py", line 28, in process_request
+    host = self.redirect_host or request.get_host()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Bad Request: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 400 143
+Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\middleware\security.py", line 28, in process_request
+    host = self.redirect_host or request.get_host()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Bad Request: /
+"GET / HTTP/1.1" 400 143
+Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\middleware\security.py", line 28, in process_request
+    host = self.redirect_host or request.get_host()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Bad Request: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 400 143
+Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\middleware\security.py", line 28, in process_request
+    host = self.redirect_host or request.get_host()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Bad Request: /
+"GET / HTTP/1.1" 400 143
+Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\middleware\security.py", line 28, in process_request
+    host = self.redirect_host or request.get_host()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Bad Request: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 400 143
+Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\middleware\security.py", line 28, in process_request
+    host = self.redirect_host or request.get_host()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Bad Request: /
+"GET / HTTP/1.1" 400 143
+Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\utils\deprecation.py", line 128, in __call__
+    response = self.process_request(request)
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\middleware\security.py", line 28, in process_request
+    host = self.redirect_host or request.get_host()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\venv\Lib\site-packages\django\http\request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Bad Request: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 400 143
+Watching for file changes with StatReloader
+"GET / HTTP/1.1" 301 0
+code 400, message Bad request version ('\x9cÎ\x95\x07«§\x91«\x11\x19ùJOW\x90iS«Ýäïw')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x06À\x01\x00\x06¼\x03\x03Å\x1b\x97tÅ§\x10oä(¨')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('\x02h2\x08http/1.1\x00+\x00\x07\x06')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request syntax ('\x16\x03\x01\x06à\x01\x00\x06Ü\x03\x03Í\x14ò\x97pc1wRhÐd\x81')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request syntax ('\x16\x03\x01\x06à\x01\x00\x06Ü\x03\x03\xade\x18\x9c8óz')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('T>')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('\x00\x02\x01\x00\x00\x17\x00\x00\x00\x05\x00\x05\x01\x00\x00\x00\x00Di\x00\x05\x00\x03\x02h2\x00')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('ú\x92u_Ý&n²éÄ\x9f1-Ë;,\x03\x1a¬&\x8aáu\x00-\x00\x02\x01\x01\x00\x05\x00\x05\x01\x00\x00\x00\x00\x003\x04ï\x04í::\x00\x01\x00\x11ì\x04À]Ô\xadXZ¬ÉzCÿñhÚ§<Aûv´\x940µ\x03L\x16pa¡¥\x00')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\proyecto_alquiler\settings.py changed, reloading.
+Watching for file changes with StatReloader
+code 400, message Bad request version ('J\x16\x9c')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('jj\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x06sZZ\x00\x00\x003\x04ï\x04íjj\x00\x01\x00\x11ì\x04À`YfXY%\x0f\x070\x10\x90«\x0f\x14dtäÄ\x9dÃ\x9c{Ñ¨ð³\x9dÇÓohC')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('°\x039à\x83î9\x07\x8bÝ2à©f+{ý}*´\x89SìÈIË\x13\x16C_6\x8f\x00')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('\x00\x02\x01\x00\x00')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('çFîÚ\x86\x15\x92\x0f=Õ\x9b\x8fG\x06\x04\x91\x03\x99L')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('\x00')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('úú\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x063êê\x00\x00\x00')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request syntax ('\x16\x03\x01\x07\x00\x01\x00\x06ü\x03\x03\x1d')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('üâ°')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('\x02h2\x08http/1.1\x00')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request syntax ('\x16\x03\x01\x06À\x01\x00\x06¼\x03\x03')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('\\')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('\x11Ô')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('$½\xadk.Z¾\x0fE\x9a')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\proyecto_alquiler\settings.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+code 400, message Bad request version ('\x02h2\x08http/1.1Di\x00\x05\x00\x03\x02h2\x00\x1b\x00\x03\x02\x00\x02\x00-\x00\x02\x01\x01\x00\x12\x00\x00\x00\x05\x00\x05\x01\x00\x00\x00\x00\x00')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request syntax ('\x16\x03\x01\x06À\x01\x00\x06¼\x03\x03')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('·')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('**\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x06S\x8a\x8a\x00\x00\x00-\x00\x02\x01\x01\x00+\x00\x07\x06ÊÊ\x03\x04\x03\x03Di\x00\x05\x00\x03\x02h2\x00\x12\x00\x00\x00')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('î\x8c&\x93Y\x98fâ\x89L¹R')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request syntax ('\x16\x03\x01\x07\x00\x01\x00\x06ü\x03\x03P\x19\x88ssÔbt¯\x84\x00\x8c\x88Ðj?·´CéöNKÒ\x05\x9f\t')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('>âM\x18ÚUou\x8d!åa¹W\x93ÃÕÙßÆÏ')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('\x00\x12\x00\x10\x04\x03\x08\x04\x04\x01\x05\x03\x08\x05\x05\x01\x08\x06\x06\x01\x00')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version ('ºº\x13\x01\x13\x02\x13\x03À+À/À,À0Ì©Ì¨À\x13À\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x06\x93')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+code 400, message Bad request version (':')
+You're accessing the development server over HTTPS, but it only supports HTTP.
+C:\Users\User\Downloads\Software_Alquiler_v3\Software_Alquiler\proyecto_alquiler\settings.py changed, reloading.

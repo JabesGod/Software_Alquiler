@@ -1,45 +1,201 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <title>Detalle Cliente</title>
-    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
-</head>
-<body>
-<h2>👤 Detalle de {{ cliente.nombre }}</h2>
 
-<p><strong>Email:</strong> {{ cliente.email }}</p>
-<p><strong>Teléfono:</strong> {{ cliente.telefono }}</p>
-<p><strong>Dirección:</strong> {{ cliente.direccion }}</p>
-<p><strong>Estado Verificación:</strong> {{ cliente.get_estado_verificacion_display }}</p>
+{% block title %}Detalle Cliente - {{ cliente.nombre }}{% endblock %}
 
-<p>
-    <a href="{% url 'cambiar_estado_verificacion' cliente.id 'verificado' %}">✅ Verificar</a> |
-    <a href="{% url 'bloquear_cliente' cliente.id %}">🚫 Bloquear</a> |
-    <a href="{% url 'validar_documentos_cliente' cliente.id %}">📁 Validar Documentos</a>
-</p>
+{% block extra_css %}
 
-<h3>Historial de Alquileres:</h3>
-<ul>
-    {% for alquiler in historial_alquileres %}
-    <li>{{ alquiler.equipo }} ({{ alquiler.fecha_inicio }} - {{ alquiler.fecha_fin }}) - Estado: {{ alquiler.get_estado_alquiler_display }}</li>
-    {% empty %}
-    <li>No tiene alquileres registrados.</li>
-    {% endfor %}
-</ul>
+<link rel="stylesheet" href="{% static 'css/detalle_clientes.css' %}">
+{% endblock %}
 
-<h3>Pagos Pendientes:</h3>
-<ul>
-    {% for pago in pagos_pendientes %}
-    <li>
-        {{ pago.alquiler.equipo }} - ${{ pago.monto }} ({{ pago.fecha_pago }}) |
-        <a href="{% url 'registrar_pago_parcial' pago.alquiler.id %}">💳 Registrar Pago Parcial</a>
-    </li>
-    {% empty %}
-    <li>No tiene pagos pendientes.</li>
-    {% endfor %}
-</ul>
+{% block content %}
+<div class="cliente-container">
+    <div class="cliente-header">
 
-<a href="{% url 'listar_clientes' %}">⬅️ Volver a la lista de clientes</a>
-</body>
-</html>
+        {% if cliente.foto %}
+        <img src="{{ cliente.foto.url }}" alt="Foto de {{ cliente.nombre }}" class="cliente-foto">
+
+        {% else %}
+        <div class="cliente-foto"
+            style="background-color: #eee; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-user fa-3x" style="color: #999;"></i>
+        </div>
+        {% endif %}
+        <h1>{{ cliente.nombre }}</h1>
+    </div>
+
+    <div class="cliente-info-grid">
+        <!-- Información Básica -->
+        <div class="info-card">
+            <h3><i class="fas fa-id-card"></i> Información Básica</h3>
+            <div class="info-item">
+                <span class="info-label">Tipo de Cliente:</span>
+                <span class="info-value">{{ cliente.get_tipo_cliente_display }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Documento:</span>
+                <span class="info-value">{{ cliente.get_tipo_documento_display }}: {{ cliente.numero_documento }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Email:</span>
+                <span class="info-value">{{ cliente.email }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Teléfono:</span>
+                <span class="info-value">{{ cliente.telefono }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Ubicación:</span>
+                <span class="info-value">
+                    {{ cliente.direccion }}<br>
+                    {{ cliente.barrio }}, {{ cliente.ciudad }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Información de Empresa (si aplica) -->
+        {% if cliente.tipo_cliente == 'juridica' %}
+        <div class="info-card">
+            <h3><i class="fas fa-building"></i> Información Empresarial</h3>
+            <div class="info-item">
+                <span class="info-label">Nombre Empresa:</span>
+                <span class="info-value">{{ cliente.nombre_empresa }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">NIT:</span>
+                <span class="info-value">{{ cliente.nit }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Información Facturación:</span>
+                <span class="info-value">{{ cliente.informacion_facturacion|default:"No especificada" }}</span>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Estado y Documentos -->
+        <div class="info-card">
+            <h3><i class="fas fa-file-contract"></i> Estado y Documentos</h3>
+            <div class="info-item">
+                <span class="info-label">Estado Verificación:</span>
+                <span class="info-value">
+                    <span class="status-badge status-{{ cliente.estado_verificacion }}">
+                        {{ cliente.get_estado_verificacion_display }}
+                    </span>
+                </span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Método de Pago Preferido:</span>
+                <span class="info-value">
+                    {% if cliente.metodo_pago_preferido %}
+                    {{ cliente.get_metodo_pago_preferido_display }}
+                    {% else %}
+                    No especificado
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">Documentos:</span>
+                <span class="info-value">
+                    {% if cliente.documento_cedula %}
+                    <a href="{{ cliente.documento_cedula.url }}" class="document-link" target="_blank">
+                        <i class="fas fa-file-pdf"></i> Documento ID
+                    </a><br>
+                    {% endif %}
+                    {% if cliente.documento_rut %}
+                    <a href="{{ cliente.documento_rut.url }}" class="document-link" target="_blank">
+                        <i class="fas fa-file-pdf"></i> RUT
+                    </a><br>
+                    {% endif %}
+                    {% if cliente.contrato_firmado %}
+                    <a href="{{ cliente.contrato_firmado.url }}" class="document-link" target="_blank">
+                        <i class="fas fa-file-signature"></i> Contrato
+                    </a>
+                    {% endif %}
+                    {% if not cliente.documento_cedula and not cliente.documento_rut and not cliente.contrato_firmado %}
+                    Ningún documento subido
+                    {% endif %}
+                </span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Fecha Registro:</span>
+                <span class="info-value">{{ cliente.fecha_creacion|date:"d/m/Y H:i" }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="action-buttons">
+        <a href="{% url 'cambiar_estado_verificacion' cliente.id 'verificado' %}" class="btn-action btn-verify">
+            <i class="fas fa-check-circle"></i> Verificar
+        </a>
+        <a href="{% url 'bloquear_cliente' cliente.id %}" class="btn-action btn-block">
+            <i class="fas fa-ban"></i> Bloquear
+        </a>
+        <a href="{% url 'validar_documentos_cliente' cliente.id %}" class="btn-action btn-docs">
+            <i class="fas fa-file-alt"></i> Validar Documentos
+        </a>
+        <a href="{% url 'listar_clientes' %}" class="btn-action btn-back">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+        <a href="{% url 'editar_cliente' cliente.id %}" class="btn-action btn-edit-cliente">
+            <i class="fas fas fa-pencil-alt"></i>Editar
+        </a>
+    </div>
+    <!-- Historial de Alquileres -->
+    <div class="history-section">
+        <h2><i class="fas fa-history"></i> Historial de Alquileres</h2>
+        {% if historial_alquileres %}
+        <ul class="history-list">
+            {% for alquiler in historial_alquileres %}
+            <li class="history-item">
+                <div class="history-item-header">
+                    <span class="history-item-title">
+                        {% for detalle in alquiler.detallealquiler_set.all %}
+                        {{ detalle.equipo }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </span>
+                    <span class="history-item-status"
+                        style="background-color: {% if alquiler.estado_alquiler == 'activo' %}#d4edda{% elif alquiler.estado_alquiler == 'completado' %}#cce5ff{% else %}#f8d7da{% endif %}; color: {% if alquiler.estado_alquiler == 'activo' %}#155724{% elif alquiler.estado_alquiler == 'completado' %}#004085{% else %}#721c24{% endif %}">
+                        {{ alquiler.get_estado_alquiler_display }}
+                    </span>
+                </div>
+                <div class="history-item-details">
+                    {{ alquiler.fecha_inicio|date:"d/m/Y" }} - {{ alquiler.fecha_fin|date:"d/m/Y" }}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="empty-message">No tiene alquileres registrados.</p>
+        {% endif %}
+    </div>
+
+    <!-- Pagos Pendientes -->
+    <div class="history-section">
+        <h2><i class="fas fa-money-bill-wave"></i> Pagos Pendientes</h2>
+        {% if pagos_pendientes %}
+        <ul class="history-list">
+            {% for pago in pagos_pendientes %}
+            <li class="history-item">
+                <div class="history-item-header">
+                    <span class="history-item-title">${{ pago.monto|floatformat:2 }} - {{ pago.alquiler.equipo }}</span>
+                    <span class="history-item-status" style="background-color: #fff3cd; color: #856404;">
+                        Pendiente
+                    </span>
+                </div>
+                <div class="history-item-details">
+                    Vence: {{ pago.fecha_pago|date:"d/m/Y" }}
+                </div>
+                <div class="history-item-actions">
+                    <a href="{% url 'registrar_pago_parcial' pago.alquiler.id %}" class="btn-payment">
+                        <i class="fas fa-money-check-alt"></i> Registrar Pago
+                    </a>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="empty-message">No tiene pagos pendientes.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -10,8 +10,10 @@
     <div class="paneles-container">
         <!-- Sección Equipos -->
         <div class="panel-categoria">
+            
             <h2>Gestión de Equipos</h2>
             <div class="panel-grid">
+                {% if user.is_staff %}
                 <a href="{% url 'listar_equipos' %}" class="panel-item">
                     <i class="fas fa-laptop"></i>
                     <span>Ver todos los equipos</span>
@@ -31,10 +33,12 @@
                     <span>Estadísticas de equipos</span>
                 </a>
                 {% endif %}
+                {% endif %}
             </div>
         </div>
         
         <!-- Sección Alquileres -->
+        {% if user.is_staff %}
         <div class="panel-categoria">
             <h2>Gestión de Alquileres</h2>
             <div class="panel-grid">
@@ -58,9 +62,11 @@
                 </a>
                 {% endif %}
             </div>
+            {% endif %}
         </div>
         
-        <!-- Sección Clientes -->
+        {% if user.is_staff %}
+
         <div class="panel-categoria">
             <h2>Gestión de Clientes</h2>
             <div class="panel-grid">
@@ -80,6 +86,7 @@
                 </a>
                 {% endif %}
             </div>
+            {% endif %}
         </div>
         
         <!-- Sección Administración (solo visible para admin) -->

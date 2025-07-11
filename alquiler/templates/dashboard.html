@@ -5,6 +5,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 {% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="container-fluid py-4">
@@ -174,11 +175,14 @@
                                 {% for alquiler in proximos_vencimientos %}
                                 <tr>
                                     <td>{{ alquiler.cliente.nombre|truncatechars:15 }}</td>
-                                    <td>{{ alquiler.equipo.marca|truncatechars:15 }}</td>
+                                    <td>
+                                        {% for detalle in alquiler.detalles.all %}
+                                            {{ detalle.equipo.marca|truncatechars:15 }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </td>
                                     <td>{{ alquiler.fecha_fin|date:"d/m/Y" }}</td>
                                     <td>
-                                        <span
-                                            class="badge bg-{% if alquiler.dias_restantes <= 3 %}danger{% else %}warning{% endif %}">
+                                        <span class="badge bg-{% if alquiler.dias_restantes <= 3 %}danger{% else %}warning{% endif %}">
                                             {{ alquiler.dias_restantes }}
                                         </span>
                                     </td>
@@ -201,9 +205,10 @@
         <!-- Últimos Alquileres -->
         <div class="col-lg-6 mb-4">
             <div class="card shadow mb-4">
+
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-success">
-                        <i class="fas fa-history me-1"></i>Últimos Alquileres
+                        <i class="fas fa-history me-1"></i>Últimos Alquileres (excluye reservas)
                     </h6>
                     <a href="{% url 'listar_alquileres' %}" class="btn btn-sm btn-success">Ver todos</a>
                 </div>
@@ -223,7 +228,11 @@
                                 <tr>
                                     <td>{{ alquiler.fecha_inicio|date:"d/m/Y" }}</td>
                                     <td>{{ alquiler.cliente.nombre|truncatechars:15 }}</td>
-                                    <td>{{ alquiler.equipo.marca|truncatechars:15 }}</td>
+                                    <td>
+                                        {% for detalle in alquiler.detalles.all %}
+                                            {{ detalle.equipo.marca|truncatechars:15 }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </td>
                                     <td>${{ alquiler.precio_total|floatformat:2 }}</td>
                                 </tr>
                                 {% empty %}
@@ -255,7 +264,6 @@
                                     <th>Equipo</th>
                                     <th>Alquileres</th>
                                     <th>Disponibilidad</th>
-
                                 </tr>
                             </thead>
                             <tbody>
@@ -264,15 +272,14 @@
                                     <td>{{ equipo.marca }} {{ equipo.modelo|truncatechars:10 }}</td>
                                     <td>{{ equipo.total_alquileres }}</td>
                                     <td>
-                                        <span
-                                            class="badge bg-{% if equipo.esta_disponible %}success{% else %}danger{% endif %}">
+                                        <span class="badge bg-{% if equipo.cantidad_disponible > 0 %}success{% else %}danger{% endif %}">
                                             {{ equipo.get_estado_display }}
                                         </span>
                                     </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="4" class="text-center">No hay datos disponibles</td>
+                                    <td colspan="3" class="text-center">No hay datos disponibles</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -286,8 +293,6 @@
 {% endblock %}
 
 {% block scripts %}
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{% static 'js/dashboard.js' %}"></script>
-
 {% endblock %}

@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Registrar Pago{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/pagos.css' %}">
+{% endblock %}
+
+{% block page_title %}Registrar Pago{% endblock %}
+
+{% block content %}
+<div class="pagos-container">
+  <div class="pagos-header">
+    <h2><i class="fas fa-money-bill-wave"></i> Registrar Nuevo Pago</h2>
+    <div class="header-actions">
+      <a href="{% url 'lista_pagos' %}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <div class="pago-form-container">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      
+      <div class="payment-progress">
+        <div class="progress-container">
+          <div class="progress-bar" style="width: 33%;"></div>
+          <div class="progress-step active">1</div>
+          <div class="progress-step">2</div>
+          <div class="progress-step">3</div>
+        </div>
+        <div class="d-flex justify-content-between">
+          <small>Información Básica</small>
+          <small>Método de Pago</small>
+          <small>Confirmación</small>
+        </div>
+      </div>
+
+      <h3 class="form-title">Información del Pago</h3>
+      
+      {% if form.errors %}
+      <div class="alert alert-danger">
+        <strong>Error:</strong> Por favor corrija los errores a continuación.
+      </div>
+      {% endif %}
+      
+      <div class="pago-form-group">
+        <label for="{{ form.alquiler.id_for_label }}">Alquiler</label>
+        {{ form.alquiler }}
+        {% if form.alquiler.errors %}
+        <div class="text-danger">{{ form.alquiler.errors }}</div>
+        {% endif %}
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6">
+          <div class="pago-form-group">
+            <label for="{{ form.monto.id_for_label }}">Monto</label>
+            {{ form.monto }}
+            {% if form.monto.errors %}
+            <div class="text-danger">{{ form.monto.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="pago-form-group">
+            <label for="{{ form.metodo_pago.id_for_label }}">Método de Pago</label>
+            {{ form.metodo_pago }}
+            {% if form.metodo_pago.errors %}
+            <div class="text-danger">{{ form.metodo_pago.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <div class="pago-form-group">
+        <label for="{{ form.referencia_transaccion.id_for_label }}">Referencia de Transacción</label>
+        {{ form.referencia_transaccion }}
+        {% if form.referencia_transaccion.errors %}
+        <div class="text-danger">{{ form.referencia_transaccion.errors }}</div>
+        {% endif %}
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6">
+          <div class="pago-form-group">
+            <label for="{{ form.fecha_vencimiento.id_for_label }}">Fecha de Vencimiento</label>
+            {{ form.fecha_vencimiento }}
+            {% if form.fecha_vencimiento.errors %}
+            <div class="text-danger">{{ form.fecha_vencimiento.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="pago-form-group">
+            <label for="{{ form.estado_pago.id_for_label }}">Estado</label>
+            {{ form.estado_pago }}
+            {% if form.estado_pago.errors %}
+            <div class="text-danger">{{ form.estado_pago.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <div class="pago-form-group">
+        <label for="{{ form.comprobante_pago.id_for_label }}">Comprobante de Pago</label>
+        {{ form.comprobante_pago }}
+        {% if form.comprobante_pago.errors %}
+        <div class="text-danger">{{ form.comprobante_pago.errors }}</div>
+        {% endif %}
+      </div>
+      
+      <div class="pago-form-group">
+        <label for="{{ form.notas.id_for_label }}">Notas</label>
+        {{ form.notas }}
+        {% if form.notas.errors %}
+        <div class="text-danger">{{ form.notas.errors }}</div>
+        {% endif %}
+      </div>
+      
+      <div class="d-flex justify-content-end gap-2">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save"></i> Guardar Pago
+        </button>
+        <a href="{% url 'lista_pagos' %}" class="btn btn-outline-primary">
+          <i class="fas fa-times"></i> Cancelar
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

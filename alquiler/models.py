@@ -7,12 +7,31 @@ from django.utils.html import strip_tags
 from django.utils.text import Truncator
 from django.conf import settings
 import os
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from django.db.models import Q, Sum
+from django.templatetags.static import static
+from django.db.models.functions import Coalesce
+from datetime import timedelta  
+from math import ceil
+import base64
+from io import BytesIO
+from django.template.loader import render_to_string
+from xhtml2pdf import pisa
+from django.core.files.base import ContentFile
+import tempfile
+from django.core.validators import FileExtensionValidator
+from django.contrib.auth import get_user_model
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+
 
 def equipo_foto_upload_path(instance, filename):
     """Función para definir la ruta de subida de fotos"""
-    return f'equipos/{instance.equipo.numero_serie}/{filename}'
+    # Usamos el ID del equipo si no tiene número de serie
+    if instance.numero_serie:
+        return f'equipos/{instance.numero_serie}/{filename}'
+    return f'equipos/{instance.id}/{filename}'
+
 
 class Equipo(models.Model):
     ESTADOS = [
@@ -21,317 +40,139 @@ class Equipo(models.Model):
         ('reservado', 'Reservado'),
         ('mantenimiento', 'En mantenimiento'),
     ]
-    
+
     # Campos básicos
     marca = models.CharField(max_length=50)
     modelo = models.CharField(max_length=50)
+    numero_serie = models.TextField(
+        blank=True, 
+        null=True,
+        verbose_name="Números de serie",
+        help_text="Ingrese múltiples números de serie separados por comas"
+    )
     especificaciones = models.TextField(blank=True, null=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='disponible')
     fecha_registro = models.DateField(auto_now_add=True)
     ubicacion = models.CharField(max_length=100)
-    
+
     # Campos de inventario
-    cantidad_total = models.PositiveIntegerField(
-        default=1,
-        verbose_name="Cantidad total",
-        help_text="Número total de unidades idénticas de este equipo"
-    )
-    
-    cantidad_disponible = models.PositiveIntegerField(
-        default=1,
-        verbose_name="Cantidad disponible",
-        help_text="Número de unidades disponibles para alquiler"
-    )
-    
-    # Campos de precios de alquiler
+    cantidad_total = models.PositiveIntegerField(default=1)
+    cantidad_disponible = models.PositiveIntegerField(default=1)
+
+    # Precios de alquiler
     precio_dia = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    precio_semana = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    precio_mes = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    precio_trimestre = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    precio_semestre = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    precio_anio = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    fecha_ultimo_alquiler = models.DateField(null=True, blank=True)
 
-    
-    precio_semana = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        verbose_name="Precio por semana",
-        help_text="Precio de alquiler por una semana (7 días)",
-        blank=True,
-        null=True,
-        validators=[MinValueValidator(0)]
-    )
-    
-    precio_mes = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        verbose_name="Precio por mes",
-        help_text="Precio de alquiler por un mes (30 días)",
-        blank=True,
-        null=True,
-        validators=[MinValueValidator(0)]
-    )
-    
-    precio_trimestre = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        verbose_name="Precio por trimestre",
-        help_text="Precio de alquiler por tres meses (90 días)",
-        blank=True,
-        null=True,
-        validators=[MinValueValidator(0)]
-    )
-    
-    precio_semestre = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        verbose_name="Precio por semestre",
-        help_text="Precio de alquiler por seis meses (180 días)",
-        blank=True,
-        null=True,
-        validators=[MinValueValidator(0)]
-    )
-    
-    precio_anio = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        verbose_name="Precio por año",
-        help_text="Precio de alquiler por un año (365 días)",
-        blank=True,
-        null=True,
-        validators=[MinValueValidator(0)]
-    )
-    
-    # Campos descriptivos
-    descripcion_larga = models.TextField(
-        blank=True,
-        null=True,
-        verbose_name="Descripción detallada",
-        help_text="Descripción completa con formato HTML permitido"
-    )
-    
-    es_html = models.BooleanField(
-        default=False,
-        verbose_name="Usar HTML",
-        help_text="Marcar si la descripción contiene formato HTML"
-    )
-    
-    # Campos para valoración
-    valoracion_promedio = models.FloatField(
-        default=0.0,
-        validators=[MinValueValidator(0.0)],
-        verbose_name="Valoración promedio"
-    )
+    # Descripción
+    descripcion_larga = models.TextField(blank=True, null=True)
+    es_html = models.BooleanField(default=False)
+    valoracion_promedio = models.FloatField(default=0.0, validators=[MinValueValidator(0.0)])
 
-    # Métodos relacionados con inventario y precios
+    def numeros_serie_lista(self):
+        """Devuelve los números de serie que están DISPONIBLES (no alquilados)"""
+        if not self.numero_serie:
+            return []
+
+        todas_series = [s.strip() for s in self.numero_serie.split(',') if s.strip()]
+
+        detalles_con_series = DetalleAlquiler.objects.filter(
+            equipo=self,
+            alquiler__estado_alquiler='activo'
+        ).exclude(numeros_serie__isnull=True).exclude(numeros_serie__exact=[])
+
+        series_alquiladas = []
+        for detalle in detalles_con_series:
+            if isinstance(detalle.numeros_serie, list):
+                series_alquiladas.extend(detalle.numeros_serie)
+            elif isinstance(detalle.numeros_serie, str):
+                series_alquiladas.extend([s.strip() for s in detalle.numeros_serie.split(',') if s.strip()])
+
+        return [s for s in todas_series if s not in series_alquiladas]
+
+    def obtener_foto_principal(self):
+        foto = self.fotos.filter(es_principal=True).first()
+        return foto.foto.url if foto else static('img/default-equipo.png')
+
+    def cantidad_numeros_serie(self):
+        return len([s.strip() for s in self.numero_serie.split(',') if s.strip()]) if self.numero_serie else 0
+
+    def agregar_numero_serie(self, nuevo_numero):
+        nuevo_numero = nuevo_numero.strip()
+        if not nuevo_numero:
+            return False
+
+        numeros = [s.strip() for s in self.numero_serie.split(',')] if self.numero_serie else []
+        if nuevo_numero in numeros:
+            return False
+
+        numeros.append(nuevo_numero)
+        self.numero_serie = ', '.join(numeros)
+        self.actualizar_cantidades()
+        self.save()
+        return True
+
+    def eliminar_numero_serie(self, numero):
+        numero = numero.strip()
+        numeros = [s.strip() for s in self.numero_serie.split(',')] if self.numero_serie else []
+        if numero not in numeros:
+            return False
+
+        numeros.remove(numero)
+        self.numero_serie = ', '.join(numeros) if numeros else None
+        self.actualizar_cantidades()
+        self.save()
+        return True
+
+    def actualizar_cantidades(self):
+        cantidad_series = self.cantidad_numeros_serie()
+        if cantidad_series > 0:
+            self.cantidad_total = max(self.cantidad_total, cantidad_series)
+            self.cantidad_disponible = max(0, self.cantidad_total)
+
     def actualizar_disponibilidad(self):
         """Actualiza la cantidad disponible basada en alquileres activos"""
-        from django.db.models import Sum, Q
-        alquileres_activos = self.alquileres.filter(
-            Q(estado_alquiler='activo') | Q(estado_alquiler='reservado'),
-            fecha_fin__gte=timezone.now().date()
-        ).aggregate(total=Sum('cantidad'))['total'] or 0
-        
-        self.cantidad_disponible = max(0, self.cantidad_total - alquileres_activos)
-        
-        # Actualizar estado general basado en disponibilidad
+        detalles_activos = DetalleAlquiler.objects.filter(
+            equipo=self,
+            alquiler__estado_alquiler='activo',
+            alquiler__fecha_fin__gte=timezone.now().date()
+        )
+
+        cantidad_alquilada = 0
+        for detalle in detalles_activos:
+            if detalle.numeros_serie:
+                if isinstance(detalle.numeros_serie, list):
+                    cantidad_alquilada += len(detalle.numeros_serie)
+                elif isinstance(detalle.numeros_serie, str):
+                    series = [s.strip() for s in detalle.numeros_serie.split(',') if s.strip()]
+                    cantidad_alquilada += len(series)
+            else:
+                cantidad_alquilada += detalle.cantidad
+
+        self.cantidad_disponible = max(0, self.cantidad_total - cantidad_alquilada)
+
         if self.cantidad_disponible == 0:
             self.estado = 'alquilado'
         elif self.estado == 'alquilado' and self.cantidad_disponible > 0:
             self.estado = 'disponible'
-        
+
         self.save()
-    
-    def obtener_precio_por_periodo(self, periodo):
-        """Devuelve el precio para el período especificado"""
-        periodos = {
-            'dia': self.precio_dia,
-            'semana': self.precio_semana or (self.precio_dia * 7 * Decimal('0.9')),  # 10% descuento
-            'mes': self.precio_mes or (self.precio_dia * 30 * Decimal('0.8')),      # 20% descuento
-            'trimestre': self.precio_trimestre or (self.precio_dia * 90 * Decimal('0.75')),
-            'semestre': self.precio_semestre or (self.precio_dia * 180 * Decimal('0.7')),
-            'anio': self.precio_anio or (self.precio_dia * 365 * Decimal('0.65'))
-        }
-        return periodos.get(periodo.lower(), Decimal('0'))
-    
-    def calcular_mejor_precio(self, dias):
-        """Calcula el precio óptimo para un número dado de días"""
-        from decimal import Decimal
-        opciones = []
-        
-        if dias >= 1:
-            opciones.append(('día', dias, self.precio_dia * dias))
-        
-        if dias >= 7:
-            semanas = dias // 7
-            resto = dias % 7
-            opciones.append((
-                'semana', 
-                semanas,
-                self.obtener_precio_por_periodo('semana') * semanas + 
-                self.precio_dia * resto
-            ))
-        
-        if dias >= 30:
-            meses = dias // 30
-            resto = dias % 30
-            opciones.append((
-                'mes',
-                meses,
-                self.obtener_precio_por_periodo('mes') * meses + 
-                self.precio_dia * resto
-            ))
-        
-        if dias >= 90:
-            trimestres = dias // 90
-            resto = dias % 90
-            opciones.append((
-                'trimestre',
-                trimestres,
-                self.obtener_precio_por_periodo('trimestre') * trimestres + 
-                self.precio_dia * resto
-            ))
-        
-        if dias >= 180:
-            semestres = dias // 180
-            resto = dias % 180
-            opciones.append((
-                'semestre',
-                semestres,
-                self.obtener_precio_por_periodo('semestre') * semestres + 
-                self.precio_dia * resto
-            ))
-        
-        if dias >= 365:
-            años = dias // 365
-            resto = dias % 365
-            opciones.append((
-                'año',
-                años,
-                self.obtener_precio_por_periodo('anio') * años + 
-                self.precio_dia * resto
-            ))
-        
-        if not opciones:
-            return ('día', self.precio_dia * dias)
-        
-        # Seleccionar la opción más económica
-        mejor_opcion = min(opciones, key=lambda x: x[2])
-        return (mejor_opcion[0], mejor_opcion[2])
-    
-    def hay_disponibilidad(self, cantidad=1, fecha_inicio=None, fecha_fin=None):
-        """
-        Verifica si hay suficientes equipos disponibles para un período específico.
-        Si no se especifican fechas, verifica disponibilidad actual.
-        """
-        if fecha_inicio and fecha_fin:
-            if fecha_inicio > fecha_fin:
-                raise ValueError("La fecha de inicio no puede ser posterior a la fecha de fin")
-                
-            # Verificar conflictos con alquileres existentes
-            alquileres_conflicto = self.alquileres.filter(
-                Q(estado_alquiler='activo') | Q(estado_alquiler='reservado'),
-                fecha_inicio__lt=fecha_fin,
-                fecha_fin__gt=fecha_inicio
-            ).aggregate(total=Sum('cantidad'))['total'] or 0
-            
-            return self.cantidad_total - alquileres_conflicto >= cantidad
-        return self.cantidad_disponible >= cantidad
 
-    # Métodos relacionados con fotos
-    def obtener_foto_principal_path(self):
-        """Retorna la ruta absoluta del archivo principal (si existe)"""
-        foto = self.fotos.filter(es_principal=True).first() or self.fotos.first()
-        if foto and foto.foto:
-            return foto.foto.path  # Ruta absoluta en disco
-        return None
-    
-    def tiene_fotos(self):
-        """Verifica si el equipo tiene fotos asociadas"""
-        return self.fotos.exists()
-    
-    # Métodos para descripción
-    def descripcion_corta(self, length=150):
-        """Devuelve una versión corta de la descripción"""
-        if not self.descripcion_larga:
-            return ""
-        
-        if self.es_html:
-            # Elimina etiquetas HTML para la versión corta
-            text = strip_tags(self.descripcion_larga)
-            return Truncator(text).chars(length)
-        return Truncator(self.descripcion_larga).chars(length)
-    
-    def descripcion_como_html(self):
-        """Devuelve la descripción como HTML seguro"""
-        from django.utils.html import mark_safe
-        if self.es_html and self.descripcion_larga:
-            return mark_safe(self.descripcion_larga)
-        return mark_safe(f"<p>{self.descripcion_larga}</p>" if self.descripcion_larga else "")
-    
-    # Métodos estándar
-    def __str__(self):
-        return f"{self.marca} {self.modelo} - {self.numero_serie} ({self.cantidad_disponible}/{self.cantidad_total})"
-    
-    def esta_disponible(self):
-        return self.estado == 'disponible' and self.cantidad_disponible > 0
-    
-    def historial_alquileres(self):
-        return self.alquileres.select_related('cliente').order_by('-fecha_inicio')
-    
-    def total_alquileres(self):
-        return self.alquileres.count()
-    
     def proxima_fecha_disponible(self):
-        alquiler_activo = self.alquileres.filter(
-            Q(estado_alquiler='activo') | Q(estado_alquiler='reservado'),
-            fecha_fin__gte=timezone.now().date()
-        ).order_by('fecha_fin').first()
+        if self.fecha_ultimo_alquiler:
+            return self.fecha_ultimo_alquiler + timedelta(days=30)
+        return None
 
-        return alquiler_activo.fecha_fin if alquiler_activo else timezone.now().date()
-    
-    def actualizar_estado(self, nuevo_estado):
-        if nuevo_estado in dict(self.ESTADOS):
-            self.estado = nuevo_estado
-            self.save()
-            return True
-        return False
-    
-    def equipos_similares(self, limit=5):
-        return Equipo.objects.filter(
-            Q(marca__iexact=self.marca) | Q(modelo__iexact=self.modelo)
-        ).exclude(id=self.id)[:limit]
-    
-    def duracion_promedio_alquiler(self):
-        from django.db.models import Avg, F, ExpressionWrapper, DurationField
-
-        promedio = self.alquileres.filter(
-            estado_alquiler='finalizado'
-        ).annotate(
-            duracion=ExpressionWrapper(
-                F('fecha_fin') - F('fecha_inicio'), output_field=DurationField()
-            )
-        ).aggregate(promedio=Avg('duracion'))
-
-        return promedio['promedio'].days if promedio['promedio'] else 0
-    
-    def exportar_informacion(self):
-        return {
-            'marca': self.marca,
-            'modelo': self.modelo,
-            'numero_serie': self.numero_serie,
-            'estado': self.get_estado_display(),
-            'ubicacion': self.ubicacion,
-            'cantidad_total': self.cantidad_total,
-            'cantidad_disponible': self.cantidad_disponible,
-            'precios': {
-                'dia': float(self.precio_dia),
-                'semana': float(self.precio_semana) if self.precio_semana else None,
-                'mes': float(self.precio_mes) if self.precio_mes else None,
-                'trimestre': float(self.precio_trimestre) if self.precio_trimestre else None,
-                'semestre': float(self.precio_semestre) if self.precio_semestre else None,
-                'anio': float(self.precio_anio) if self.precio_anio else None,
-            },
-            'fecha_registro': self.fecha_registro.strftime('%Y-%m-%d'),
-            'foto_principal': self.obtener_foto_principal(),
-            'descripcion_corta': self.descripcion_corta(),
-            'especificaciones': self.especificaciones,
-        }
+    def __str__(self):
+        series = self.numeros_serie_lista()
+        serie_info = f" - {series[0]}" if series else ""
+        if len(series) > 1:
+            serie_info += f" (+{len(series)-1} más)"
+        return f"{self.marca} {self.modelo}{serie_info} ({self.cantidad_disponible}/{self.cantidad_total})"
 
     class Meta:
         verbose_name = "Equipo"
@@ -356,23 +197,23 @@ class Equipo(models.Model):
             )
         ]
 
-class SerialEquipo(models.Model):
-    equipo = models.ForeignKey(Equipo, related_name='seriales', on_delete=models.CASCADE)
-    numero_serie = models.CharField(max_length=100, unique=True)
 
-    def __str__(self):
-        return self.numero_serie
-
+class UnidadEquipo(models.Model):
+    equipo = models.ForeignKey(
+        'Equipo',
+        related_name='unidades',
+        on_delete=models.CASCADE
+    )
 
 class FotoEquipo(models.Model):
     equipo = models.ForeignKey(
-        Equipo,
+        'Equipo',  # en caso de que se defina más abajo
         related_name='fotos',
         on_delete=models.CASCADE,
         verbose_name="Equipo asociado"
     )
     foto = models.ImageField(
-        upload_to=equipo_foto_upload_path,
+        upload_to='fotos_equipos/',  # asegúrate que `equipo_foto_upload_path` esté definido, o usa una ruta por defecto
         verbose_name="Archivo de imagen",
         help_text="Suba una foto del equipo"
     )
@@ -383,26 +224,26 @@ class FotoEquipo(models.Model):
     )
     fecha_subida = models.DateTimeField(auto_now_add=True)
     descripcion = models.CharField(max_length=255, blank=True, null=True)
-    
-    def clean(self):
-        """Valida que solo haya una foto principal por equipo"""
-        if self.es_principal:
-            if FotoEquipo.objects.filter(equipo=self.equipo, es_principal=True).exclude(id=self.id).exists():
-                raise ValidationError("Ya existe una foto principal para este equipo.")
-    
+
     def save(self, *args, **kwargs):
-        """Garantiza que solo haya una foto principal"""
-        if self.es_principal:
-            FotoEquipo.objects.filter(equipo=self.equipo, es_principal=True).update(es_principal=False)
+        """Garantiza que solo haya una foto principal por equipo"""
+        if self.es_principal and self.equipo_id:
+            FotoEquipo.objects.filter(
+                equipo=self.equipo,
+                es_principal=True
+            ).exclude(pk=self.pk).update(es_principal=False)
+
         super().save(*args, **kwargs)
-    
+
     def __str__(self):
-        return f"Foto de {self.equipo.marca} {self.equipo.modelo} - {self.descripcion or 'Sin descripción'}"
-    
+        desc = self.descripcion or 'Sin descripción'
+        return f"Foto de {self.equipo.marca} {self.equipo.modelo} - {desc}"
+
     class Meta:
         verbose_name = "Foto de equipo"
         verbose_name_plural = "Fotos de equipos"
         ordering = ['-es_principal', 'fecha_subida']
+
 
 class Cliente(models.Model):
     ESTADO_VERIFICACION = [
@@ -432,6 +273,7 @@ class Cliente(models.Model):
     ]
 
     # Información general
+    foto = models.ImageField(upload_to='fotos_clientes/', blank=True, null=True)
     nombre = models.CharField(max_length=100)
     email = models.EmailField()
     telefono = models.CharField(max_length=20)
@@ -461,80 +303,341 @@ class Cliente(models.Model):
     # Tiempos
     fecha_creacion = models.DateTimeField(auto_now_add=True, null=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
+    
+    #Morosos
+    moroso = models.BooleanField(default=False)
+    fecha_marcado_moroso = models.DateField(null=True, blank=True)
+    dias_mora = models.IntegerField(default=0)
+    deuda_total = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.nombre} ({self.numero_documento})"
-
-
+    
 class Alquiler(models.Model):
     ESTADO_ALQUILER = [
         ('activo', 'Activo'),
         ('finalizado', 'Finalizado'),
         ('cancelado', 'Cancelado'),
         ('reservado', 'Reservado'),
+        ('pendiente_aprobacion', 'Pendiente de Aprobación'),
     ]
 
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='alquileres')
-    equipo = models.ForeignKey(Equipo, on_delete=models.CASCADE, related_name="alquileres")    
+    cliente = models.ForeignKey('Cliente', on_delete=models.CASCADE, related_name='alquileres')
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
-    precio_total = models.IntegerField()
-    estado_alquiler = models.CharField(max_length=20, choices=ESTADO_ALQUILER, default='activo')
+    precio_subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    iva = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    precio_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    fecha_vencimiento = models.DateField(blank=True, null=True)
+    estado_alquiler = models.CharField(max_length=20, choices=ESTADO_ALQUILER, default='pendiente_aprobacion')
     renovacion = models.BooleanField(default=False)
     aprobado_por = models.CharField(max_length=100, blank=True, null=True)
     contrato_firmado = models.BooleanField(default=False)
-    numero_factura = models.CharField(max_length=20, unique=True, blank=True, null=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True, blank=True, null=True) 
+    numero_factura = models.CharField(max_length=20, unique=True, blank=True, null=True,
+        help_text="Dejar en blanco para reservas")
+    es_reserva = models.BooleanField(default=False)
+    fecha_creacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    observaciones = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f"Factura #{self.numero_factura} - {self.cliente}"
+        return f"{'Reserva' if self.es_reserva else 'Alquiler'} #{self.id} - {self.cliente}"
+
+    def clean(self):
+        if not self.es_reserva and not self.numero_factura:
+            raise ValidationError("Debe ingresar un número de factura para alquileres activos.")
+        if self.es_reserva:
+            self.numero_factura = None
 
     def save(self, *args, **kwargs):
-        if not self.numero_factura:
-            # Generar número de factura automático si no existe
-            last_factura = Alquiler.objects.order_by('-fecha_creacion').first()
-            last_number = int(last_factura.numero_factura.split('-')[1]) if last_factura and last_factura.numero_factura else 0
+        if not self.es_reserva and not self.numero_factura and not self.renovacion:
+            last = Alquiler.objects.filter(es_reserva=False).order_by('-fecha_creacion').first()
+            last_number = int(last.numero_factura.split('-')[1]) if last and last.numero_factura else 0
             self.numero_factura = f"FACT-{last_number + 1:04d}"
+        
+        self.full_clean()
         super().save(*args, **kwargs)
 
+    def calcular_precio_total(self):
+        if self.es_reserva or self.estado_alquiler == 'pendiente_aprobacion':
+            self.precio_total = Decimal('0.00')
+            self.save(update_fields=['precio_total'])
+            return self.precio_total
 
+        total = Decimal('0.00')
+        dias = (self.fecha_fin - self.fecha_inicio).days + 1
+
+        for detalle in self.detalles.all():
+            cantidad = detalle.cantidad or 1
+            periodo = detalle.periodo_alquiler
+            equipo = detalle.equipo
+
+            def safe_decimal(val, fallback=Decimal('0.00')):
+                return Decimal(val) if val is not None else fallback
+
+            precio_dia = safe_decimal(equipo.precio_dia)
+            precio_semana = safe_decimal(equipo.precio_semana, precio_dia * 5)
+            precio_mes = safe_decimal(equipo.precio_mes, precio_semana * 4)
+            precio_trimestre = safe_decimal(equipo.precio_trimestre, precio_mes * 3)
+            precio_semestre = safe_decimal(equipo.precio_semestre, precio_mes * 6)
+            precio_anio = safe_decimal(equipo.precio_anio, precio_mes * 12)
+
+            if periodo == 'dia':
+                precio = precio_dia * cantidad * dias
+            elif periodo == 'semana':
+                semanas = max(1, ceil(dias / 7))
+                precio = precio_semana * cantidad * semanas
+            elif periodo == 'mes':
+                meses = max(1, ceil(dias / 30))
+                precio = precio_mes * cantidad * meses
+            elif periodo == 'trimestre':
+                trimestres = max(1, ceil(dias / 90))
+                precio = precio_trimestre * cantidad * trimestres
+            elif periodo == 'semestre':
+                semestres = max(1, ceil(dias / 180))
+                precio = precio_semestre * cantidad * semestres
+            elif periodo == 'anio':
+                anios = max(1, ceil(dias / 365))
+                precio = precio_anio * cantidad * anios
+            else:
+                precio = Decimal('0.00')
+
+            precio_con_iva = (precio * Decimal('1.19')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            total += precio_con_iva
+
+        self.precio_total = total.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        self.save(update_fields=['precio_total'])
+        return self.precio_total
+
+    def total_pagado(self):
+        return sum(pago.monto for pago in self.pagos.all())
+    
+    @property
+    def total_pagos_vencidos(self):
+        return self.pagos.filter(
+            estado_pago__in=['pendiente', 'parcial'],
+            fecha_vencimiento__lt=timezone.now().date()
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+    @property
+    def saldo_pendiente(self):
+        return Decimal(self.precio_total) - Decimal(self.total_pagado())
+
+
+class DetalleAlquiler(models.Model):
+    PERIODO_CHOICES = [
+        ('dia', 'Por día'),
+        ('semana', 'Por semana'),
+        ('mes', 'Por mes'),
+        ('trimestre', 'Por trimestre'),
+        ('semestre', 'Por semestre'),
+        ('anio', 'Por año')
+    ]
+    
+    alquiler = models.ForeignKey(Alquiler, on_delete=models.CASCADE, related_name='detalles')
+    equipo = models.ForeignKey('Equipo', on_delete=models.PROTECT)
+    numeros_serie = models.JSONField(default=list, blank=True, null=True)
+    cantidad = models.PositiveIntegerField(default=1)
+    periodo_alquiler = models.CharField(max_length=20, choices=PERIODO_CHOICES, default='dia')
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+    precio_total = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
+    
+    def __str__(self):
+        return f"{self.cantidad} x {self.equipo} (Alquiler #{self.alquiler.id})"
+    
+    def save(self, *args, **kwargs):
+        # Calcular precio total basado en la duración del alquiler
+        dias = (self.alquiler.fecha_fin - self.alquiler.fecha_inicio).days + 1
+        if self.periodo_alquiler == 'dia':
+            self.precio_total = self.precio_unitario * self.cantidad * dias
+        elif self.periodo_alquiler == 'semana':
+            semanas = max(1, ceil(dias / 7))
+            self.precio_total = self.precio_unitario * self.cantidad * semanas
+        elif self.periodo_alquiler == 'mes':
+            meses = max(1, ceil(dias / 30))
+            self.precio_total = self.precio_unitario * self.cantidad * meses
+        elif self.periodo_alquiler == 'trimestre':
+            trimestres = max(1, ceil(dias / 90))
+            self.precio_total = self.precio_unitario * self.cantidad * trimestres
+        elif self.periodo_alquiler == 'semestre':
+            semestres = max(1, ceil(dias / 180))
+            self.precio_total = self.precio_unitario * self.cantidad * semestres
+        elif self.periodo_alquiler == 'anio':
+            anios = max(1, ceil(dias / 365))
+            self.precio_total = self.precio_unitario * self.cantidad * anios
+        super().save(*args, **kwargs)
+        self.alquiler.calcular_precio_total()
+        
+class Acta(models.Model):
+    TIPO_ACTA = [
+        ('entrega', 'Acta de Entrega'),
+        ('devolucion', 'Acta de Devolución'),
+    ]
+    
+    alquiler = models.ForeignKey('Alquiler', on_delete=models.CASCADE, related_name='actas')
+    tipo = models.CharField(max_length=10, choices=TIPO_ACTA)
+    archivo = models.FileField(
+        upload_to='actas/',
+        validators=[FileExtensionValidator(allowed_extensions=['pdf'])]
+    )
+    fecha_creacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    numero_acta = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    
+    class Meta:
+        ordering = ['-fecha_creacion']
+        verbose_name = 'Acta'
+        verbose_name_plural = 'Actas'
+    
+    def __str__(self):
+        return f"Acta {self.get_tipo_display()} - Alquiler {self.alquiler.id}"
+    
+    def save(self, *args, **kwargs):
+        if not self.numero_acta:
+            # Generar número de acta automático (ejemplo: ACT-0001)
+            last = Acta.objects.order_by('-id').first()
+            last_number = int(last.numero_acta.split('-')[1]) if last and last.numero_acta else 0
+            self.numero_acta = f"ACT-{last_number + 1:04d}"
+        super().save(*args, **kwargs)
 
 class Pago(models.Model):
     ESTADO_PAGO = [
         ('pendiente', 'Pendiente'),
         ('pagado', 'Pagado'),
         ('parcial', 'Parcial'),
+        ('vencido', 'Vencido'),
+        ('rechazado', 'Rechazado'),
     ]
 
     METODOS = [
-        ('tarjeta', 'Tarjeta'),
-        ('transferencia', 'Transferencia'),
+        ('tarjeta', 'Tarjeta de crédito/débito'),
+        ('transferencia', 'Transferencia bancaria'),
         ('efectivo', 'Efectivo'),
+        ('nequi', 'Nequi'),
+        ('daviplata', 'Daviplata'),
+        ('otros', 'Otro método electrónico'),
     ]
 
-    alquiler = models.ForeignKey(Alquiler, on_delete=models.CASCADE)
+    alquiler = models.ForeignKey(Alquiler, on_delete=models.CASCADE, related_name='pagos')
     monto = models.DecimalField(max_digits=10, decimal_places=2)
     fecha_pago = models.DateField(auto_now_add=True)
+    fecha_vencimiento = models.DateField(null=True, blank=True)
     metodo_pago = models.CharField(max_length=20, choices=METODOS)
-    estado_pago = models.CharField(max_length=20, choices=ESTADO_PAGO)
+    estado_pago = models.CharField(max_length=20, choices=ESTADO_PAGO, default='pendiente')
     factura_generada = models.BooleanField(default=False)
     referencia_transaccion = models.CharField(max_length=100, blank=True, null=True)
+    comprobante_pago = models.FileField(upload_to='comprobantes/', blank=True, null=True)
+    notas = models.TextField(blank=True, null=True)
+    aprobado_por = models.ForeignKey('Usuario', on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        ordering = ['-fecha_pago']
+        verbose_name = 'Pago'
+        verbose_name_plural = 'Pagos'
 
     def __str__(self):
-        return f"Pago de {self.monto} para alquiler {self.alquiler.id}"
+        return f"Pago #{self.id} - {self.alquiler} - ${self.monto}"
+
+    def clean(self):
+        if self.estado_pago == 'parcial' and self.monto >= self.alquiler.saldo_pendiente:
+            raise ValidationError("Un pago parcial no puede cubrir el saldo pendiente completo. Use estado 'pagado' en su lugar.")
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:  # Solo para nuevos pagos
+            if self.estado_pago == 'parcial' and self.monto == self.alquiler.saldo_pendiente:
+                self.estado_pago = 'pagado'
+        super().save(*args, **kwargs)
+
+    def actualizar_estado_alquiler(self):
+        alquiler = self.alquiler
+    # Solo considerar pagos pagados o parciales
+        total_pagado = alquiler.pagos.filter(
+            estado_pago__in=['pagado', 'parcial']
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+        if total_pagado >= alquiler.precio_total:
+            alquiler.estado_alquiler = 'finalizado'
+            alquiler.save()
+            alquiler.pagos.filter(estado_pago='parcial').update(estado_pago='pagado')
+        elif total_pagado > 0:
+            alquiler.estado_alquiler = 'activo'
+            alquiler.save()
 
 
 class Contrato(models.Model):
-    alquiler = models.OneToOneField(Alquiler, on_delete=models.CASCADE)
+    alquiler = models.OneToOneField('Alquiler', on_delete=models.CASCADE, related_name='contrato')
     fecha_contratacion = models.DateField(auto_now_add=True)
-    terminos_contrato = models.TextField()
     fecha_firma = models.DateField(blank=True, null=True)
     firma_cliente = models.ImageField(upload_to='firmas/', blank=True, null=True)
-    documento_contrato = models.FileField(upload_to='contratos/')
-
+    firma_representante = models.ImageField(upload_to='firmas_representante/', blank=True, null=True)
+    documento_contrato = models.FileField(upload_to='contratos/', blank=True, null=True)
+    terminos_contrato = models.TextField(blank=True, null=True)
+    
     def __str__(self):
         return f"Contrato #{self.id} - Alquiler {self.alquiler.id}"
     
+    def get_firma_base64(self, field_name):
+        """Método genérico para obtener firma en base64"""
+        firma_field = getattr(self, field_name, None)
+        if firma_field:
+            try:
+                with firma_field.open('rb') as f:
+                    return base64.b64encode(f.read()).decode('utf-8')
+            except Exception as e:
+                print(f"Error al leer {field_name}: {str(e)}")
+        return None
+        
+    def generar_documento_contrato(self):
+        """Genera el PDF del contrato con las firmas incluidas"""
+        try:
+            # Contexto con datos para el template
+            context = {
+                'alquiler': self.alquiler,
+                'contrato': self,
+                'fecha_actual': timezone.now().date(),
+                'equipos': self.alquiler.detalles.all(),
+                'firma_cliente_base64': self.get_firma_base64('firma_cliente'),
+                'firma_representante_base64': self.get_firma_base64('firma_representante'),
+                'numero_factura': self.alquiler.numero_factura
+
+            }
+            
+            # Renderizar el HTML
+            html = render_to_string('contrato_pdf.html', context)
+            
+            # Configuración para el PDF
+            result = BytesIO()
+            pdf_options = {
+                'encoding': 'UTF-8',
+                'quiet': True,
+            }
+            
+            # Generar PDF
+            pisa_status = pisa.CreatePDF(
+                html, 
+                dest=result,
+                link_callback=self.handle_links,
+                **pdf_options
+            )
+            
+            if not pisa_status.err:
+                nombre_archivo = f"contrato_{self.alquiler.id}_{timezone.now().date()}.pdf"
+                self.documento_contrato.save(
+                    nombre_archivo, 
+                    ContentFile(result.getvalue()), 
+                    save=False
+                )
+                self.save()
+                return True
+            return False
+            
+        except Exception as e:
+            print(f"Error al generar PDF: {str(e)}")
+            return False
+    
+    def handle_links(self, uri, rel):
+        """Manejador de recursos externos (como imágenes) para xhtml2pdf"""
+        if uri.startswith('data:image'):
+            return uri
+        return None
+
 
 
 class Rol(models.Model):
@@ -543,8 +646,6 @@ class Rol(models.Model):
 
     def __str__(self):
         return self.nombre_rol
-
-
 
 class UsuarioManager(BaseUserManager):
     def _create_user(self, nombre_usuario, password, **extra_fields):
@@ -605,3 +706,120 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
                 defaults={'descripcion': 'Rol por defecto para clientes'}
             )[0]
         super().save(*args, **kwargs)
+
+class UserAuditLog(models.Model):
+    ACTION_CHOICES = [
+        ('login', 'Inicio de sesión'),
+        ('login_failed', 'Intento fallido de login'),
+        ('logout', 'Cierre de sesión'),
+        ('password_change', 'Cambio de contraseña'),
+        ('password_reset', 'Restablecimiento de contraseña'),
+        ('user_edit', 'Edición de perfil'),
+        ('user_create', 'Creación de usuario'),
+        ('user_delete', 'Eliminación de usuario'),
+        ('role_change', 'Cambio de rol'),
+        ('status_change', 'Cambio de estado'),
+        ('permission_change', 'Cambio de permisos'),
+        ('data_access', 'Acceso a datos sensibles'),
+        ('config_change', 'Cambio de configuración'),
+        ('export_data', 'Exportación de datos'),
+        ('admin_action', 'Acción administrativa'),
+    ]
+
+    STATUS_CHOICES = [
+        ('success', 'Exitoso'),
+        ('failed', 'Fallido'),
+        ('warning', 'Advertencia'),
+    ]
+
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name='audit_logs',
+        verbose_name='Usuario'
+    )
+    action = models.CharField(
+        max_length=50,
+        choices=ACTION_CHOICES,
+        verbose_name='Acción'
+    )
+    ip_address = models.GenericIPAddressField(
+        verbose_name='Dirección IP'
+    )
+    user_agent = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Agente de usuario'
+    )
+    timestamp = models.DateTimeField(
+        default=timezone.now,
+        verbose_name='Fecha y hora'
+    )
+    details = models.JSONField(
+        encoder=DjangoJSONEncoder,
+        default=dict,
+        verbose_name='Detalles'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='success',
+        verbose_name='Estado'
+    )
+    target_user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='affected_by_actions',
+        verbose_name='Usuario objetivo'
+    )
+
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = 'Registro de auditoría'
+        verbose_name_plural = 'Registros de auditoría'
+        indexes = [
+            models.Index(fields=['-timestamp']),
+            models.Index(fields=['user', 'timestamp']),
+            models.Index(fields=['action', 'status']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_action_display()} - {self.user} ({self.timestamp})"
+
+    def get_details_display(self):
+        """Formatea los detalles para visualización"""
+        if not isinstance(self.details, dict):
+            return "Sin detalles"
+        
+        details = []
+        if self.details.get('browser'):
+            details.append(f"Navegador: {self.details['browser']}")
+        if self.details.get('os'):
+            details.append(f"Sistema operativo: {self.details['os']}")
+        if 'is_mobile' in self.details:
+            details.append(f"Dispositivo: {'Móvil' if self.details['is_mobile'] else 'Escritorio'}")
+        if self.details.get('path'):
+            details.append(f"Ruta: {self.details['path']}")
+        if self.details.get('method'):
+            details.append(f"Método: {self.details['method']}")
+        if self.details.get('status_code'):
+            details.append(f"Código de estado: {self.details['status_code']}")
+        
+        return "\n".join(details) if details else "Sin detalles"
+
+    def get_export_data(self):
+        """Prepara los datos para exportación"""
+        details = self.details if isinstance(self.details, dict) else {}
+        return {
+            'fecha_hora': self.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+            'accion': self.get_action_display(),
+            'estado': self.get_status_display(),
+            'ip': self.ip_address,
+            'navegador': details.get('browser', 'Desconocido'),
+            'sistema_operativo': details.get('os', 'Desconocido'),
+            'dispositivo': 'Móvil' if details.get('is_mobile') else 'Escritorio',
+            'usuario_objetivo': str(self.target_user) if self.target_user else 'N/A',
+            'detalles': self.get_details_display()
+        }

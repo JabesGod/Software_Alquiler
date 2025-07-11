@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Confirmar Eliminación{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-user-slash fa-fw"></i> Confirmar Eliminación
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/usuarios.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="card card-danger">
+    <div class="card-header">
+        <h3 class="card-title">Eliminar Usuario</h3>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-danger">
+            <h5><i class="icon fas fa-exclamation-triangle"></i> ¡Advertencia!</h5>
+            Estás a punto de eliminar permanentemente al usuario <strong>{{ usuario.nombre_usuario }}</strong>.
+            Esta acción no se puede deshacer.
+        </div>
+        
+        <div class="callout callout-warning">
+            <h5>Información del Usuario</h5>
+            <ul>
+                <li><strong>Nombre:</strong> {{ usuario.nombre_usuario }}</li>
+                <li><strong>Rol:</strong> {{ usuario.rol.nombre_rol }}</li>
+                <li><strong>Estado:</strong> {% if usuario.is_active %}Activo{% else %}Inactivo{% endif %}</li>
+            </ul>
+        </div>
+    </div>
+    <div class="card-footer">
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Confirmar Eliminación
+            </button>
+            <a href="{% url 'lista_usuarios' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

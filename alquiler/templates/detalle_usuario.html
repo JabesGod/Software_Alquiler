@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Detalle de Usuario - {{ usuario.nombre_usuario }}{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-user fa-fw"></i> Detalle de Usuario: {{ usuario.nombre_usuario }}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card card-primary card-outline">
+            <div class="card-body box-profile">
+                <div class="text-center">
+                    <div class="profile-user-img img-circle bg-light" style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                        <i class="fas fa-user fa-3x text-secondary"></i>
+                    </div>
+                </div>
+
+                <h3 class="profile-username text-center">{{ usuario.nombre_usuario }}</h3>
+
+                <p class="text-muted text-center">
+                    {% if usuario.is_staff %}
+                    <span class="badge bg-info">Staff</span>
+                    {% endif %}
+                    <span class="badge bg-{% if usuario.is_active %}success{% else %}danger{% endif %}">
+                        {% if usuario.is_active %}Activo{% else %}Inactivo{% endif %}
+                    </span>
+                </p>
+
+                <ul class="list-group list-group-unbordered mb-3">
+                    <li class="list-group-item">
+                        <b>Rol</b> <span class="float-right">{{ usuario.rol.nombre_rol }}</span>
+                    </li>
+                    <li class="list-group-item">
+                        <b>Último acceso</b> 
+                        <span class="float-right">
+                            {% if usuario.last_login %}
+                                {{ usuario.last_login|date:"d/m/Y H:i" }}
+                            {% else %}
+                                Nunca
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li class="list-group-item">
+                        <b>Fecha registro</b> 
+                        <span class="float-right">{{ usuario.date_joined|date:"d/m/Y" }}</span>
+                    </li>
+                </ul>
+
+                <div class="text-center">
+                    <div class="btn-group">
+                        <a href="{% url 'editar_usuario' usuario.id %}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <a href="{% url 'cambiar_contrasena' usuario.id %}" class="btn btn-warning">
+                            <i class="fas fa-key"></i> Contraseña
+                        </a>
+                        {% if usuario.id != request.user.id %}
+                        <a href="{% url 'cambiar_estado_usuario' usuario.id %}" 
+                           class="btn btn-{% if usuario.is_active %}warning{% else %}success{% endif %}">
+                            <i class="fas fa-{% if usuario.is_active %}times{% else %}check{% endif %}"></i> 
+                            {% if usuario.is_active %}Desactivar{% else %}Activar{% endif %}
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-primary">
+            <div class="card-header">
+                <h3 class="card-title">Acciones rápidas</h3>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="{% url 'auditoria_usuario' usuario.id %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-history mr-2"></i> Ver historial de auditoría
+                    </a>
+                    {% if usuario.id != request.user.id %}
+                    <a href="{% url 'confirmar_eliminar_usuario' usuario.id %}" class="list-group-item list-group-item-action text-danger">
+                        <i class="fas fa-trash mr-2"></i> Eliminar usuario
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header p-2">
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#info" data-toggle="tab">
+                            <i class="fas fa-info-circle"></i> Información
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#actividad" data-toggle="tab">
+                            <i class="fas fa-chart-line"></i> Actividad
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <div class="tab-pane active" id="info">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Nombre de usuario</label>
+                                    <input type="text" class="form-control" value="{{ usuario.nombre_usuario }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Rol asignado</label>
+                                    <input type="text" class="form-control" value="{{ usuario.rol.nombre_rol }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Estado</label>
+                                    <input type="text" class="form-control" 
+                                           value="{% if usuario.is_active %}Activo{% else %}Inactivo{% endif %}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Acceso al admin</label>
+                                    <input type="text" class="form-control" 
+                                           value="{% if usuario.is_staff %}Sí{% else %}No{% endif %}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Fecha de registro</label>
+                                    <input type="text" class="form-control" 
+                                           value="{{ usuario.date_joined|date:'d/m/Y H:i' }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Último acceso</label>
+                                    <input type="text" class="form-control" 
+                                           value="{% if usuario.last_login %}{{ usuario.last_login|date:'d/m/Y H:i' }}{% else %}Nunca{% endif %}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="actividad">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            Módulo de actividad en desarrollo. Próximamente se mostrará el historial completo.
+                        </div>
+                        <a href="{% url 'auditoria_usuario' usuario.id %}" class="btn btn-primary">
+                            <i class="fas fa-history"></i> Ver historial de auditoría completo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

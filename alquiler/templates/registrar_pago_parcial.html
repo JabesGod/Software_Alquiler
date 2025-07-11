@@ -1,19 +1,107 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <title>Registrar Pago Parcial</title>
-    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
-</head>
-<body>
-<h2>💰 Registrar Pago Parcial ({{ alquiler.equipo }})</h2>
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Registrar</button>
-</form>
+{% block title %}Registrar Pago Parcial{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/pagos.css' %}">
+{% endblock %}
 
-<a href="{% url 'detalle_cliente' alquiler.cliente.id %}">⬅️ Volver al cliente</a>
-</body>
-</html>
+{% block page_title %}Registrar Pago Parcial{% endblock %}
+
+{% block content %}
+<div class="pagos-container">
+    <div class="pagos-header">
+        <h2><i class="fas fa-money-bill-alt"></i> Registrar Pago Parcial</h2>
+        <div class="header-actions">
+            <a href="{% url 'lista_pagos' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="pago-form-container">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <h3 class="form-title">Información del Pago Parcial</h3>
+
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <strong>Error:</strong> Por favor corrija los errores a continuación.
+            </div>
+            {% endif %}
+
+            <div class="pago-form-group">
+                <label for="{{ form.alquiler.id_for_label }}">Alquiler</label>
+                {{ form.alquiler }}
+                {% if form.alquiler.errors %}
+                <div class="text-danger">{{ form.alquiler.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="pago-form-group">
+                        <label for="{{ form.monto.id_for_label }}">Monto</label>
+                        {{ form.monto }}
+                        <small class="text-muted">Saldo pendiente: ${{ alquiler.saldo_pendiente|default:"0" }}</small>
+                        {% if form.monto.errors %}
+                        <div class="text-danger">{{ form.monto.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="pago-form-group">
+                        <label for="{{ form.metodo_pago.id_for_label }}">Método de Pago</label>
+                        {{ form.metodo_pago }}
+                        {% if form.metodo_pago.errors %}
+                        <div class="text-danger">{{ form.metodo_pago.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="pago-form-group">
+                <label for="{{ form.referencia_transaccion.id_for_label }}">Referencia de Transacción</label>
+                {{ form.referencia_transaccion }}
+                {% if form.referencia_transaccion.errors %}
+                <div class="text-danger">{{ form.referencia_transaccion.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="pago-form-group">
+                <label for="{{ form.fecha_vencimiento.id_for_label }}">Fecha de Vencimiento</label>
+                {{ form.fecha_vencimiento }}
+                {% if form.fecha_vencimiento.errors %}
+                <div class="text-danger">{{ form.fecha_vencimiento.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="pago-form-group">
+                <label for="{{ form.comprobante_pago.id_for_label }}">Comprobante de Pago</label>
+                {{ form.comprobante_pago }}
+                {% if form.comprobante_pago.errors %}
+                <div class="text-danger">{{ form.comprobante_pago.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="pago-form-group">
+                <label for="{{ form.notas.id_for_label }}">Notas</label>
+                {{ form.notas }}
+                {% if form.notas.errors %}
+                <div class="text-danger">{{ form.notas.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Registrar Pago Parcial
+                </button>
+                <a href="{% url 'lista_pagos' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

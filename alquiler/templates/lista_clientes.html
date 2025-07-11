@@ -6,55 +6,48 @@
 {% block page_title %}Listado de Clientes{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'alquiler/css/clientes.css' %}">
+<link rel="stylesheet" href="{% static 'css/clientes.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="clientes-container">
-    <a href="{% url 'crear_cliente' %}" class="btn-add-client">
-        <i class="fas fa-user-plus"></i> Registrar Cliente
-    </a>
-
-    <div class="table-responsive">
-        <table class="clientes-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Email</th>
-                    <th>Teléfono</th>
-                    <th>Estado Verificación</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for cliente in clientes %}
-                <tr>
-                    <td>{{ cliente.id }}</td>
-                    <td>{{ cliente.nombre }}</td>
-                    <td>{{ cliente.email }}</td>
-                    <td>{{ cliente.telefono }}</td>
-                    <td>
+    <div class="clientes-container">
+        <a href="{% url 'crear_cliente' %}" class="btn-add-client btn-cliente">
+            <i class="fas fa-user-plus"></i> Registrar Cliente
+        </a>
+        <div class="clientes-cards-container">
+            {% for cliente in clientes %}
+            <div class="cliente-card">
+                <div class="card-header">
+                    {% if cliente.foto %}
+                    <img src="{{ cliente.foto.url }}" alt="Foto de {{ cliente.nombre }}">
+                    {% else %}
+                    <img src="{% static 'img/default-user.png' %}" alt="Olvidaste la foto, coloca alguna">
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <h3>Nombre del Cliente: {{ cliente.nombre }}</h3>
+                    <p><strong>Documento:</strong> {{ cliente.get_tipo_documento_display }} </p>
+                    <p><strong>Número de Identificación:</strong> {{ cliente.numero_documento }}</p>
+                    <p><strong>NIT:</strong> {{ cliente.nit }}</p>
+                    <p><strong>Email:</strong> {{ cliente.email }}</p>
+                    <p><strong>Teléfono:</strong> {{ cliente.telefono }}</p>
+                    <p><strong>Ciudad:</strong> {{ cliente.ciudad }}</p>
+                    <p><strong>Tipo:</strong> {{ cliente.get_tipo_cliente_display }}</p>
+                    <p>
                         <span class="verificacion-badge {{ cliente.estado_verificacion }}">
                             {{ cliente.get_estado_verificacion_display }}
                         </span>
-                    </td>
-                    <td>
-                        <a href="{% url 'detalle_cliente' cliente.id %}" class="btn-action btn-detail" title="Ver detalle">
-                            <i class="fas fa-eye"></i> Detalle
-                        </a>
-                        <a href="{% url 'editar_cliente' cliente.id %}" class="btn-action btn-edit" title="Editar">
-                            <i class="fas fa-edit"></i> Editar
-                        </a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="no-records">No hay clientes registrados.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    </p>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'detalle_cliente' cliente.id %}" class="btn-card">Ver Detalle</a>
+                </div>
+            </div>
+            {% empty %}
+            <p>No hay clientes registrados.</p>
+            {% endfor %}
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -15,15 +15,14 @@
         </h1>
 
         {% if request.user.is_staff %}
-        <button type="button" class="btn btn-primary" id="btnAbrirModalEquipo">
-            <i class="fas fa-plus-circle me-2"></i>Nuevo Equipo
-        </button>
+        <a href="{% url 'crear_equipo' %}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i>Agregar nuevo equipo
+        </a>
         {% endif %}
     </div>
 
-    <!-- Filtros rápidos como botones -->
     <div class="mb-4 mt-5">
-        <div class="d-flex flex-wrap justify-content-start align-items-center gap-3 mt-3 filtro-botones mt-5">
+        <div class="d-flex flex-wrap justify-content-start align-items-center gap-3 mt-5 filtro-botones mt-5">
             {% if request.user.is_staff %}
             <button type="button" class="btn btn-sm btn-outline-secondary"
                 onclick="window.location.href='{% url 'listar_equipos' %}'">
@@ -80,7 +79,7 @@
             <!-- Información del equipo -->
             <div class="equipo-info">
                 <h3 class="equipo-titulo">{{ equipo.marca }} {{ equipo.modelo }}</h3>
-                <p class="equipo-codigo">Código: {{ equipo.numero_serie }}</p>
+                <p class="equipo-codigo">Código(s): {{ equipo.numero_serie }}</p>
 
                 <!-- Sección de cantidad -->
                 <div class="equipo-cantidad mb-2">

@@ -1,19 +1,113 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <title>Renovar Contrato</title>
-    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
-</head>
-<body>
-<h2>🔄 Renovar Contrato de Alquiler #{{ alquiler_anterior.id }}</h2>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/renovar_contrato.css' %}">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
+{% block title %}Renovacion # {{alquiler.numero_factura}} {% endblock %}
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Renovar</button>
-</form>
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2><i class="fas fa-sync-alt"></i> Renovar Contrato de Alquiler #{{ alquiler_anterior.id }}</h2>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Estás renovando el contrato del cliente <strong>{{cliente_original.nombre }}</strong>
+                para el período que finaliza el {{ alquiler_anterior.fecha_fin|date:"d/m/Y" }}
+            </div>
 
-<a href="{% url 'detalle_alquiler' alquiler_anterior.id %}">⬅️ Volver al detalle</a>
-</body>
-</html>
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="{{ form.numero_factura.id_for_label }}" class="form-label">
+                        <i class="fas fa-receipt"></i> Nuevo número de factura
+                    </label>
+                    {% if form.numero_factura.field.widget.input_type != 'hidden' %}
+                    {{ form.numero_factura }}
+                    {% else %}
+                    <input type="text" name="numero_factura" class="form-control" required>
+                    {% endif %}
+                    {% if form.numero_factura.errors %}
+                    <div class="invalid-feedback">
+                        {{ form.numero_factura.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+
+
+                <!-- Campo cliente oculto -->
+                <input type="hidden" name="cliente" value="{{ cliente_original.id }}">
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.fecha_inicio.id_for_label }}" class="form-label">
+                            <i class="fas fa-calendar-alt"></i> Nueva fecha de inicio
+                        </label>
+                        {{ form.fecha_inicio }}
+                        <div class="invalid-feedback">
+                            Por favor ingrese una fecha válida.
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.fecha_fin.id_for_label }}" class="form-label">
+                            <i class="fas fa-calendar-alt"></i> Nueva fecha de finalización
+                        </label>
+                        {{ form.fecha_fin }}
+                        <div class="invalid-feedback">
+                            La fecha de fin debe ser posterior a la de inicio.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.observaciones.id_for_label }}" class="form-label">
+                        <i class="fas fa-comment"></i> Observaciones
+                    </label>
+                    {{ form.observaciones }}
+                </div>
+
+                {% if contrato_original %}
+                <div class="mb-3">
+                    <h5><i class="fas fa-file-contract"></i> Términos del contrato original</h5>
+                    <div class="border p-3 bg-light">
+                        {{ contrato_original.terminos_contrato|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{% url 'detalle_alquiler' alquiler_anterior.id %}" class="btn btn-secondary me-md-2">
+                        <i class="fas fa-arrow-left"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Renovar Contrato
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Validación del formulario
+    (function () {
+        'use strict'
+
+        var forms = document.querySelectorAll('.needs-validation')
+
+        Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+
+                    form.classList.add('was-validated')
+                }, false)
+            })
+    })()
+</script>
+{% endblock %}

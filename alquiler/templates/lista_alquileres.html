@@ -1,87 +1,254 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <title>Listado de Alquileres</title>
-    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
-</head>
-<body>
-<h2>📦 Listado de Alquileres</h2>
-<a href="{% url 'crear_alquiler' %}">➕ Crear Alquiler</a>
-<a href="{% url 'reservar_alquiler' %}">📆 Reservar Equipo</a> |
 
-<table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Cliente</th>
-            <th>Equipo</th>
-            <th>Periodo</th>
-            <th>Estado</th>
-            <th>Aprobado Por</th>
-            <th>Contrato Firmado</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for alquiler in alquileres %}
-        <tr>
-            <td>{{ alquiler.id }}</td>
-            <td>{{ alquiler.cliente.nombre }}</td>
-            <td>{{ alquiler.equipo }}</td>
-            <td>{{ alquiler.fecha_inicio }} - {{ alquiler.fecha_fin }}</td>
-            <td>{{ alquiler.get_estado_alquiler_display }}</td>
-            <td>{{ alquiler.aprobado_por|default:"Pendiente" }}</td>
-            <td>
-                {% if alquiler.contrato %}
-                    {{ alquiler.contrato.fecha_firma|yesno:"Sí,No" }}
-                {% else %}
-                    No
-                {% endif %}
-            </td>
-            <td>
-                {% if alquiler.estado_alquiler == 'activo' %}
-                    <a href="{% url 'finalizar_alquiler' alquiler.id %}">🛑 Finalizar</a> |
-                    <a href="{% url 'renovar_alquiler' alquiler.id %}">🔄 Renovar</a> |
-                    <a href="{% url 'cancelar_alquiler' alquiler.id %}">❌ Cancelar</a> |
-                    <a href="{% url 'subir_documentos_alquiler' alquiler.id %}">📁 Subir Documentos</a> |
-                    {% if not alquiler.aprobado_por %}
-                        <a href="{% url 'aprobar_alquiler' alquiler.id %}">✅ Aprobar</a>
-                    {% else %}
-                        ✅ Aprobado
-                    {% endif %}
-                    | <a href="{% url 'generar_acta_entrega' alquiler.id %}">📄 Acta Entrega</a>
+{% block title %}Listado de Alquileres{% endblock %}
 
-                    {% if alquiler.contrato %}
-                        {% if not alquiler.contrato.fecha_firma %}
-                            | <a href="{% url 'firmar_contrato' alquiler.id %}">✍️ Firmar contrato</a>
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'css/alquileres.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/alquileres.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="alquileres-container">
+    <div class="alquileres-header">
+        <h1><i class="fas fa-box-open"></i> Listado de Alquileres</h1>
+
+        <div class="alquileres-actions">
+            <a href="{% url 'crear_alquiler' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Alquiler
+            </a>
+            <a href="{% url 'reservar_alquiler' %}" class="btn btn-secondary">
+                <i class="fas fa-calendar-alt"></i> Reservar Equipo
+            </a>
+        </div>
+    </div>
+
+    <div class="filtros-container">
+        <form method="get" class="filtros-form">
+            <div class="filtro-group">
+                <label for="estado"><i class="fas fa-filter"></i> Estado:</label>
+                <select name="estado" id="estado" class="form-control">
+                    <option value="">Todos</option>
+                    {% for estado in estados_alquiler %}
+                        <option value="{{ estado.0 }}" {% if estado_seleccionado and estado_seleccionado == estado.0 %}selected{% endif %}>
+                            {{ estado.1 }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filtro-group">
+                <label for="cliente"><i class="fas fa-user"></i> Cliente:</label>
+                <input type="text" name="cliente" id="cliente" class="form-control" placeholder="Buscar cliente..."
+                    value="{{ request.GET.cliente }}">
+            </div>
+            <div class="filtro-group">
+                <label for="buscador_factura"><i class="fas fa-search"></i> Buscar Factura:</label>
+                <input type="text" name="buscador_factura" id="buscador_factura" class="form-control"
+                    value="{{ request.GET.buscador_factura }}" placeholder="Ingrese número de factura">
+            </div>
+
+            <div class="filtro-group">
+                <label for="fecha_inicio"><i class="fas fa-calendar"></i> Desde:</label>
+                <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control"
+                    value="{{ request.GET.fecha_inicio }}">
+            </div>
+
+            <div class="filtro-group">
+                <label for="fecha_fin"><i class="fas fa-calendar"></i> Hasta:</label>
+                <input type="date" name="fecha_fin" id="fecha_fin" class="form-control"
+                    value="{{ request.GET.fecha_fin }}">
+            </div>
+
+            <button type="submit" class="btn btn-filter">
+                <i class="fas fa-search"></i> Filtrar
+            </button>
+            <a href="{% url 'listar_alquileres' %}" class="btn btn-reset">
+                <i class="fas fa-sync-alt"></i> Limpiar
+            </a>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover alquileres-table">
+            <thead class="table-dark">
+                <tr>
+                    <th>Factura</th>
+                    <th>Cliente</th>
+                    <th>Equipo(s)</th>
+                    <th>Aprobado</th>
+                    <th>Periodo</th>
+                    <th>Estado</th>
+                    <th>Precio</th>
+                    <th>Vencimiento</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alquiler in alquileres %}
+                <tr class="estado-{{ alquiler.estado_alquiler }}">
+                    <td>{{ alquiler.numero_factura|default:"-" }}</td>
+                    <td>{{ alquiler.cliente.nombre }}</td>
+                    <td>
+                        {% for detalle in alquiler.detalles.all %}
+                            {{ detalle.equipo.marca }} {{ detalle.equipo.modelo }} ({{ detalle.cantidad }})<br>
+                            {% if detalle.numeros_serie %}
+                                <small class="text-muted">Seriales: {{ detalle.numeros_serie|join:", " }}</small>
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% if alquiler.aprobado_por %}
+                            <span class="text-success"><i class="fas fa-check-circle"></i> {{ alquiler.aprobado_por }}</span>
                         {% else %}
-                            | <a href="{{ alquiler.contrato.documento_contrato.url }}" target="_blank">📄 Ver contrato firmado</a>
+                            <span class="text-muted">-</span>
                         {% endif %}
-                    {% else %}
-                        | <a href="{% url 'crear_contrato' alquiler.id %}">📝 Generar contrato</a>
-                    {% endif %}
-                    | <a href="{% url 'eliminar_alquiler' alquiler.id %}" style="color: red;">🗑️ Eliminar</a>
+                    </td>
+                    <td>
+                        {{ alquiler.fecha_inicio|date:"d/m/Y" }} - {{ alquiler.fecha_fin|date:"d/m/Y" }}
+                    </td>
+                    <td>
+                        <span class="badge bg-{% if alquiler.estado_alquiler == 'activo' %}success
+                        {% elif alquiler.estado_alquiler == 'finalizado' %}secondary
+                        {% elif alquiler.estado_alquiler == 'cancelado' %}danger
+                        {% elif alquiler.estado_alquiler == 'pendiente_aprobacion' %}warning
+                        {% elif alquiler.estado_alquiler == 'reservado' %}info
+                        {% else %}primary{% endif %}">
+                            
+                            {% if alquiler.es_reserva %}
+                                <i class="fas fa-calendar-alt me-1"></i>
+                            {% else %}
+                                <i class="fas fa-box-open me-1"></i>
+                            {% endif %}
+                            
+                            {{ alquiler.get_estado_alquiler_display }}
+                        </span>
+                    </td>
+                    <td>${{ alquiler.precio_total|floatformat:2 }}</td>
+                    <td>{{ alquiler.fecha_vencimiento|date:"d/m/Y"|default:"-" }}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <!-- Acciones para alquileres activos -->
+                              {% if alquiler.estado_alquiler == 'activo' %}
+            <!-- Botones para alquileres activos -->
+            <a href="{% url 'finalizar_alquiler' alquiler.id %}" class="btn btn-sm btn-danger" title="Finalizar">
+                <i class="fas fa-stop-circle"></i>
+            </a>
+              <a href="{% url 'editar_alquiler' alquiler.id %}" class="btn btn-sm btn-warning">
+        <i class="fas fa-edit"></i>
+            </a>
+            <a href="{% url 'renovar_alquiler' alquiler.id %}" class="btn btn-sm btn-warning" title="Renovar">
+                <i class="fas fa-sync-alt"></i>
+            </a>
+            
+        {% elif alquiler.estado_alquiler == 'reservado' or alquiler.estado_alquiler == 'pendiente_aprobacion' %}
 
-                {% elif alquiler.estado_alquiler == 'finalizado' %}
-                    ✅ Finalizado
-                    | <a href="{% url 'generar_acta_devolucion' alquiler.id %}">📄 Acta Devolución</a>
-                    {% if alquiler.contrato and alquiler.contrato.documento_contrato %}
-                        | <a href="{{ alquiler.contrato.documento_contrato.url }}" target="_blank">📄 Contrato PDF</a>
-                    {% endif %}
-                    | <a href="{% url 'eliminar_alquiler' alquiler.id %}" style="color: red;">🗑️ Eliminar</a>
+            <!-- Botón de aprobación para reservas -->
+            <a href="{% url 'aprobar_alquiler' alquiler.id %}" class="btn btn-sm btn-success" title="Aprobar Reserva"
+               onclick="return confirm('¿Está seguro que desea aprobar esta reserva y convertirla en alquiler activo?')">
+                <i class="fas fa-check"></i>
+            </a>
+            
+        {% endif %}
+                            
+                            <!-- Acción de cancelar disponible para varios estados -->
+                            {% if alquiler.estado_alquiler != 'finalizado' and alquiler.estado_alquiler != 'cancelado' %}
+                                <a href="{% url 'cancelar_alquiler' alquiler.id %}" class="btn btn-sm btn-secondary" title="Cancelar">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            {% endif %}
+                            
+                            <!-- Acciones para alquileres finalizados -->
+                            {% if alquiler.estado_alquiler == 'finalizado' %}
+                                <a href="{% url 'generar_acta_devolucion' alquiler.id %}" class="btn btn-sm btn-info" title="Acta Devolución">
+                                    <i class="fas fa-file-download"></i>
+                                </a>
+                            {% endif %}
+                            
+                            <!-- Acciones comunes -->
+                             <a href="{% url 'detalle_alquiler' alquiler.id %}" class="btn btn-sm btn-primary" title="Detalles">
+            <i class="fas fa-eye"></i>
+        </a>
+                            
+                            {% if alquiler.contrato %}
+                                {% if not alquiler.contrato.fecha_firma %}
+                                    <a href="{% url 'firmar_contrato' alquiler.id %}" class="btn btn-sm btn-primary" title="Firmar Contrato">
+                                        <i class="fas fa-signature"></i>
+                                    </a>
+                                {% else %}
+                                    <a href="{{ alquiler.contrato.documento_contrato.url }}" target="_blank" class="btn btn-sm btn-info" title="Ver Contrato">
+                <i class="fas fa-file-contract"></i>
+            </a>
+                                {% endif %}
+                            {% else %}
+                                <a href="{% url 'crear_contrato' alquiler.id %}" class="btn btn-sm btn-primary" title="Generar Contrato">
+                                    <i class="fas fa-file-signature"></i>
+                                </a>
+                            {% endif %}
+                            
 
-                {% elif alquiler.estado_alquiler == 'cancelado' %}
-                    ❌ Cancelado
-                {% else %}
-                    Estado desconocido
-                {% endif %}
-            </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="8">No hay alquileres registrados.</td></tr>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center py-4">
+                        <i class="fas fa-info-circle me-2"></i> No se encontraron alquileres
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if is_paginated %}
+<nav aria-label="Paginación">
+    <ul class="pagination justify-content-center mt-4">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1{{ request.GET.urlencode|safe|cut:'page='|cut:'&page=' }}">
+                &laquo; Primera
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ request.GET.urlencode|safe|cut:'page='|cut:'&page=' }}">
+                Anterior
+            </a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{{ request.GET.urlencode|safe|cut:'page='|cut:'&page=' }}">{{ num }}</a>
+                </li>
+            {% endif %}
         {% endfor %}
-    </tbody>
-</table>
-</body>
-</html>
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ request.GET.urlencode|safe|cut:'page='|cut:'&page=' }}">
+                Siguiente
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{{ request.GET.urlencode|safe|cut:'page='|cut:'&page=' }}">
+                Última &raquo;
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+
+    {% endif %}
+</div>
+{% endblock %}

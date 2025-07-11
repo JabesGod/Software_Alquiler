@@ -1,19 +1,285 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <title>{% if cliente %}Crear{% else %}Crear{% endif %} Cliente</title>
-    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
-</head>
-<body>
-<h2>{% if cliente %}Editar{% else %}Crear{% endif %} Cliente</h2>
 
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Guardar</button>
-</form>
+{% block title %}{% if cliente %}Editar{% else %}Crear{% endif %} Cliente{% endblock %}
 
-<a href="{% url 'listar_clientes' %}">⬅️ Volver a la lista</a>
-</body>
-</html>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/equipos.css' %}">
+<link rel="stylesheet" href="{% static 'css/crear_equipo.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="client-form-container">
+    <div class="client-form-header">
+        <h2>
+            <i class="fas fa-{% if cliente %}user-edit{% else %}user-plus{% endif %}"></i>
+            {% if cliente %}Editar{% else %}Crear{% endif %} Cliente
+        </h2>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="client-form">
+        {% csrf_token %}
+
+        <!-- Información Básica -->
+        <div class="form-section">
+            <h3 class="form-section-title">
+                <i class="fas fa-id-card"></i> Información Básica
+            </h3>
+            <div class="form-group">
+                {{ form.estado_verificacion.label_tag }}
+                {{ form.estado_verificacion }}
+                {% if form.estado_verificacion.errors %}
+                <div class="invalid-feedback">{{ form.estado_verificacion.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    {{ form.nombre.label_tag }}
+                    {{ form.nombre }}
+                    {% if form.nombre.errors %}
+                    <div class="invalid-feedback">{{ form.nombre.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.email.label_tag }}
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                    <div class="invalid-feedback">{{ form.email.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.telefono.label_tag }}
+                    {{ form.telefono }}
+                    {% if form.telefono.errors %}
+                    <div class="invalid-feedback">{{ form.telefono.errors }}</div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Tipo de Cliente y Documentación -->
+        <div class="form-section">
+            <h3 class="form-section-title">
+                <i class="fas fa-file-alt"></i> Documentación
+            </h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    {{ form.tipo_cliente.label_tag }}
+                    {{ form.tipo_cliente }}
+                    {% if form.tipo_cliente.errors %}
+                    <div class="invalid-feedback">{{ form.tipo_cliente.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.tipo_documento.label_tag }}
+                    {{ form.tipo_documento }}
+                    {% if form.tipo_documento.errors %}
+                    <div class="invalid-feedback">{{ form.tipo_documento.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.numero_documento.label_tag }}
+                    {{ form.numero_documento }}
+                    {% if form.numero_documento.errors %}
+                    <div class="invalid-feedback">{{ form.numero_documento.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de Empresa (condicional) -->
+        <div class="form-section" id="empresa-section"
+            style="display: {% if form.tipo_cliente.value == 'juridica' %}block{% else %}none{% endif %};">
+            <h3 class="form-section-title">
+                <i class="fas fa-building"></i> Información Empresarial
+            </h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    {{ form.nombre_empresa.label_tag }}
+                    {{ form.nombre_empresa }}
+                    {% if form.nombre_empresa.errors %}
+                    <div class="invalid-feedback">{{ form.nombre_empresa.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.nit.label_tag }}
+                    {{ form.nit }}
+                    {% if form.nit.errors %}
+                    <div class="invalid-feedback">{{ form.nit.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Ubicación -->
+        <div class="form-section">
+            <h3 class="form-section-title">
+                <i class="fas fa-map-marker-alt"></i> Ubicación
+            </h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    {{ form.direccion.label_tag }}
+                    {{ form.direccion }}
+                    {% if form.direccion.errors %}
+                    <div class="invalid-feedback">{{ form.direccion.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.ciudad.label_tag }}
+                    {{ form.ciudad }}
+                    {% if form.ciudad.errors %}
+                    <div class="invalid-feedback">{{ form.ciudad.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.barrio.label_tag }}
+                    {{ form.barrio }}
+                    {% if form.barrio.errors %}
+                    <div class="invalid-feedback">{{ form.barrio.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Documentos y Foto -->
+        <div class="form-section">
+            <h3 class="form-section-title">
+                <i class="fas fa-file-upload"></i> Documentos y Foto
+            </h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>{{ form.foto.label }}</label>
+                    <div class="file-upload-wrapper">
+                        <label for="{{ form.foto.id_for_label }}" class="file-upload-label">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                            <div class="file-upload-text">Haz clic para subir una foto</div>
+                            <div class="file-upload-hint">Formatos: JPG, PNG. Máx. 2MB</div>
+                            {{ form.foto }}
+                        </label>
+                        {% if form.foto.value %}
+                        <div class="current-file">
+                            <i class="fas fa-check-circle"></i> Archivo actual: {{ form.foto.value }}
+                        </div>
+                        {% endif %}
+                        {% if form.foto.errors %}
+                        <div class="invalid-feedback">{{ form.foto.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>{{ form.documento_cedula.label }}</label>
+                    <div class="file-upload-wrapper">
+                        <label for="{{ form.documento_cedula.id_for_label }}" class="file-upload-label">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div class="file-upload-text">Subir documento de identidad</div>
+                            <div class="file-upload-hint">Formatos: PDF, JPG, PNG. Máx. 5MB</div>
+                            {{ form.documento_cedula }}
+                        </label>
+                        {% if form.documento_cedula.value %}
+                        <div class="current-file">
+                            <i class="fas fa-check-circle"></i> Archivo actual: {{ form.documento_cedula.value }}
+                        </div>
+                        {% endif %}
+                        {% if form.documento_cedula.errors %}
+                        <div class="invalid-feedback">{{ form.documento_cedula.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>{{ form.contrato_firmado.label }}</label>
+                    <div class="file-upload-wrapper">
+                        <label for="{{ form.documento_cedula.id_for_label }}" class="file-upload-label">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div class="file-upload-text">Subir contrato firmado</div>
+                            <div class="file-upload-hint">Formatos: PDF, JPG, PNG. Máx. 5MB</div>
+                            {{ form.contrato_firmado }}
+                        </label>
+                        {% if form.contrato_firmado.value %}
+                        <div class="current-file">
+                            <i class="fas fa-check-circle"></i> Archivo actual: {{ form.contrato_firmado.value }}
+                        </div>
+                        {% endif %}
+                        {% if form.contrato_firmado.errors %}
+                        <div class="invalid-feedback">{{ form.contrato_firmado.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>{{ form.documento_rut.label }}</label>
+                    <div class="file-upload-wrapper">
+                        <label for="{{ form.documento_rut.id_for_label }}" class="file-upload-label">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div class="file-upload-text">Subir documento RUT</div>
+                            <div class="file-upload-hint">Formatos: PDF, JPG, PNG. Máx. 5MB</div>
+                            {{ form.documento_rut }}
+                        </label>
+                        {% if form.documento_rut.value %}
+                        <div class="current-file">
+                            <i class="fas fa-check-circle"></i> Archivo actual: {{ form.documento_rut.value }}
+                        </div>
+                        {% endif %}
+                        {% if form.documento_rut.errors %}
+                        <div class="invalid-feedback">{{ form.documento_rut.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preferencias -->
+        <div class="form-section">
+            <h3 class="form-section-title">
+                <i class="fas fa-cog"></i> Preferencias
+            </h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    {{ form.metodo_pago_preferido.label_tag }}
+                    {{ form.metodo_pago_preferido }}
+                    {% if form.metodo_pago_preferido.errors %}
+                    <div class="invalid-feedback">{{ form.metodo_pago_preferido.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.informacion_facturacion.label_tag }}
+                    {{ form.informacion_facturacion }}
+                    {% if form.informacion_facturacion.errors %}
+                    <div class="invalid-feedback">{{ form.informacion_facturacion.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'listar_clientes' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Guardar Cliente
+            </button>
+        </div>
+    </form>
+</div>
+
+{% block extra_js %}
+<script src="{% static 'js/crear_cliente.js' %}"></script>
+{% endblock %}
+
+{% endblock %}

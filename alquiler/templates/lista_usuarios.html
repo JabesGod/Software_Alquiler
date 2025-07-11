@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Gestión de Usuarios{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-users fa-fw"></i> Gestión de Usuarios
+{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/usuarios.css' %}">
+{% endblock %}
+{% block content %}
+<div class="card card-primary card-outline">
+    <div class="card-header">
+        <h3 class="card-title">Listado de Usuarios</h3>
+        <div class="card-tools">
+            <div class="input-group">
+                <form method="get" class="form-inline">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control" placeholder="Buscar..." value="{{ query }}">
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-default">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <form method="get" class="form-inline">
+                    <div class="form-group mr-2">
+                        <label for="estadoFilter" class="mr-2">Estado:</label>
+                        <select name="estado" id="estadoFilter" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="activo" {% if estado_seleccionado == 'activo' %}selected{% endif %}>Activos</option>
+                            <option value="inactivo" {% if estado_seleccionado == 'inactivo' %}selected{% endif %}>Inactivos</option>
+                        </select>
+                    </div>
+                    <div class="form-group mr-2">
+                        <label for="rolFilter" class="mr-2">Rol:</label>
+                        <select name="rol" id="rolFilter" class="form-control">
+                            <option value="">Todos</option>
+                            {% for rol in roles %}
+                            <option value="{{ rol.id }}" {% if rol_seleccionado == rol.id %}selected{% endif %}>
+                                {{ rol.nombre_rol }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Último acceso</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in page_obj %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'detalle_usuario' usuario.id %}">
+                                {{ usuario.nombre_usuario }}
+                            </a>
+                            {% if usuario.is_staff %}
+                            <span class="badge bg-info ml-1">Staff</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ usuario.rol.nombre_rol }}</td>
+                        <td>
+                            {% if usuario.is_active %}
+                            <span class="badge bg-success">Activo</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if usuario.last_login %}
+                                {{ usuario.last_login|date:"d/m/Y H:i" }}
+                            {% else %}
+                                Nunca
+                            {% endif %}
+                        </td>
+                        <td class="text-nowrap">
+                            <div class="btn-group">
+                                <a href="{% url 'editar_usuario' usuario.id %}" class="btn btn-sm btn-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'cambiar_contrasena' usuario.id %}" class="btn btn-sm btn-warning" title="Cambiar contraseña">
+                                    <i class="fas fa-key"></i>
+                                </a>
+                                <a href="{% url 'cambiar_estado_usuario' usuario.id %}" 
+                                   class="btn btn-sm btn-{% if usuario.is_active %}warning{% else %}success{% endif %}" 
+                                   title="{% if usuario.is_active %}Desactivar{% else %}Activar{% endif %}">
+                                    <i class="fas fa-{% if usuario.is_active %}times{% else %}check{% endif %}"></i>
+                                </a>
+                                {% if usuario.id != request.user.id %}
+                                <a href="{% url 'confirmar_eliminar_usuario' usuario.id %}" class="btn btn-sm btn-danger" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No se encontraron usuarios</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Inicializar tooltips
+    $('[title]').tooltip();
+    
+    // Manejar el cambio en los filtros
+    $('#estadoFilter, #rolFilter').change(function() {
+        $(this).closest('form').submit();
+    });
+});
+</script>
+{% endblock %}

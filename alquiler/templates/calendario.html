@@ -1,25 +1,36 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Calendario Anual de Alquileres</title>
-    <link rel="stylesheet" href="{% static 'css/calendario0.css' %}">
-</head>
-<body>
-    <a href="{% url 'enviar_alertas_vencimiento' %}">
-    <h2>📅 Calendario Anual de Alquileres</h2>
- 
-        <div class="navegacion">
-        <button id="anioAnterior">◀</button>
-        <span id="anioActual">2025</span>
-        <button id="anioSiguiente">▶</button>
-    </div>
-    <div id="calendarioContainer"></div>
 
-    <script>
-        const eventos = {{ eventos_json|safe }};
-    </script>
-    <script src="{% static 'js/calendario.js' %}"></script>
-</body>
-</html>
+{% block title %}Calendario Anual de Alquileres{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/calendario0.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="calendario-container">
+    <div class="calendar-header">
+        <h2>
+            <i class="fas fa-calendar-alt"></i>
+            Calendario Anual de Alquileres
+        </h2>
+        
+        <div class="navegacion-anios">
+            <button id="anioAnterior">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <span id="anioActual" class="anio-display">{{ current_year }}</span>
+            <button id="anioSiguiente">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="calendarioContainer" class="calendario-grid"></div>
+</div>
+
+<script>
+    const eventos = {{ eventos_json|safe }};
+</script>
+<script src="{% static 'js/calendario.js' %}"></script>
+{% endblock %}

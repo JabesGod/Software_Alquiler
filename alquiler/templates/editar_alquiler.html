@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Editar Alquiler #{{ alquiler.id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">
+        <i class="fas fa-edit"></i> 
+        Editar {{ alquiler.es_reserva|yesno:"Reserva,Alquiler" }} #{{ alquiler.id }}
+        <span class="badge bg-{{ alquiler.estado_alquiler|default:'secondary' }}">
+            {{ alquiler.get_estado_alquiler_display }}
+        </span>
+    </h2>
+
+    <form method="post" id="form-alquiler" class="needs-validation" novalidate>
+        {% csrf_token %}
+
+        <!-- CAMPOS OCULTOS DEL FORMSET - IMPORTANTE -->
+        {{ formset.management_form }}
+
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-info-circle"></i> Información Principal
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.cliente.id_for_label }}" class="form-label">
+                            <i class="fas fa-user"></i> Cliente
+                        </label>
+                        {{ form.cliente }}
+                        <div class="invalid-feedback">
+                            Por favor seleccione un cliente.
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.numero_factura.id_for_label }}" class="form-label">
+                            <i class="fas fa-file-invoice"></i> Número de Factura
+                        </label>
+                        {{ form.numero_factura }}
+                        <div class="invalid-feedback">
+                            Por favor ingrese un número de factura.
+                        </div>
+                        {% if alquiler.es_reserva %}
+                        <small class="text-muted">No requerido para reservas</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.fecha_inicio.id_for_label }}" class="form-label">
+                            <i class="fas fa-calendar-alt"></i> Fecha Inicio
+                        </label>
+                        {{ form.fecha_inicio }}
+                        <div class="invalid-feedback">
+                            Por favor ingrese una fecha de inicio válida.
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.fecha_fin.id_for_label }}" class="form-label">
+                            <i class="fas fa-calendar-alt"></i> Fecha Fin
+                        </label>
+                        {{ form.fecha_fin }}
+                        <div class="invalid-feedback">
+                            Por favor ingrese una fecha de fin válida.
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label"><i class="fas fa-clock"></i> Duración</label>
+                        <input type="text" class="form-control" id="duracion-alquiler" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-laptop"></i> Equipos a Alquilar
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label"><i class="fas fa-desktop"></i> Equipo</label>
+                        <select class="form-control select2" id="equipo-selector">
+                            <option value="">Seleccione un equipo...</option>
+                            {% for equipo in equipos_disponibles %}
+                            <option value="{{ equipo.id }}" 
+                                data-precio-dia="{{ equipo.precio_dia|default:0 }}"
+                                data-precio-semana="{{ equipo.precio_semana|default:0 }}"
+                                data-precio-mes="{{ equipo.precio_mes|default:0 }}"
+                                data-precio-trimestre="{{ equipo.precio_trimestre|default:0 }}"
+                                data-precio-semestre="{{ equipo.precio_semestre|default:0 }}"
+                                data-precio-anio="{{ equipo.precio_anio|default:0 }}">
+                                {{ equipo.marca }} {{ equipo.modelo }} (Disponibles: {{ equipo.cantidad_disponible }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label"><i class="fas fa-calendar-week"></i> Periodo de Alquiler</label>
+                        <select class="form-control" id="periodo-selector">
+                            <option value="dia">Por día</option>
+                            <option value="semana">Por semana</option>
+                            <option value="mes">Por mes</option>
+                            <option value="trimestre">Por trimestre</option>
+                            <option value="semestre">Por semestre</option>
+                            <option value="anio">Por año</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label"><i class="fas fa-barcode"></i> Números de Serie</label>
+                        <select class="form-control select2" id="serie-selector" multiple>
+                            <!-- Se llenará dinámicamente -->
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" id="agregar-equipo" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Agregar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="tabla-equipos">
+                        <thead class="table-dark">
+                            <tr>
+                                <th><i class="fas fa-desktop"></i> Equipo</th>
+                                <th><i class="fas fa-barcode"></i> Seriales</th>
+                                <th><i class="fas fa-calendar-week"></i> Periodo</th>
+                                <th><i class="fas fa-dollar-sign"></i> Precio Unitario</th>
+                                <th><i class="fas fa-calculator"></i> Total</th>
+                                <th><i class="fas fa-times"></i> Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Se llenará dinámicamente con equipos existentes y nuevos -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Campos ocultos para el formset -->
+                <div id="equipos-container">
+                    <!-- Los campos del formset se generarán aquí dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-comment-alt"></i> Información Adicional
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ form.observaciones.id_for_label }}" class="form-label">
+                            <i class="fas fa-sticky-note"></i> Observaciones
+                        </label>
+                        {{ form.observaciones }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.aprobado_por.id_for_label }}" class="form-label">
+                            <i class="fas fa-user-check"></i> Aprobado por
+                        </label>
+                        {{ form.aprobado_por }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch pt-4">
+                            {{ form.contrato_firmado }}
+                            <label for="{{ form.contrato_firmado.id_for_label }}" class="form-check-label">
+                                <i class="fas fa-file-signature"></i> Contrato Firmado
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch pt-4">
+                            {{ form.renovacion }}
+                            <label for="{{ form.renovacion.id_for_label }}" class="form-check-label">
+                                <i class="fas fa-sync-alt"></i> Renovación
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-receipt"></i> Resumen del Alquiler
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-list"></i> Detalle de Costos</h5>
+                        <ul class="list-group mb-3" id="resumen-costos">
+                            <!-- Aquí se agregarán dinámicamente los ítems -->
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold">Subtotal:</span>
+                            <span id="subtotal">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold">Impuestos (19%):</span>
+                            <span id="impuestos">$0.00</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold">Total:</h5>
+                            <h5 id="total">$0.00</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{% url 'listar_alquileres' %}" class="btn btn-secondary me-md-2">
+                <i class="fas fa-arrow-left"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-save"></i> Actualizar Alquiler
+            </button>
+        </div>
+    
+    </form>
+    
+</div>
+
+<!-- TEMPLATE PARA FORMULARIOS OCULTOS -->
+<div id="empty-form" style="display: none;">
+    {% for field in formset.empty_form %}
+        {% if field.name != 'DELETE' %}
+            <input type="hidden" name="{{ field.html_name }}" id="{{ field.id_for_label }}" value="">
+        {% else %}
+            <input type="checkbox" name="{{ field.html_name }}" id="{{ field.id_for_label }}">
+        {% endif %}
+    {% endfor %}
+</div>
+
+<!-- DATOS PARA CARGAR EQUIPOS EXISTENTES -->
+<script id="equipos-existentes" type="application/json">
+    {{ equipos_json }}
+</script>
+
+{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'css/crear_alquiler.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/editar_alquiler.js' %}"></script>
+{% endblock %}

@@ -1,47 +1,286 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <title>Detalle del Alquiler</title>
-    <link rel="stylesheet" href="{% static 'css/calendario.css' %}">
-</head>
-<body>
-    <h2>📋 Detalle del Alquiler</h2>
 
-    <p><strong>Cliente:</strong> {{ alquiler.cliente.nombre }}</p>
-    <p><strong>Equipo:</strong> {{ alquiler.equipo.marca }} {{ alquiler.equipo.modelo }}</p>
-    <p><strong>Periodo:</strong> {{ alquiler.fecha_inicio }} - {{ alquiler.fecha_fin }}</p>
-    <p><strong>Precio Total:</strong> ${{ alquiler.precio_total }}</p>
-    <p><strong>Estado:</strong> {{ alquiler.get_estado_alquiler_display }}</p>
+{% block title %}Detalle del Alquiler{% endblock %}
 
-    <hr>
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'css/detalle_alquiler.css' %}">
+{% endblock %}
 
-    <h3>📄 Contrato</h3>
-    {% if alquiler.contrato %}
-        <p><strong>Fecha de contratación:</strong> {{ alquiler.contrato.fecha_contratacion }}</p>
+{% block content %}
+<div class="detalle-container">
+    <div class="detalle-header">
+        <i class="fas fa-file-alt detalle-icon"></i>
+        <h2>Detalle del Alquiler </h2>
+    </div>
 
-        {% if alquiler.contrato.fecha_firma %}
-            <p><strong>Contrato firmado el:</strong> {{ alquiler.contrato.fecha_firma|date:"j \\d\\e F \\d\\e Y" }}</p>
-        {% else %}
-            <p><strong>Contrato firmado:</strong> No firmado aún</p>
-            <a href="{% url 'firmar_contrato' alquiler.id %}">🖋️ Firmar contrato</a>
+    <div class="detalle-card">
+        <div class="detalle-info">
+            <div class="info-item">
+                <i class="fas fa-user"></i>
+                <span><strong>Factura:</strong> {{ alquiler.numero_factura }} </span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-user"></i>
+                <span><strong>Cliente:</strong> {{ alquiler.cliente.nombre }}</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-laptop"></i>
+                <span><strong>Equipos:</strong></span>
+                <ul>
+                    {% for detalle in alquiler.detalles.all %}
+                    <li>
+                        {{ detalle.equipo.marca }} {{ detalle.equipo.modelo }}
+                        {% if detalle.numeros_serie %}
+                        <br><small>Seriales: {{ detalle.numeros_serie|join:", " }}</small>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="info-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span><strong>Periodo:</strong> {{ alquiler.fecha_inicio }} - {{ alquiler.fecha_fin }}</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-dollar-sign"></i>
+                <span><strong>Precio Total:</strong> ${{ alquiler.precio_total }}</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-info-circle"></i>
+                <span><strong>Estado:</strong> {{ alquiler.get_estado_alquiler_display }}</span>
+            </div>
+        </div>
+
+        <div class="section-divider">
+            <i class="fas fa-file-contract"></i>
+            <h3>Contrato</h3>
+        </div>
+
+        <div class="contrato-info">
+            {% if alquiler.contrato %}
+            <div class="info-item">
+                <i class="fas fa-calendar-plus"></i>
+                <span><strong>Fecha de contratación:</strong> {{ alquiler.contrato.fecha_contratacion }}</span>
+            </div>
+
+            {% if alquiler.contrato.fecha_firma %}
+            <div class="info-item">
+                <i class="fas fa-signature"></i>
+                <span><strong>Contrato firmado el:</strong> {{ alquiler.contrato.fecha_firma|date:"j \\d\\e F \\d\\e Y"}}</span>
+            </div>
+
+            {% if alquiler.contrato.documento_contrato %}
+            <a href="{{ alquiler.contrato.documento_contrato.url }}" target="_blank" class="btn btn-action">
+                <i class="fas fa-file-pdf"></i> Ver contrato en PDF
+            </a>
+            {% else %}
+            <div class="info-item">
+                <i class="fas fa-exclamation-circle"></i>
+                <span><strong>Documento PDF:</strong> Aún no generado</span>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="info-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span><strong>Contrato firmado:</strong> No firmado aún</span>
+            </div>
+            <a href="{% url 'firmar_contrato' alquiler.id %}" class="btn btn-action">
+                <i class="fas fa-pen-fancy"></i> Firmar contrato
+            </a>
+            {% endif %}
+            {% else %}
+            <a href="{% url 'crear_contrato' alquiler.id %}" class="btn btn-action">
+                <i class="fas fa-file-signature"></i> Generar contrato
+            </a>
+            {% endif %}
+        </div>
+
+
+        {% if alquiler.estado_alquiler == 'activo' or alquiler.estado_alquiler == 'finalizado' %}
+        <div class="section-divider">
+            <i class="fas fa-sync-alt"></i>
+            <h3>Opciones</h3>
+        </div>
+        <a href="{% url 'renovar_contrato' alquiler.id %}" class="btn btn-renew">
+            <i class="fas fa-redo-alt"></i> Renovar contrato
+        </a>
         {% endif %}
 
-        <p><a href="{{ alquiler.contrato.documento_contrato.url }}" target="_blank">📥 Ver contrato en PDF</a></p>
+        <div class="section-divider">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Zona de peligro</h3>
+        </div>
+        <a href="{% url 'eliminar_alquiler' alquiler.id %}" class="btn btn-danger">
+            <i class="fas fa-trash-alt"></i> Eliminar alquiler
+        </a>
 
-    {% else %}
-        <a href="{% url 'crear_contrato' alquiler.id %}">📝 Generar contrato</a>
-    {% endif %}
+        <div class="section-divider">
+            <i class="fas fa-file-download"></i>
+            <h3>Documentos y Acciones</h3>
+        </div>
 
-    {% if alquiler.estado_alquiler == 'activo' or alquiler.estado_alquiler == 'finalizado' %}
-        <hr>
-        <a href="{% url 'renovar_contrato' alquiler.id %}">🔄 Renovar contrato</a>
-    {% endif %}
+        <div class="document-actions  mt-5">
+            <!-- Acta de Entrega -->
+            <a href="{% url 'generar_acta_entrega' alquiler.id %}" class="btn btn-action">
+                <i class="fas fa-file-arrow-down"></i> Descargar acta de entrega
+            </a>
 
-    <hr>
-    <a href="{% url 'eliminar_alquiler' alquiler.id %}" style="color: red;">🗑️ Eliminar alquiler</a>
+            <!-- Acta de Devolución -->
+            <a href="{% url 'generar_acta_devolucion' alquiler.id %}" class="btn btn-action">
+                <i class="fas fa-file-arrow-down"></i> Descargar acta de devolución
+            </a>
+            <!-- Firmar contrato -->
+            <a href="{% url 'firmar_contrato' alquiler.id %}" class="btn btn-action">
+                <i class="fas fa-pen-fancy"></i> Firmar contrato
+            </a>
 
-    <br><br>
-    <a href="{% url 'calendario_alquileres' %}">⬅️ Regresar al calendario</a>
-</body>
-</html>
+            <!-- Renovar contrato -->
+            <a href="{% url 'renovar_contrato' alquiler.id %}" class="btn btn-action">
+                <i class="fas fa-redo-alt"></i> Renovar contrato
+            </a>
+        </div>
+        <div class="section-divider">
+            <i class="fas fa-file-contract"></i>
+            <h3>Historial de Contratos</h3>
+        </div>
+
+        <div class="historial-contratos">
+            <!-- Columna de Historial -->
+            <div class="contratos-column">
+                <h4><i class="fas fa-history"></i> Últimos 3 Contratos</h4>
+                {% if historial_contratos %}
+                <ul class="contratos-list">
+                    {% for contrato in historial_contratos %}
+                    <li class="{% if contrato.id == alquiler.contrato.id %}current-contract{% endif %}">
+                        <div class="contract-header">
+                            {% if contrato.documento_contrato %}
+                            <a href="{{ contrato.documento_contrato.url }}" target="_blank" class="contract-link">
+                                <i class="fas fa-file-pdf"></i>
+                                Contrato #{{ contrato.id }}
+                            </a>
+                            {% else %}
+                            <span class="contract-link">
+                                <i class="fas fa-file"></i>
+                                Contrato #{{ contrato.id }} (sin PDF)
+                            </span>
+                            {% endif %}
+                            <span class="contract-date">
+                                {{ contrato.fecha_creacion|date:"d/m/Y" }}
+                            </span>
+                        </div>
+
+                        <div class="contract-details">
+                            <span
+                                class="badge {% if contrato.fecha_firma %}badge-success{% else %}badge-warning{% endif %}">
+                                {% if contrato.fecha_firma %}
+                                <i class="fas fa-check-circle"></i> Firmado
+                                {% else %}
+                                <i class="fas fa-exclamation-circle"></i> Pendiente
+                                {% endif %}
+                            </span>
+
+                            {% if contrato.fecha_firma %}
+                            <small class="text-muted">
+                                Firma: {{ contrato.fecha_firma|date:"d/m/Y" }}
+                            </small>
+                            {% endif %}
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No hay contratos registrados
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Columna de Acciones -->
+            <div class="contratos-column">
+                <h4><i class="fas fa-file-import"></i> Contrato Actual</h4>
+                {% if alquiler.contrato %}
+                <div class="current-contract-card">
+                    <div class="contract-actions">
+                        {% if alquiler.contrato.documento_contrato %}
+                        <a href="{{ alquiler.contrato.documento_contrato.url }}" class="btn btn-download"
+                            target="_blank">
+                            <i class="fas fa-file-download"></i> Descargar PDF
+                        </a>
+                        {% else %}
+                        <button class="btn btn-generate" disabled>
+                            <i class="fas fa-file-exclamation"></i> PDF no generado
+                        </button>
+                        {% endif %}
+
+                        {% if not alquiler.contrato.fecha_firma %}
+                        <a href="{% url 'firmar_contrato' alquiler.id %}" class="btn btn-sign">
+                            <i class="fas fa-pen-fancy"></i> Firmar Contrato
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="no-contract">
+                    <i class="fas fa-file-exclamation"></i>
+                    <p>No hay contrato asociado a este alquiler</p>
+                    <a href="{% url 'crear_contrato' alquiler.id %}" class="btn btn-create">
+                        <i class="fas fa-file-signature"></i> Generar Contrato
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="section-divider">
+            <i class="fas fa-history"></i>
+            <h3>Historial de Actas</h3>
+        </div>
+
+        <div class="historial-actas">
+            <div class="actas-column">
+                <h4><i class="fas fa-file-export"></i> Últimas 3 Actas de Entrega</h4>
+                {% if historial_entregas %}
+                <ul class="actas-list">
+                    {% for acta in historial_entregas %}
+                    <li>
+                        <a href="{{ acta.archivo.url }}" target="_blank">
+                            <i class="fas fa-file-pdf"></i> Acta del {{ acta.fecha_creacion|date:"d/m/Y" }}
+                        </a>
+                        <small>({{ acta.fecha_creacion|timesince }} atrás)</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">No hay actas de entrega registradas</p>
+                {% endif %}
+            </div>
+
+            <div class="actas-column">
+                <h4><i class="fas fa-file-import"></i> Últimas 3 Actas de Devolución</h4>
+                {% if historial_devoluciones %}
+                <ul class="actas-list">
+                    {% for acta in historial_devoluciones %}
+                    <li>
+                        <a href="{{ acta.archivo.url }}" target="_blank">
+                            <i class="fas fa-file-pdf"></i> Acta del {{ acta.fecha_creacion|date:"d/m/Y" }}
+                        </a>
+                        <small>({{ acta.fecha_creacion|timesince }} atrás)</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">No hay actas de devolución registradas</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="footer-actions">
+            <a href="{% url 'listar_alquileres' %}" class="btn btn-action">
+                <i class="fas fa-arrow-left"></i> Regresar al Listado de Alquileres
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

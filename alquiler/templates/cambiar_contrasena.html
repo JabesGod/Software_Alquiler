@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Cambiar Contraseña - {{ usuario.nombre_usuario }}{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-key fa-fw"></i> Cambiar Contraseña: {{ usuario.nombre_usuario }}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card card-warning">
+            <div class="card-header">
+                <h3 class="card-title">Cambiar contraseña</h3>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="{{ form.nueva_contrasena.id_for_label }}">{{ form.nueva_contrasena.label }}</label>
+                        {{ form.nueva_contrasena }}
+                        {% if form.nueva_contrasena.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.nueva_contrasena.errors.as_text }}
+                        </div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            La contraseña debe tener al menos 8 caracteres y no ser demasiado común.
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.confirmar_contrasena.id_for_label }}">{{ form.confirmar_contrasena.label }}</label>
+                        {{ form.confirmar_contrasena }}
+                        {% if form.confirmar_contrasena.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.confirmar_contrasena.errors.as_text }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save"></i> Cambiar contraseña
+                    </button>
+                    <a href="{% url 'detalle_usuario' usuario.id %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card card-info">
+            <div class="card-header">
+                <h3 class="card-title">Requisitos de contraseña</h3>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success mr-2"></i> Mínimo 8 caracteres</li>
+                    <li><i class="fas fa-check text-success mr-2"></i> No puede ser similar a tu información personal</li>
+                    <li><i class="fas fa-check text-success mr-2"></i> No puede ser una contraseña común</li>
+                    <li><i class="fas fa-check text-success mr-2"></i> Debe contener al menos un número</li>
+                    <li><i class="fas fa-check text-success mr-2"></i> Se recomienda usar caracteres especiales</li>
+                </ul>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle"></i> 
+                    Si estás cambiando tu propia contraseña, se cerrará tu sesión en otros dispositivos.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

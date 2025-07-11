@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
@@ -18,22 +18,25 @@ cambiar_estado_verificacion, bloquear_cliente,clientes_morosos,validar_documento
 registrar_pago_parcial
 
 )
+
 from alquiler.views.alquiler_views import (
 listar_alquileres,crear_alquiler,finalizar_alquiler, renovar_alquiler,
-subir_documentos_alquiler, generar_acta_entrega, aprobar_alquiler,calendario_alquileres,
+generar_acta_entrega, aprobar_alquiler,calendario_alquileres,
 detalle_alquiler, cancelar_alquiler,reservar_alquiler,generar_acta_devolucion, crear_contrato, firmar_contrato,
-renovar_contrato,eliminar_alquiler
-
+renovar_contrato,eliminar_alquiler, series_disponibles, editar_alquiler
 )
 
 from alquiler.views.pago_views import (
-    RegistrarPagoView, RegistrarPagoParcialView,
-    PagosPendientesView, GenerarFacturaView, PasarelaPagoView,
-    TotalPagadoAlquilerView
+    RegistrarPagoView,
+    PagosPendientesView, GenerarFacturaView, PasarelaPagoView, PagosAlquilerView, RegistrarPagoParcialView, 
+    PagoDetalleView,ProcesarPagoPasarelaView, TotalPagadoAlquilerView, listar_pagos, editar_pago,verificar_estado_pago_alquiler, enviar_notificacion_pago,
+    registrar_pago, detalle_pago,generar_factura_pdf, pagos_vencidos, pagos_proximos_vencer, cambiar_estado_pago, eliminar_pago, reportes_pagos, pagos_parciales, registrar_pago_contra_obligacion
 )
 
 from alquiler.views.usuario_views import(
-    registro_usuario,salir_sesion,asignar_rol, inicio_sesion, pagina_principal
+    registro_usuario,salir_sesion,asignar_rol, inicio_sesion, pagina_principal, lista_usuarios,editar_usuario,eliminar_usuario,cambiar_estado_usuario,
+    cambiar_contrasena, confirmar_eliminar_usuario, detalle_usuario, auditoria_usuario
+
 )
 
 from alquiler.views.base_views import(
@@ -41,7 +44,7 @@ from alquiler.views.base_views import(
 )
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
+    path('api/', include('alquiler.api_urls')),
     #Buscador
     path('buscar/', BusquedaGlobalView.as_view(), name='busqueda_global'),
     path('buscar/sugerencias/', sugerencias_busqueda, name='sugerencias_busqueda'),
@@ -76,34 +79,55 @@ urlpatterns = [
     path('alquiler/<int:id_alquiler>/pago-parcial/', registrar_pago_parcial, name='registrar_pago_parcial'),
     path('alquileres/', listar_alquileres, name='listar_alquileres'),
     path('alquileres/crear/', crear_alquiler, name='crear_alquiler'),
+    path('equipos/<int:equipo_id>/series-disponibles/', series_disponibles, name='series_disponibles'),
     path('alquileres/<int:id>/finalizar/', finalizar_alquiler, name='finalizar_alquiler'),
-    path('alquileres/<int:id>/renovar/', renovar_alquiler, name='renovar_alquiler'),
-    path('alquileres/<int:id>/subir-documentos/', subir_documentos_alquiler, name='subir_documentos_alquiler'),
-    path('alquileres/<int:id>/acta-entrega/', generar_acta_entrega, name='generar_acta_entrega'),
-    path('alquileres/<int:id>/aprobar/', aprobar_alquiler, name='aprobar_alquiler'),
-    path('alquileres/calendario/', calendario_alquileres, name='calendario_alquileres'),
-    path('alquileres/<int:id>/detalle/', detalle_alquiler, name='detalle_alquiler'),
-    path('alquileres/<int:id>/cancelar/', cancelar_alquiler, name='cancelar_alquiler'),
     path('alquileres/reservar/', reservar_alquiler, name='reservar_alquiler'),
-    path('alquileres/<int:id>/acta-devolucion/', generar_acta_devolucion, name='generar_acta_devolucion'),
-    path('alquileres/<int:id>/crear-contrato/', crear_contrato, name='crear_contrato'),
+    path('alquileres/<int:id>/cancelar/', cancelar_alquiler, name='cancelar_alquiler'),
+    path('alquileres/<int:id>/aprobar/', aprobar_alquiler, name='aprobar_alquiler'),
+    path('alquileres/<int:id>/renovar/', renovar_alquiler, name='renovar_alquiler'),
+    path('alquileres/<int:id>/detalle/', detalle_alquiler, name='detalle_alquiler'),
+    path('alquileres/calendario/', calendario_alquileres, name='calendario_alquileres'),
+    path('alquileres/<int:id>/editar/', editar_alquiler, name='editar_alquiler'),
     path('alquileres/<int:id>/firmar-contrato/', firmar_contrato, name='firmar_contrato'),
     path('alquileres/<int:id>/renovar-contrato/', renovar_contrato, name='renovar_contrato'),
     path('alquileres/<int:id>/eliminar/', eliminar_alquiler, name='eliminar_alquiler'),
-    #Urls Pago
-    path('registrar/', RegistrarPagoView.as_view(), name='registrar_pago'),
-    path('registrar-parcial/', RegistrarPagoParcialView.as_view(), name='registrar_pago_parcial'),
-    path('pendientes/<int:id_cliente>/', PagosPendientesView.as_view(), name='pagos_pendientes'),
-    path('factura/<int:id_pago>/', GenerarFacturaView.as_view(), name='generar_factura'),
-    path('pasarela/', PasarelaPagoView.as_view(), name='pasarela_pago'),
-    path('total-pagado/<int:id_alquiler>/', TotalPagadoAlquilerView.as_view(), name='total_pagado_alquiler'),
+    #incompletas
+    path('alquileres/<int:id>/acta-entrega/', generar_acta_entrega, name='generar_acta_entrega'),
+    path('alquileres/<int:id>/acta-devolucion/', generar_acta_devolucion, name='generar_acta_devolucion'),
+    path('alquileres/<int:id>/crear-contrato/', crear_contrato, name='crear_contrato'),
+    #Pagos
+    path('pagos/', listar_pagos, name='lista_pagos'),
+    path('pagos/registrar/', registrar_pago, name='registrar_pago'),
+    path('pagos/<int:pago_id>/', detalle_pago, name='detalle_pago'),
+    path('pagos/<int:pago_id>/editar/', editar_pago, name='editar_pago'),  # Nueva URL
+    path('pagos/<int:pago_id>/factura/', generar_factura_pdf, name='generar_factura_pdf'),
+    path('pagos/vencidos/', pagos_vencidos, name='pagos_vencidos'),
+    path('pagos/proximos/', pagos_proximos_vencer, name='pagos_proximos'),
+    path('pagos/<int:pago_id>/cambiar-estado/<str:nuevo_estado>/', cambiar_estado_pago, name='cambiar_estado_pago'),
+    path('pagos/<int:pago_id>/eliminar/', eliminar_pago, name='eliminar_pago'),
+    path('pagos/reportes/', reportes_pagos, name='reportes_pagos'),
+    path('pagos/parciales/', pagos_parciales, name='pagos_parciales'),
+    path('pagos/<int:pago_id>/registrar/', registrar_pago_contra_obligacion, name='registrar_pago_contra_obligacion'),
     #Urls Usuario
     path('', inicio_sesion, name='inicio_sesion'),
     path('registro/', registro_usuario, name='registro'),
     path('salir/', salir_sesion, name='salir'),
     path('asignar-rol/<int:usuario_id>/', asignar_rol, name='asignar_rol'),
     path('inicio/', pagina_principal, name='pagina_principal'),
+    path('usuarios/', lista_usuarios, name='lista_usuarios'),
+    path('usuarios/editar/<int:usuario_id>/', editar_usuario, name='editar_usuario'),
+    path('usuarios/cambiar-estado/<int:usuario_id>/', cambiar_estado_usuario, name='cambiar_estado_usuario'),
+    path('usuarios/cambiar-contrasena/<int:usuario_id>/', cambiar_contrasena, name='cambiar_contrasena'),
+    path('usuarios/eliminar/<int:usuario_id>/', confirmar_eliminar_usuario, name='confirmar_eliminar_usuario'),
+    path('usuarios/eliminar-confirmado/<int:usuario_id>/', eliminar_usuario, name='eliminar_usuario'),
+    path('usuarios/detalle/<int:usuario_id>/', detalle_usuario, name='detalle_usuario'),
+    path('usuarios/auditoria/<int:usuario_id>/', auditoria_usuario, name='auditoria_usuario'),
 ]
+
+
+    
+
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

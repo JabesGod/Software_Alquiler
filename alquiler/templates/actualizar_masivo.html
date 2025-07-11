@@ -6,6 +6,7 @@
 {% block page_title %}Actualización Masiva de Estados{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <link rel="stylesheet" href="{% static 'css/actualizacion_estados.css' %}">
 {% endblock %}
 
@@ -18,7 +19,7 @@
         
         <div class="acciones-rapidas">
             <button id="seleccionar-todos" class="btn-accion">
-                <i class="fas fa-check-square"></i> Seleccionar todos
+                <i class="fas fa-check-square"></i> Seleccionar todos disponibles
             </button>
             <button id="deseleccionar-todos" class="btn-accion">
                 <i class="far fa-square"></i> Deseleccionar todos
@@ -26,14 +27,14 @@
         </div>
     </div>
 
-    <form method="post" class="form-actualizacion">
+    <form method="post" class="form-actualizacion" id="form-actualizacion">
         {% csrf_token %}
         
         <div class="filtros-rapidos">
             <input type="text" id="filtro-equipos" placeholder="Filtrar equipos..." class="input-filtro">
             
             <div class="controles-estado">
-                <select name="nuevo_estado" class="select-estado" required>
+                <select name="nuevo_estado" class="select-estado" required id="select-estado">
                     <option value="" disabled selected>Seleccione nuevo estado</option>
                     {% for valor, nombre in estados %}
                     <option value="{{ valor }}" data-color="estado-{{ valor }}">
@@ -42,7 +43,7 @@
                     {% endfor %}
                 </select>
                 
-                <button type="submit" class="btn-actualizar">
+                <button type="submit" class="btn-actualizar" id="btn-actualizar">
                     <i class="fas fa-sync-alt"></i> Actualizar Estados
                 </button>
             </div>
@@ -58,19 +59,22 @@
                         <th>N° Serie</th>
                         <th>Estado Actual</th>
                         <th>Disponibilidad</th>
+                        <th>Alquiler Activo</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for equipo in equipos %}
-                    <tr class="equipo-fila">
+                    <tr class="equipo-fila" data-disponible="{% if equipo.cantidad_disponible > 0 %}true{% else %}false{% endif %}"
+                        data-alquilado="{% if equipo.tiene_alquiler_activo %}true{% else %}false{% endif %}">
                         <td>
                             <input type="checkbox" name="ids_equipos" value="{{ equipo.id }}" 
-                                   class="check-equipo" id="equipo-{{ equipo.id }}">
+                                   class="check-equipo" id="equipo-{{ equipo.id }}"
+                                   {% if equipo.tiene_alquiler_activo %}disabled{% endif %}>
                             <label for="equipo-{{ equipo.id }}"></label>
                         </td>
                         <td>{{ equipo.marca }}</td>
                         <td>{{ equipo.modelo }}</td>
-                        <td>{{ equipo.numero_serie }}</td>
+                        <td>{{ equipo.numero_serie|default:"-" }}</td>
                         <td>
                             <span class="badge-estado estado-{{ equipo.estado }}">
                                 {{ equipo.get_estado_display }}
@@ -81,10 +85,21 @@
                                 {{ equipo.cantidad_disponible }}/{{ equipo.cantidad_total }}
                             </span>
                         </td>
+                        <td>
+                            {% if equipo.tiene_alquiler_activo %}
+                            <span class="badge-alquiler activo">
+                                <i class="fas fa-exclamation-triangle"></i> Alquilado
+                            </span>
+                            {% else %}
+                            <span class="badge-alquiler inactivo">
+                                <i class="fas fa-check-circle"></i> Libre
+                            </span>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="sin-equipos">No hay equipos registrados</td>
+                        <td colspan="7" class="sin-equipos">No hay equipos registrados</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -92,8 +107,11 @@
         </div>
     </form>
 </div>
+
+
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{% static 'js/actualizacion_estados.js' %}"></script>
 {% endblock %}

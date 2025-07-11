@@ -1,21 +1,54 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <title>Clientes Morosos</title>
-    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
-</head>
-<body>
-<h2>⚠️ Clientes Morosos</h2>
 
-<ul>
-    {% for cliente in clientes %}
-    <li>{{ cliente.nombre }} - {{ cliente.email }} - {{ cliente.telefono }}</li>
-    {% empty %}
-    <li>No hay clientes morosos.</li>
-    {% endfor %}
-</ul>
+{% block title %}Clientes Morosos{% endblock %}
 
-<a href="{% url 'listar_clientes' %}">⬅️ Volver a la lista de clientes</a>
-</body>
-</html>
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/morosos.css' %}">
+{% endblock %}
+
+{% block content %}
+    <h2><i class="fas fa-exclamation-triangle"></i> Clientes Morosos</h2>
+    
+    <div class="alert alert-warning">
+        <i class="fas fa-info-circle"></i> Se consideran morosos los clientes con pagos pendientes por más de 15 días.
+    </div>
+
+    <ul class="lista-morosos">
+        {% for cliente in clientes %}
+        <li>
+            <div class="moroso-header">
+                <i class="fas fa-user-alt"></i> 
+                <strong>{{ cliente.nombre }}</strong>
+                <span class="badge-moroso">Mora: {{ cliente.dias_mora }} días</span>
+            </div>
+            
+            <div class="moroso-details">
+                <div><i class="fas fa-envelope"></i> {{ cliente.email }}</div>
+                <div><i class="fas fa-phone"></i> {{ cliente.telefono }}</div>
+                <div><i class="fas fa-calendar-alt"></i> Moroso desde: {{ cliente.fecha_marcado_moroso|date:"d/m/Y" }}</div>
+                <div><i class="fas fa-money-bill-wave"></i> Deuda total: ${{ cliente.deuda_total|floatformat:2 }}</div>
+            </div>
+            
+            <div class="moroso-actions">
+                <a href="{% url 'detalle_cliente' cliente.id %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-eye"></i> Ver detalles
+                </a>
+                <a href="{% url 'contactar_moroso' cliente.id %}" class="btn btn-sm btn-warning">
+                    <i class="fas fa-phone"></i> Contactar
+                </a>
+            </div>
+        </li>
+        {% empty %}
+        <li class="no-morosos">
+            <i class="fas fa-smile-beam"></i> No hay clientes morosos actualmente.
+        </li>
+        {% endfor %}
+    </ul>
+
+    <div class="volver-link">
+        <a href="{% url 'listar_clientes' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver 
+        </a>
+    </div>
+{% endblock %}

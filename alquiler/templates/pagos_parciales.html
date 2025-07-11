@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pagos Parciales{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/pagos.css' %}">
+{% endblock %}
+
+{% block page_title %}Pagos Parciales{% endblock %}
+
+{% block content %}
+<div class="pagos-container">
+    <div class="pagos-header">
+        <h2><i class="fas fa-money-bill-alt"></i> Pagos Parciales</h2>
+        <div class="header-actions">
+            <a href="{% url 'lista_pagos' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+            <a href="{% url 'registrar_pago_parcial' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Registrar Pago Parcial
+            </a>
+        </div>
+    </div>
+
+    <div class="pago-summary-card">
+        <div class="card-header">
+            <h3 class="card-title">Resumen de Pagos Parciales</h3>
+        </div>
+        <div class="card-body">
+            <div class="pago-summary-item">
+                <span class="label">Total Parcial</span>
+                <span class="value amount">${{ total_parcial|default:"0" }}</span>
+            </div>
+            <div class="pago-summary-item">
+                <span class="label">Cantidad</span>
+                <span class="value">{{ pagos.count }}</span>
+            </div>
+            <div class="pago-summary-item">
+                <span class="label">Saldo Pendiente Promedio</span>
+                <span class="value amount">${{ saldo_promedio|default:"0" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="pagos-table-container">
+        {% if pagos %}
+        <table class="pagos-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Alquiler</th>
+                    <th>Monto</th>
+                    <th>Pagado</th>
+                    <th>Saldo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pago in pagos %}
+                <tr>
+                    <td>#{{ pago.id }}</td>
+                    <td>{{ pago.alquiler.cliente.nombre }}</td>
+                    <td>Alquiler #{{ pago.alquiler.id }}</td>
+                    <td>${{ pago.monto }}</td>
+                    <td>${{ pago.alquiler.total_pagado }}</td>
+                    <td>${{ pago.alquiler.saldo_pendiente }}</td>
+                    <td class="acciones-cell">
+                        <a href="{% url 'detalle_pago' pago.id %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-eye"></i> Ver
+                        </a>
+                        <a href="{% url 'registrar_pago' %}?alquiler_id={{ pago.alquiler.id }}"
+                            class="btn btn-sm btn-success">
+                            <i class="fas fa-money-bill-wave"></i> Pagar
+                        </a>
+                        <a href="{% url 'editar_pago' pago.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="no-results">
+            <div class="no-results-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>No hay pagos parciales</h3>
+            <p>No se encontraron pagos marcados como parciales.</p>
+            <a href="{% url 'registrar_pago_parcial' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Registrar Pago Parcial
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

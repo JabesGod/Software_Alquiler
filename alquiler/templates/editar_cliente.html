@@ -1,19 +1,499 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <title>{% if cliente %}Editar{% else %}Crear{% endif %} Cliente</title>
-    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
-</head>
-<body>
-<h2>{% if cliente %}Editar{% else %}Crear{% endif %} Cliente</h2>
 
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Guardar</button>
-</form>
+{% block title %}{% if cliente %}Editar{% else %}Crear{% endif %} Cliente | Sistema de Alquiler{% endblock %}
 
-<a href="{% url 'listar_clientes' %}">⬅️ Volver a la lista</a>
-</body>
-</html>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
+<style>
+    /* Estilos para el formulario de cliente */
+    .client-form-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .client-form-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .client-form-header h2 {
+        color: #2c3e50;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .client-form {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 2rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+
+    /* Estilos para los campos del formulario */
+    .form-section {
+        margin-bottom: 2rem;
+    }
+
+    .form-section-title {
+        font-size: 1.25rem;
+        color: #3498db;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #ecf0f1;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #34495e;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 0.375rem;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        background-color: #f8f9fa;
+    }
+
+    .form-control:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        outline: none;
+        background-color: white;
+    }
+
+    select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2334495e' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 16px 12px;
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    /* Estilos para la subida de archivos */
+    .file-upload {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .file-upload-label {
+        display: block;
+        padding: 2rem;
+        border: 2px dashed #bdc3c7;
+        border-radius: 0.375rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background-color: #f8f9fa;
+    }
+
+    .file-upload-label:hover {
+        border-color: #3498db;
+        background-color: #eaf2f8;
+    }
+
+    .file-upload-icon {
+        font-size: 2rem;
+        color: #3498db;
+        margin-bottom: 0.75rem;
+    }
+
+    .file-upload-text {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+        color: #2c3e50;
+    }
+
+    .file-upload-hint {
+        color: #7f8c8d;
+        font-size: 0.875rem;
+    }
+
+    .current-file {
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: #27ae60;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Botones y acciones */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #ecf0f1;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1rem;
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-secondary {
+        background-color: #95a5a6;
+        color: white;
+        border: none;
+    }
+
+    .btn-secondary:hover {
+        background-color: #7f8c8d;
+    }
+
+    /* Validación */
+    .errorlist {
+        color: #e74c3c;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        padding-left: 0;
+        list-style: none;
+    }
+
+    .is-invalid {
+        border-color: #e74c3c !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .client-form {
+            padding: 1.5rem;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+            gap: 1rem;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="client-form-container">
+    <div class="client-form-header">
+        <h2>
+            <i class="fas fa-{% if cliente %}user-edit{% else %}user-plus{% endif %}"></i>
+            {% if cliente %}Editar{% else %}Crear{% endif %} Cliente
+        </h2>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="client-form">
+        {% csrf_token %}
+        
+        <!-- Información Básica -->
+        <div class="form-section">
+            <h3 class="form-section-title">
+                <i class="fas fa-id-card"></i> Información Básica
+            </h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="id_nombre">Nombre Completo</label>
+                    {{ form.nombre }}
+                    {{ form.nombre.errors }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_email">Email</label>
+                    {{ form.email }}
+                    {{ form.email.errors }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_telefono">Teléfono</label>
+                    {{ form.telefono }}
+                    {{ form.telefono.errors }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Documentación -->
+        <div class="form-section">
+            <h3 class="form-section-title">
+                <i class="fas fa-file-alt"></i> Documentación
+            </h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="id_tipo_cliente">Tipo de Cliente</label>
+                    {{ form.tipo_cliente }}
+                    {{ form.tipo_cliente.errors }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_tipo_documento">Tipo de Documento</label>
+                    {{ form.tipo_documento }}
+                    {{ form.tipo_documento.errors }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_numero_documento">Número de Documento</label>
+                    {{ form.numero_documento }}
+                    {{ form.numero_documento.errors }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Información de Empresa (condicional) -->
+        <div class="form-section" id="empresa-section" style="display: {% if form.tipo_cliente.value == 'juridica' %}block{% else %}none{% endif %};">
+            <h3 class="form-section-title">
+                <i class="fas fa-building"></i> Información Empresarial
+            </h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="id_nombre_empresa">Nombre de la Empresa</label>
+                    {{ form.nombre_empresa }}
+                    {{ form.nombre_empresa.errors }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_nit">NIT</label>
+                    {{ form.nit }}
+                    {{ form.nit.errors }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ubicación -->
+        <div class="form-section">
+            <h3 class="form-section-title">
+                <i class="fas fa-map-marker-alt"></i> Ubicación
+            </h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="id_direccion">Dirección</label>
+                    {{ form.direccion }}
+                    {{ form.direccion.errors }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_ciudad">Ciudad</label>
+                    {{ form.ciudad }}
+                    {{ form.ciudad.errors }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_barrio">Barrio</label>
+                    {{ form.barrio }}
+                    {{ form.barrio.errors }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Documentos y Foto -->
+        <div class="form-section">
+            <h3 class="form-section-title">
+                <i class="fas fa-file-upload"></i> Documentos y Foto
+            </h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Foto del Cliente</label>
+                    <div class="file-upload">
+                        <label for="id_foto" class="file-upload-label">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                            <div class="file-upload-text">Haz clic para subir una foto</div>
+                            <div class="file-upload-hint">Formatos: JPG, PNG. Máx. 2MB</div>
+                            {{ form.foto }}
+                        </label>
+                        {% if form.foto.value %}
+                            <div class="current-file">
+                                <i class="fas fa-check-circle"></i> Archivo actual: {{ form.foto.value }}
+                            </div>
+                        {% endif %}
+                        {{ form.foto.errors }}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Documento de Identidad</label>
+                    <div class="file-upload">
+                        <label for="id_documento_cedula" class="file-upload-label">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div class="file-upload-text">Subir documento de identidad</div>
+                            <div class="file-upload-hint">Formatos: PDF, JPG, PNG. Máx. 5MB</div>
+                            {{ form.documento_cedula }}
+                        </label>
+                        {% if form.documento_cedula.value %}
+                            <div class="current-file">
+                                <i class="fas fa-check-circle"></i> Archivo actual: {{ form.documento_cedula.value }}
+                            </div>
+                        {% endif %}
+                        {{ form.documento_cedula.errors }}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Documento RUT (para empresas)</label>
+                    <div class="file-upload">
+                        <label for="id_documento_rut" class="file-upload-label">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div class="file-upload-text">Subir documento RUT</div>
+                            <div class="file-upload-hint">Formatos: PDF, JPG, PNG. Máx. 5MB</div>
+                            {{ form.documento_rut }}
+                        </label>
+                        {% if form.documento_rut.value %}
+                            <div class="current-file">
+                                <i class="fas fa-check-circle"></i> Archivo actual: {{ form.documento_rut.value }}
+                            </div>
+                        {% endif %}
+                        {{ form.documento_rut.errors }}
+                    </div>
+                </div>
+                   <div class="form-group">
+                    <label>{{ form.contrato_firmado.label }}</label>
+                    <div class="file-upload-wrapper">
+                        <label for="{{ form.documento_cedula.id_for_label }}" class="file-upload-label">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div class="file-upload-text">Subir contrato firmado</div>
+                            <div class="file-upload-hint">Formatos: PDF, JPG, PNG. Máx. 5MB</div>
+                            {{ form.contrato_firmado }}
+                        </label>
+                        {% if form.contrato_firmado.value %}
+                        <div class="current-file">
+                            <i class="fas fa-check-circle"></i> Archivo actual: {{ form.contrato_firmado.value }}
+                        </div>
+                        {% endif %}
+                        {% if form.contrato_firmado.errors %}
+                        <div class="invalid-feedback">{{ form.contrato_firmado.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Preferencias -->
+        <div class="form-section">
+            <h3 class="form-section-title">
+                <i class="fas fa-cog"></i> Preferencias
+            </h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="id_metodo_pago_preferido">Método de Pago Preferido</label>
+                    {{ form.metodo_pago_preferido }}
+                    {{ form.metodo_pago_preferido.errors }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_informacion_facturacion">Información de Facturación</label>
+                    {{ form.informacion_facturacion }}
+                    {{ form.informacion_facturacion.errors }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <a href="{% url 'listar_clientes' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Guardar Cliente
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Mostrar/ocultar sección de empresa según tipo de cliente
+    document.getElementById('id_tipo_cliente').addEventListener('change', function() {
+        const empresaSection = document.getElementById('empresa-section');
+        if (this.value === 'juridica') {
+            empresaSection.style.display = 'block';
+        } else {
+            empresaSection.style.display = 'none';
+        }
+    });
+
+    // Añadir clases de Bootstrap a los campos del formulario generados automáticamente
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.classList.add('form-control');
+        });
+
+        // Manejar campos de archivo para mostrar el nombre del archivo seleccionado
+        const fileInputs = document.querySelectorAll('input[type="file"]');
+        fileInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    const fileName = this.files[0].name;
+                    const parentDiv = this.closest('.file-upload');
+                    const currentFileDiv = parentDiv.querySelector('.current-file');
+                    
+                    if (!currentFileDiv) {
+                        const newDiv = document.createElement('div');
+                        newDiv.className = 'current-file';
+                        newDiv.innerHTML = `<i class="fas fa-check-circle"></i> Archivo seleccionado: ${fileName}`;
+                        parentDiv.appendChild(newDiv);
+                    } else {
+                        currentFileDiv.innerHTML = `<i class="fas fa-check-circle"></i> Archivo seleccionado: ${fileName}`;
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

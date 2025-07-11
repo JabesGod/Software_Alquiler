@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lista de Pagos{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/pagos.css' %}">
+{% endblock %}
+
+{% block page_title %}Lista de Pagos{% endblock %}
+
+{% block content %}
+<div class="pagos-container">
+    <div class="pagos-header">
+        <h2>Todos los Pagos</h2>
+        <div class="header-actions">
+            <a href="{% url 'registrar_pago' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Registrar Pago
+            </a>
+            <a href="{% url 'pagos_vencidos' %}" class="btn btn-outline-primary">
+                <i class="fas fa-exclamation-triangle"></i> Pagos Vencidos
+            </a>
+            <a href="{% url 'pagos_proximos' %}" class="btn btn-outline-primary">
+                <i class="fas fa-clock"></i> Próximos a Vencer
+            </a>
+            <a href="{% url 'pagos_parciales' %}" class="btn btn-outline-primary">
+                <i class="fas fa-money-bill-alt"></i> Parciales
+            </a>
+            <a href="{% url 'reportes_pagos' %}" class="btn btn-outline-primary">
+                <i class="fas fa-chart-bar"></i> Reportes
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="pago-summary-card">
+        <div class="card-header">
+            <h3 class="card-title mb-0"><i class="fas fa-chart-pie mr-2"></i>Resumen de Pagos</h3>
+        </div>
+        <div class="card-body">
+            <div class="pago-summary-item">
+                <span class="label">Total Pagado</span>
+                <span class="value amount">${{ total_pagado|default:"0"|floatformat:2 }}</span>
+            </div>
+            <div class="pago-summary-item">
+                <span class="label">Pagos Pendientes</span>
+                <span class="value">{{ pagos_pendientes|default:"0" }}</span>
+            </div>
+            <div class="pago-summary-item">
+                <span class="label">Pagos Vencidos</span>
+                <span class="value">{{ pagos_vencidos|default:"0" }}</span>
+            </div>
+            <div class="pago-summary-item">
+                <span class="label">Pagos Parciales</span>
+                <span class="value">{{ pagos_parciales|default:"0" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-form">
+        <form method="get" class="form-inline">
+            <div class="form-group mr-3">
+                <label for="id_alquiler_id" class="mr-2">Alquiler ID:</label>
+                <input type="number" name="alquiler_id" id="id_alquiler_id" class="form-control"
+                    value="{{ request.GET.alquiler_id }}" min="1" step="1">
+            </div>
+            <div class="form-group mr-3">
+                <label for="id_estado" class="mr-2">Estado:</label>
+                <select name="estado" id="id_estado" class="form-control">
+                    <option value="">Todos</option>
+                    {% for value, label in estados_pago %}
+                    <option value="{{ value }}" {% if request.GET.estado == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary mr-2">
+                <i class="fas fa-filter"></i> Filtrar
+            </button>
+            <a href="{% url 'lista_pagos' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-broom"></i> Limpiar
+            </a>
+        </form>
+    </div>
+
+    <div class="pagos-table-container">
+        {% if pagos %}
+        <table class="pagos-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Alquiler/Factura</th>
+                    <th>Monto</th>
+                    <th>Fecha Pago</th>
+                    <th>Vencimiento</th>
+                    <th>Método</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pago in pagos %}
+                <tr>
+                    <td>#{{ pago.id }}</td>
+                    <td>
+                        <a href="{% url 'detalle_cliente' pago.alquiler.cliente.id %}">
+                            {{ pago.alquiler.cliente.nombre }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{% url 'detalle_alquiler' pago.alquiler.id %}">
+                            {{ pago.alquiler.numero_factura|default:"Sin factura" }}
+                        </a>
+                    </td>
+                    <td>${{ pago.monto|floatformat:2 }}</td>
+                    <td>{{ pago.fecha_pago|date:"d/m/Y" }}</td>
+                    <!-- En lista_pagos.html -->
+                    <td class="{% if pago.fecha_vencimiento and pago.fecha_vencimiento < hoy %}text-danger{% endif %}">
+                        {{ pago.fecha_vencimiento|date:"d/m/Y"|default:"-" }}
+                        {% if pago.fecha_vencimiento and pago.fecha_vencimiento < hoy %} <span
+                            class="badge badge-danger">Vencido</span>
+                            {% endif %}
+                    </td>
+                    <td>{{ pago.get_metodo_pago_display }}</td>
+                    <td>
+                        <span class="status-badge status-{{ pago.estado_pago }}">
+                            <i class="fas 
+                                {% if pago.estado_pago == 'pagado' %}fa-check-circle 
+                                {% elif pago.estado_pago == 'pendiente' %}fa-clock 
+                                {% elif pago.estado_pago == 'parcial' %}fa-percentage 
+                                {% else %}fa-exclamation-circle{% endif %} mr-1">
+                            </i>
+                            {{ pago.get_estado_pago_display }}
+                        </span>
+                    </td>
+                    <td class="acciones-cell">
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'detalle_pago' pago.id %}" class="btn btn-sm btn-primary"
+                                title="Ver detalle">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'editar_pago' pago.id %}" class="btn btn-sm btn-warning" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            {% if pago.estado_pago == 'pendiente' %}
+                            <a href="{% url 'cambiar_estado_pago' pago.id 'pagado' %}" class="btn btn-sm btn-success"
+                                title="Aprobar pago">
+                                <i class="fas fa-check"></i>
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'eliminar_pago' pago.id %}" class="btn btn-sm btn-danger" title="Eliminar">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div class="pagination mt-4">
+            <span class="step-links">
+                {% if pagos.has_previous %}
+                <a href="?page=1" class="btn btn-sm btn-outline-primary">&laquo; Primera</a>
+                <a href="?page={{ pagos.previous_page_number }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-arrow-left"></i> Anterior
+                </a>
+                {% endif %}
+
+                <span class="current mx-3">
+                    Página {{ pagos.number }} de {{ pagos.paginator.num_pages }}
+                </span>
+
+                {% if pagos.has_next %}
+                <a href="?page={{ pagos.next_page_number }}" class="btn btn-sm btn-outline-primary">
+                    Siguiente <i class="fas fa-arrow-right"></i>
+                </a>
+                <a href="?page={{ pagos.paginator.num_pages }}" class="btn btn-sm btn-outline-primary">Última
+                    &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+
+        {% else %}
+        <div class="no-results">
+            <div class="no-results-icon">
+                <i class="fas fa-money-bill-alt fa-3x"></i>
+            </div>
+            <h3>No se encontraron pagos</h3>
+            <p class="text-muted mb-4">No hay registros de pagos que coincidan con los criterios de búsqueda.</p>
+            <a href="{% url 'registrar_pago' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus"></i> Registrar Primer Pago
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

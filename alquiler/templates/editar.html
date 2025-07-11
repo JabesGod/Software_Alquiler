@@ -159,12 +159,12 @@
         <!-- Tercera Fila: Fotos -->
         <div class="form-section">
             <h4 class="section-title"><i class="fas fa-camera me-2"></i>Fotos del Equipo</h4>
-
             <div class="existing-photos">
                 <h5 class="subsection-title">Fotos existentes</h5>
                 {{ formset.management_form }}
+
                 <div class="photos-grid">
-                    {% for foto_form in formset %}
+                    {% for foto_form in formset.forms %}
                     <div class="photo-card">
                         {% if foto_form.instance.foto %}
                         <img src="{{ foto_form.instance.foto.url }}" class="photo-img" alt="Foto del equipo">
@@ -175,6 +175,10 @@
                         {% endif %}
                         <div class="photo-actions">
                             {{ foto_form.id }}
+                            <div class="form-group">
+                                {{ foto_form.foto.label_tag }}
+                                {{ foto_form.foto }}
+                            </div>
                             <div class="form-check">
                                 {{ foto_form.es_principal }}
                                 <label class="form-check-label" for="{{ foto_form.es_principal.id_for_label }}">
@@ -198,12 +202,11 @@
                     {% endfor %}
                 </div>
             </div>
-
             <div class="upload-area">
                 <h5 class="subsection-title">Agregar más fotos</h5>
                 <div class="file-upload-card">
                     <label class="file-upload-label">
-                        <input type="file" name="nuevas_fotos" multiple accept="image/*">
+                        <input type="file" name="nuevas_fotos" multiple accept="image/*" class="file-upload-input">
                         <div class="upload-content">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p>Arrastra fotos aquí o haz clic para seleccionar</p>
@@ -215,12 +218,14 @@
         </div>
 
         <div class="form-footer">
-            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+                data-bs-target="#confirmDeleteModal">
                 <i class="fas fa-trash-alt me-1"></i> Eliminar Equipo
             </button>
-            
+
             <div>
-                <button type="button" class="btn btn-outline-secondary me-2" onclick="location.href='{% url 'detalle_equipo' equipo.pk %}'">
+                <button type="button" class="btn btn-outline-secondary me-2"
+                    onclick="location.href='{% url 'detalle_equipo' equipo.pk %}'">
                     <i class="fas fa-times me-1"></i> Cancelar
                 </button>
                 <button type="submit" class="btn btn-primary btn-save">
@@ -232,12 +237,15 @@
 </div>
 
 <!-- Modal de Confirmación de Eliminación -->
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="confirmDeleteModalLabel"><i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title" id="confirmDeleteModalLabel"><i
+                        class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p>¿Estás seguro de que deseas eliminar permanentemente este equipo?</p>

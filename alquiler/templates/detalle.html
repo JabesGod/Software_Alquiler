@@ -16,7 +16,7 @@
                 <h2>Modelo: {{ equipo.modelo }}</h2>
                 <h3>Precio por día: {{ equipo.precio_dia }}</h3>
                 <div class="info-item">
-                    <span class="info-label">Cantidad: {{ equipo.cantidad_disponible }} de {{ equipo.cantidad_total }}</span>
+                    <span class="info-label">Cantidad: {{ equipo.cantidad_disponible }} de {{ equipo.cantidad_total}}</span>
                 </div>
             </div>
             <div class="img-container-wrapper">
@@ -31,9 +31,10 @@
                     <img src="{{ equipo.obtener_foto_principal }}" class="img-fluid main-img"
                         alt="{{ equipo.marca }} {{ equipo.modelo }}" id="mainEquipoImage"
                         onerror="this.onerror=null; this.src='{% static 'img/default-equipo.png' %}'">
+
                 </div>
             </div>
-            {% if equipo.fotos.count > 1 %}
+            {% if equipo.fotos.all|length > 1 %}
             <div class="thumbnails-container">
                 <div class="thumbnails-scroller">
                     {% for foto in equipo.fotos.all %}

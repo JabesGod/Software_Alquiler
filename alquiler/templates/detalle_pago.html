@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Pago #{{ pago.id }}{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/pagos.css' %}">
+{% endblock %}
+
+{% block page_title %}Detalle de Pago #{{ pago.id }}{% endblock %}
+
+{% block content %}
+<div class="pagos-container">
+    <div class="pagos-header">
+        <h2><i class="fas fa-file-invoice-dollar"></i> Pago #{{ pago.id }}</h2>
+        <div class="header-actions">
+            <a href="{% url 'lista_pagos' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+            <a href="{% url 'editar_pago' pago.id %}" class="btn btn-outline-primary">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            <a href="{% url 'generar_factura_pdf' pago.id %}" class="btn btn-primary">
+                <i class="fas fa-file-pdf"></i> Generar Factura
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="pago-summary-card">
+        <div class="card-header">
+            <h3 class="card-title">Resumen del Pago</h3>
+            <span class="status-badge status-{{ pago.estado_pago }}">
+                {{ pago.get_estado_pago_display }}
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="pago-summary-item">
+                <span class="label">Cliente</span>
+                <span class="value">{{ pago.alquiler.cliente.nombre }}</span>
+            </div>
+            <div class="pago-summary-item">
+                <span class="label">Factura</span>
+                <span class="value">#{{ pago.alquiler.numero_factura }}</span>
+            </div>
+            <div class="pago-summary-item">
+                <span class="label">Monto</span>
+                <span class="value amount">${{ pago.monto }}</span>
+            </div>
+            <div class="pago-summary-item">
+                <span class="label">Método de Pago</span>
+                <span class="value">{{ pago.get_metodo_pago_display }}</span>
+            </div>
+            <div class="pago-summary-item">
+                <span class="label">Fecha de Pago</span>
+                <span class="value">{{ pago.fecha_pago|date:"d/m/Y" }}</span>
+            </div>
+            <div class="pago-summary-item">
+                <span class="label">Fecha de Vencimiento</span>
+                <span class="value">{{ pago.fecha_vencimiento|date:"d/m/Y" }}</span>
+            </div>
+            <div class="pago-summary-item">
+                <span class="label">Referencia</span>
+                <span class="value">{{ pago.referencia_transaccion|default:"N/A" }}</span>
+            </div>
+            <div class="pago-summary-item">
+                <span class="label">Aprobado por</span>
+                <span class="value">{{ nombre_aprobador|default:"Sistema" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="pago-summary-card">
+                <div class="card-header">
+                    <h3 class="card-title">Información del Alquiler</h3>
+                </div>
+                <div class="card-body">
+                    <div class="pago-summary-item">
+                        <span class="label">Estado</span>
+                        <span class="value">{{ alquiler.get_estado_alquiler_display }}</span>
+                    </div>
+                    <div class="pago-summary-item">
+                        <span class="label">Fecha Inicio</span>
+                        <span class="value">{{ alquiler.fecha_inicio|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="pago-summary-item">
+                        <span class="label">Fecha Fin</span>
+                        <span class="value">{{ alquiler.fecha_fin|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="pago-summary-item">
+                        <span class="label">Precio Total</span>
+                        <span class="value amount">${{ alquiler.precio_total }}</span>
+                    </div>
+                    <div class="pago-summary-item">
+                        <span class="label">Total Pagado</span>
+                        <span class="value amount">${{ alquiler.total_pagado }}</span>
+                    </div>
+                    <div class="pago-summary-item">
+                        <span class="label">Saldo Pendiente</span>
+                        <span class="value amount">${{ alquiler.saldo_pendiente }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="pago-summary-card">
+                <div class="card-header">
+                    <h3 class="card-title">Información del Cliente</h3>
+                </div>
+                <div class="card-body">
+                    <div class="pago-summary-item">
+                        <span class="label">Nombre</span>
+                        <span class="value">{{ cliente.nombre }}</span>
+                    </div>
+                    <div class="pago-summary-item">
+                        <span class="label">Email</span>
+                        <span class="value">{{ cliente.email }}</span>
+                    </div>
+                    <div class="pago-summary-item">
+                        <span class="label">Teléfono</span>
+                        <span class="value">{{ cliente.telefono }}</span>
+                    </div>
+                    <div class="pago-summary-item">
+                        <span class="label">Estado</span>
+                        <span class="value">{{ cliente.get_estado_verificacion_display }}</span>
+                    </div>
+                    <div class="pago-summary-item">
+                        <span class="label">Método de Pago Preferido</span>
+                        <span class="value">{{ cliente.get_metodo_pago_preferido_display|default:"No especificado"}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if pago.notas %}
+    <div class="pago-summary-card">
+        <div class="card-header">
+            <h3 class="card-title">Notas Adicionales</h3>
+        </div>
+        <div class="card-body">
+            <p>{{ pago.notas }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if pago.comprobante_pago %}
+    <div class="pago-summary-card">
+        <div class="card-header">
+            <h3 class="card-title">Comprobante de Pago</h3>
+        </div>
+        <div class="card-body">
+            <a href="{{ pago.comprobante_pago.url }}" target="_blank" class="btn btn-primary">
+                <i class="fas fa-download"></i> Descargar Comprobante
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-end gap-2 mt-4">
+        {% if pago.estado_pago == 'pendiente' %}
+        <a href="{% url 'cambiar_estado_pago' pago.id 'pagado' %}" class="btn btn-success">
+            <i class="fas fa-check"></i> Marcar como Pagado
+        </a>
+        <a href="{% url 'cambiar_estado_pago' pago.id 'rechazado' %}" class="btn btn-danger">
+            <i class="fas fa-times"></i> Rechazar Pago
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

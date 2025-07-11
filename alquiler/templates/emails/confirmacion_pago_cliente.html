@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmación de Pago</title>
+</head>
+<body>
+    <h2>Hola {{ cliente.nombre }},</h2>
+    <p>Hemos recibido tu pago por el alquiler <strong>#{{ alquiler.id }}</strong>.</p>
+    <p><strong>Monto pagado:</strong> ${{ pago.monto }}</p>
+    <p><strong>Fecha de pago:</strong> {{ pago.fecha_pago }}</p>
+    <p>Gracias por confiar en nosotros.</p>
+    <br>
+    <p>Atentamente,<br>Equipo de Tecnonacho</p>
+</body>
+</html>

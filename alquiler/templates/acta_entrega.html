@@ -1,20 +1,550 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="es">
+
 <head>
     <meta charset="UTF-8">
-    <title>Acta de Entrega</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 30px; }
+    <title>Acta de Entrega - Alquiler #{{ alquiler.id }}</title>
+    <style type="text/css">
+        /* Reset y configuración general */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            font-size: 11px;
+            line-height: 1.4;
+            color: #333;
+            padding: 10px;
+            position: relative;
+        }
+
+        .documento {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Marca de agua mejorada */
+        .marca-agua {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.08;
+            z-index: -1;
+            width: 200px;
+            pointer-events: none;
+        }
+
+        /* Encabezado centrado */
+        .encabezado {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3c7023;
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logo-empresa {
+            width: 50px;
+            height: 50px;
+        }
+
+        .nombre-empresa {
+            font-size: 18px;
+            font-weight: bold;
+            color: #3c7023;
+            text-align: center;
+        }
+
+        .eslogan {
+            font-size: 9px;
+            color: #666;
+            text-align: center;
+        }
+
+        /* Información legal de la empresa */
+        .info-legal-empresa {
+            text-align: center;
+            font-size: 9px;
+            color: #666;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        /* Párrafo de introducción legal */
+        .introduccion-legal {
+            font-size: 11px;
+            line-height: 1.5;
+            text-align: justify;
+            margin-bottom: 15px;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+
+        /* Títulos */
+        .titulo-documento {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #3c7023;
+            margin: 8px 0 5px;
+        }
+
+        .subtitulo-documento {
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        /* Tablas de información */
+        .tabla-info {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            font-size: 10px;
+        }
+
+        .tabla-info th {
+            background-color: #3c7023;
+            color: white;
+            padding: 6px;
+            text-align: left;
+            font-size: 10px;
+            font-weight: normal;
+        }
+
+        .tabla-info td {
+            padding: 6px;
+            border: 1px solid #ddd;
+            font-size: 10px;
+        }
+
+        .tabla-info .etiqueta {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            width: 25%;
+        }
+
+        /* Tabla de equipos */
+        .tabla-equipos {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0 12px;
+            font-size: 10px;
+        }
+
+        .tabla-equipos th {
+            background-color: #3c7023;
+            color: white;
+            padding: 6px;
+            text-align: center;
+            font-weight: normal;
+            border: 1px solid #2a5219;
+            font-size: 10px;
+        }
+
+        .tabla-equipos td {
+            padding: 5px;
+            border: 1px solid #ddd;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .tabla-equipos tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        /* Sección de obligaciones legales */
+        .obligaciones-legales {
+            margin: 20px 0;
+            border: 1px solid #3c7023;
+            padding: 15px;
+            background-color: #f8f9fa;
+        }
+
+        .titulo-obligaciones {
+            font-weight: bold;
+            color: #3c7023;
+            margin-bottom: 10px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .obligacion-item {
+            margin-bottom: 8px;
+            font-size: 10px;
+            line-height: 1.4;
+        }
+
+        .obligacion-titulo {
+            font-weight: bold;
+            color: #2a5219;
+        }
+
+        /* Declaración de conformidad */
+        .declaracion-conformidad {
+            margin: 20px 0;
+            padding: 12px;
+            border: 2px solid #3c7023;
+            background-color: #f0f8ff;
+            text-align: justify;
+        }
+
+        .titulo-declaracion {
+            font-weight: bold;
+            color: #3c7023;
+            margin-bottom: 8px;
+            font-size: 11px;
+        }
+
+        .texto-declaracion {
+            font-size: 10px;
+            line-height: 1.5;
+        }
+
+        /* Firmas */
+        .seccion-firmas {
+            margin-top: 40px;
+            width: 100%;
+        }
+
+        .titulo-firmas {
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #2a5219;
+            margin-bottom: 30px;
+        }
+
+        .tabla-firmas {
+            width: 100%;
+            border: none;
+            margin-top: 10px;
+        }
+
+        .firma-box {
+            width: 50%;
+            text-align: center;
+            vertical-align: top;
+            padding: 10px;
+        }
+
+        .linea-firma {
+            border-top: 1px solid #000;
+            width: 80%;
+            margin: 0 auto;
+            padding-top: 30px;
+        }
+
+        .nombre-firma {
+            font-weight: bold;
+            margin-top: 5px;
+            font-size: 11px;
+        }
+
+        .cargo-firma {
+            font-size: 10px;
+            color: #666;
+        }
+
+        /* Términos y condiciones mejorados */
+        .terminos {
+            margin: 20px 0 15px;
+            font-size: 10px;
+            line-height: 1.4;
+            border: 1px solid #ddd;
+            padding: 12px;
+        }
+
+        .titulo-terminos {
+            font-weight: bold;
+            color: #3c7023;
+            margin-bottom: 8px;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .terminos ol {
+            padding-left: 15px;
+        }
+
+        .terminos li {
+            margin-bottom: 8px;
+            text-align: justify;
+        }
+
+        /* Cláusulas especiales */
+        .clausulas-especiales {
+            margin: 15px 0;
+            font-size: 10px;
+            line-height: 1.4;
+            border-left: 3px solid #3c7023;
+            padding-left: 10px;
+        }
+
+        .clausula-item {
+            margin-bottom: 6px;
+        }
+
+        .clausula-titulo {
+            font-weight: bold;
+            color: #2a5219;
+        }
+
+        /* Pie de página */
+        .pie-pagina {
+            text-align: center;
+            font-size: 9px;
+            color: #666;
+            margin-top: 15px;
+            padding-top: 8px;
+            border-top: 1px solid #ddd;
+            line-height: 1.4;
+        }
+
+        /* Sección de mérito ejecutivo */
+        .merito-ejecutivo {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+        }
+
+        .titulo-merito {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 5px;
+            font-size: 10px;
+        }
+
+        .texto-merito {
+            font-size: 9px;
+            color: #856404;
+            line-height: 1.3;
+        }
+
+        /* Estilos para impresión */
+        @media print {
+            body {
+                padding: 0;
+                font-size: 11px;
+            }
+
+            .documento {
+                padding: 0;
+            }
+
+            .marca-agua {
+                opacity: 0.05;
+            }
+        }
     </style>
 </head>
+
 <body>
-    <h2>Acta de Entrega - Alquiler #{{ alquiler.id }}</h2>
-    <p><strong>Cliente:</strong> {{ alquiler.cliente.nombre }}</p>
-    <p><strong>Equipo:</strong> {{ alquiler.equipo.marca }} - {{ alquiler.equipo.modelo }}</p>
-    <p><strong>Fecha de Inicio:</strong> {{ alquiler.fecha_inicio }}</p>
-    <p><strong>Fecha de Fin:</strong> {{ alquiler.fecha_fin }}</p>
-    <br><br>
-    <p>_____________________________</p>
-    <p>Firma del Cliente</p>
+    <div class="documento">
+        <!-- Marca de agua mejorada -->
+        <div class="marca-agua">
+            <img src="{{ request.scheme }}://{{ request.get_host }}{% static 'media/tecnonacho.png' %}" alt="Marca de agua Tecnonacho" style="width: 100%; height: auto;">
+        </div>
+
+        <!-- Encabezado centrado -->
+        <div class="encabezado">
+        </div>
+
+        <!-- Información legal de la empresa -->
+        <div class="info-legal-empresa">
+            <strong>NIT: 901.067.698-7</strong><br>
+            Calle 84 #47-30 Local 4 y 5 - Barranquilla, Colombia | Tel: +57 301 352 7043
+        </div>
+
+        <!-- Párrafo de introducción legal mejorado -->
+        <div class="introduccion-legal">
+            <strong>ACTA DE ENTREGA Y RECIBO A SATISFACCIÓN:</strong> Expedido en Barranquilla, Atlántico, Colombia, el día {% now "d \d\e F \d\e Y" %} a las {% now "H:i" %} horas, mediante el presente documento legal se hace entrega formal y material de los equipos tecnológicos objeto del contrato de arrendamiento correspondiente al número de factura {{ alquiler.numero_factura|default:"RESERVA" }}, según las especificaciones técnicas y condiciones contractuales previamente acordadas entre las partes. La presente acta constituye constancia fehaciente del cumplimiento de las obligaciones de entrega por parte de TECNONACHO S.A.S. (EL ARRENDADOR) y la recepción conforme por parte del cliente (EL ARRENDATARIO), estableciendo así el inicio formal del período de arrendamiento estipulado en el contrato, con plenos efectos legales según la normatividad colombiana vigente.
+        </div>
+
+        <!-- Título del documento -->
+        <h1 class="titulo-documento">ACTA DE ENTREGA Y RECIBO DE EQUIPOS TECNOLÓGICOS</h1>
+        <div class="subtitulo-documento">
+            Documento con mérito ejecutivo mediante el cual se certifica formalmente la entrega material de los equipos objeto de contrato de arrendamiento comercial, en cumplimiento de las obligaciones pactadas entre ARRENDADOR y ARRENDATARIO
+        </div>
+
+        <!-- Información del cliente y contrato en una sola fila -->
+        <table class="tabla-info">
+            <tr>
+                <th colspan="2">INFORMACIÓN DEL ARRENDATARIO</th>
+                <th colspan="2">DATOS DEL CONTRATO DE ARRENDAMIENTO</th>
+            </tr>
+            <tr>
+                <td class="etiqueta">Cliente:</td>
+                <td>{{ alquiler.cliente.nombre }}</td>
+                <td class="etiqueta">No. Factura:</td>
+                <td># {{ alquiler.numero_factura }}</td>
+            </tr>
+            <tr>
+                <td class="etiqueta">Documento:</td>
+                <td>{{ alquiler.cliente.get_tipo_documento_display }} {{ alquiler.cliente.numero_documento }}</td>
+                <td class="etiqueta">Fecha Inicio:</td>
+                <td>{{ alquiler.fecha_inicio|date:"d/m/Y" }}</td>
+            </tr>
+            <tr>
+                <td class="etiqueta">Teléfono:</td>
+                <td>{{ alquiler.cliente.telefono }}</td>
+                <td class="etiqueta">Fecha Vencimiento:</td>
+                <td>{{ alquiler.fecha_fin|date:"d/m/Y" }}</td>
+            </tr>
+            <tr>
+                <td class="etiqueta">Email:</td>
+                <td>{{ alquiler.cliente.email }}</td>
+                <td class="etiqueta">Valor Total:</td>
+                <td><strong>${{ alquiler.precio_total|floatformat:0 }}</strong></td>
+            </tr>
+        </table>
+
+        <!-- Equipos entregados -->
+        <table class="tabla-info">
+            <tr>
+                <th colspan="6">DETALLE DE EQUIPOS ENTREGADOS - INVENTARIO TÉCNICO ({{ alquiler.detalles.count }} items)</th>
+            </tr>
+        </table>
+
+        <table class="tabla-equipos">
+            <thead>
+                <tr>
+                    <th style="width: 8%;">#</th>
+                    <th style="width: 22%;">Equipo/Marca</th>
+                    <th style="width: 20%;">Modelo</th>
+                    <th style="width: 30%;">Números de Serie</th>
+                    <th style="width: 10%;">Cant.</th>
+                    <th style="width: 10%;">Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in alquiler.detalles.all %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ detalle.equipo.marca }}</td>
+                    <td>{{ detalle.equipo.modelo }}</td>
+                    <td>
+                        {% if detalle.numeros_serie %}
+                        {% for serial in detalle.numeros_serie %}
+                        {{ serial }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </td>
+                    <td>{{ detalle.cantidad }}</td>
+                    <td><strong>Óptimo</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Obligaciones principales del arrendatario -->
+        <div class="obligaciones-legales">
+            <div class="titulo-obligaciones">OBLIGACIONES PRINCIPALES DEL ARRENDATARIO</div>
+            <div class="obligacion-item">
+                <span class="obligacion-titulo">a) Conservación:</span> Mantener los equipos en óptimas condiciones y protegerlos de daños, hurto o pérdida.
+            </div>
+            <div class="obligacion-item">
+                <span class="obligacion-titulo">b) Uso Adecuado:</span> Utilizar los equipos únicamente para lo que fueron diseñados y en las condiciones técnicas apropiadas.
+            </div>
+            <div class="obligacion-item">
+                <span class="obligacion-titulo">c) Devolución Oportuna:</span> Devolver los equipos en la fecha pactada y en las mismas condiciones de recepción.
+            </div>
+            <div class="obligacion-item">
+                <span class="obligacion-titulo">d) Responsabilidad Integral:</span> Responder por daños, perjuicios, hurto o pérdida de los equipos durante el tiempo de uso.
+            </div>
+        </div>
+
+        <!-- Declaración de conformidad -->
+        <div class="declaracion-conformidad">
+            <div class="titulo-declaracion">DECLARACIÓN DE CONFORMIDAD Y RECIBO A SATISFACCIÓN</div>
+            <div class="texto-declaracion">
+                El ARRENDATARIO declara expresamente que ha recibido los equipos descritos en perfecto estado de funcionamiento, con todas sus características técnicas verificadas y operando correctamente. Manifiesta su total conformidad con la cantidad, calidad y especificaciones de los equipos entregados, y se compromete a cumplir íntegramente todas las obligaciones contractuales pactadas. Esta declaración se hace de manera libre, voluntaria y sin coacción alguna.
+            </div>
+        </div>
+
+        <!-- Cláusulas especiales -->
+        <div class="clausulas-especiales">
+            <div class="clausula-item">
+                <span class="clausula-titulo">SUPERVISIÓN:</span> El ARRENDADOR podrá verificar sin previo aviso el estado y ubicación de los equipos.
+            </div>
+            <div class="clausula-item">
+                <span class="clausula-titulo">PROHIBICIONES:</span> Queda prohibido ceder, subarrendar o cambiar la ubicación de los equipos sin autorización escrita.
+            </div>
+            <div class="clausula-item">
+                <span class="clausula-titulo">SANCIONES:</span> El incumplimiento genera intereses moratorios con base al CONTRATO firmado.
+            </div>
+        </div>
+
+        <!-- Firmas -->
+        <section class="seccion-firmas">
+            <div class="titulo-firmas">FIRMAS DE CONFORMIDAD Y ACEPTACIÓN</div>
+            <table class="tabla-firmas">
+                <tr>
+                    <td class="firma-box">
+                        <div class="linea-firma"></div>
+                        <div class="nombre-firma">{{ alquiler.cliente.nombre }}</div>
+                        <div class="cargo-firma">{{ alquiler.cliente.get_tipo_documento_display }} {{ alquiler.cliente.numero_documento }}</div>
+                        <div class="cargo-firma"><strong>EL ARRENDATARIO</strong></div>
+                    </td>
+                    <td class="firma-box">
+                        <div class="linea-firma"></div>
+                        <div class="nombre-firma">IGNACIO SANDOVAL RINCÓN</div>
+                        <div class="cargo-firma">C.C. 72.302.349</div>
+                        <div class="cargo-firma"><strong>REPRESENTANTE LEGAL</strong></div>
+                        <div class="cargo-firma">TECNONACHO S.A.S.</div>
+                    </td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Mérito ejecutivo -->
+        <div class="merito-ejecutivo">
+            <div class="titulo-merito">MÉRITO EJECUTIVO</div>
+            <div class="texto-merito">
+                El presente documento constituye título ejecutivo según Art. 422 del C.G.P., con obligación clara, expresa y exigible. En caso de incumplimiento y no devolución de equipos, se procederá judicialmente por HURTO ante autoridades competentes.
+            </div>
+        </div>
+
+        <!-- Términos y condiciones mejorados -->
+        <div class="terminos">
+            <div class="titulo-terminos">TÉRMINOS Y CONDICIONES CONTRACTUALES</div>
+            <ol>
+                <li><strong>Marco Legal:</strong> Este contrato se rige por el Código Civil Colombiano (Arts. 1976-2000), Código General del Proceso y demás normas aplicables al arrendamiento comercial.</li>
+                <li><strong>Responsabilidad Patrimonial:</strong> En caso de <strong>daño</strong> (entendiéndose como cualquier deterioro físico, mal funcionamiento, alteración, manipulación indebida, desgaste fuera del uso normal o afectación que impida el funcionamiento óptimo del equipo), pérdida total o hurto, el arrendatario responderá por el 100% del valor comercial vigente, más los costos de reposición y los perjuicios ocasionados.</li>
+                <li><strong>Intereses Moratorios:</strong> Por retardo en devolución se causarán intereses moratorios sobre el valor del contrato.</li>
+                <li><strong>Horarios de Devolución:</strong> Solo días hábiles (lunes a sábado) de 8:00 AM a 6:00 PM. Domingos y festivos no son hábiles para devolución.</li>
+            </ol>
+        </div>
+
+        <!-- Pie de página profesional -->
+        <div class="pie-pagina">
+            <strong>TECNONACHO S.A.S.</strong> - NIT: 901.067.698-7<br>
+            Calle 84 #47-30 Local 4 y 5 - Barranquilla, Atlántico, Colombia<br>
+            Tel: +57 301 352 7043 - Email: garantiastecnonacho@gmail.com<br>
+            Horario: Lunes a Viernes 8:00 AM - 6:00 PM | Sábados 9:00 AM - 4:00 PM<br>
+            <strong>Este documento tiene plena validez legal según la normatividad colombiana vigente</strong>
+        </div>
+    </div>
 </body>
 </html>

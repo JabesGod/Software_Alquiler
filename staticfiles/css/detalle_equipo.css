@@ -1,0 +1,400 @@
+/* Estructura base */
+.equipo-detalle {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    color: #333; /* Color de texto por defecto */
+}
+
+body.dark-mode .equipo-detalle {
+    color: var(--text-color);
+}
+
+/* Encabezado del equipo */
+.equipo-header {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.equipo-header h1 {
+    color: var(--primary-color);
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.equipo-header h2 {
+    color: #555;
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+body.dark-mode .equipo-header h2 {
+    color: var(--text-secondary);
+}
+
+/* Contenedor de imagen */
+.img-container-wrapper {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 15px;
+}
+
+.edit-btn-top-right {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 10;
+}
+
+.img-container {
+    width: 100%;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+}
+
+body.dark-mode .img-container {
+    background-color: var(--background-color);
+}
+
+.main-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* Galería de miniaturas */
+.thumbnails-container {
+    margin-bottom: 20px;
+}
+
+.thumbnails-scroller {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 10px 0;
+    scrollbar-width: none;
+}
+
+.thumbnails-scroller::-webkit-scrollbar {
+    display: none;
+}
+.similares-list-horizontal::-webkit-scrollbar {
+    display: none;
+}
+
+
+.thumbnail-img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.thumbnail-img:hover,
+.thumbnail-img.active {
+    border-color: var(--accent-color);
+    opacity: 1;
+}
+
+/* Información del equipo */
+.info-container {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+body.dark-mode .info-container {
+    background: var(--card-background);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.info-item {
+    margin-bottom: 10px;
+}
+
+.info-item.full-width {
+    grid-column: span 2;
+}
+
+.info-label {
+    font-weight: 600;
+    color: var(--primary-color);
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.95rem;
+}
+
+.info-value {
+    font-size: 1rem;
+}
+
+.specs {
+    white-space: pre-line;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    border-left: 4px solid var(--accent-color);
+}
+
+body.dark-mode .specs {
+    background-color: var(--background-color);
+}
+
+/* Historial de alquiler */
+.historial-container {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+body.dark-mode .historial-container {
+    background: var(--card-background);
+}
+
+.historial-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px 20px;
+}
+
+.historial-scrollable {
+    overflow-x: auto;
+    padding: 15px;
+}
+
+.historial-table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+}
+
+.historial-table th {
+    background-color: rgba(0,0,0,0.05);
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+}
+
+body.dark-mode .historial-table th {
+    background-color: rgba(255,255,255,0.05);
+}
+
+.historial-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+body.dark-mode .historial-table td {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.historial-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Barra lateral de equipos similares */
+.similares-sidebar {
+    padding-left: 20px;
+}
+.similares-list-horizontal {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 15px;
+    padding: 15px;
+    scroll-snap-type: x mandatory;
+}
+
+.equipo-similar-horizontal {
+    flex: 0 0 auto;
+    width: 220px;
+    display: flex;
+    flex-direction: column;
+    scroll-snap-align: start;
+    background: #fff;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.similares-container {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 20px;
+}
+
+body.dark-mode .similares-container {
+    background: var(--card-background);
+}
+
+.similares-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px 20px;
+}
+
+.similares-list {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.equipo-similar {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+body.dark-mode .equipo-similar {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.equipo-similar:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.similar-img-container {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+body.dark-mode .similar-img-container {
+    background-color: var(--background-color);
+}
+
+.similar-img-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.similar-info {
+    flex-grow: 1;
+}
+
+.similar-info h4 {
+    margin: 0 0 5px 0;
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.precio {
+    font-weight: 700;
+    color: var(--success-color);
+    margin-top: 5px;
+}
+
+/* Badges */
+.badge {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.75rem;
+    font-weight: 600;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+.estado-badge.disponible {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.estado-badge.alquilado {
+    background-color: var(--error-color);
+    color: white;
+}
+
+.estado-badge.reservado {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .similares-sidebar {
+        padding-left: 0;
+        margin-top: 20px;
+    }
+    
+    .img-container {
+        height: 350px;
+    }
+}
+
+@media (max-width: 768px) {
+    .equipo-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .equipo-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .img-container {
+        height: 300px;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .info-item.full-width {
+        grid-column: span 1;
+    }
+    
+    .thumbnail-img {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .similar-img-container {
+        width: 70px;
+        height: 70px;
+    }
+}
+
+@media (max-width: 576px) {
+    .equipo-detalle {
+        padding: 15px;
+    }
+    
+    .img-container {
+        height: 250px;
+    }
+    
+    .edit-btn-top-right .btn {
+        padding: 5px 10px;
+        font-size: 0.8rem;
+    }
+}

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pagos Vencidos{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/pagos.css' %}">
+{% endblock %}
+
+{% block page_title %}Pagos Vencidos{% endblock %}
+
+{% block content %}
+<div class="pagos-container">
+    <div class="pagos-header">
+        <h2><i class="fas fa-exclamation-triangle"></i> Pagos Vencidos</h2>
+        <div class="header-actions">
+            <a href="{% url 'lista_pagos' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="pago-summary-card">
+        <div class="card-header">
+            <h3 class="card-title">Resumen de Pagos Vencidos</h3>
+        </div>
+        <div class="card-body">
+            <div class="pago-summary-item">
+                <span class="label">Total Vencido</span>
+                <span class="value amount">${{ total_vencido|default:"0" }}</span>
+            </div>
+            <div class="pago-summary-item">
+                <span class="label">Cantidad</span>
+                <span class="value">{{ pagos.count }}</span>
+            </div>
+            <div class="pago-summary-item">
+                <span class="label">Cliente con más deuda</span>
+                <span class="value">{{ cliente_mas_deuda|default:"N/A" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="pagos-table-container">
+        {% if pagos %}
+        <table class="pagos-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Alquiler</th>
+                    <th>Monto</th>
+                    <th>Fecha Vencimiento</th>
+                    <th>Días de Retraso</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pago in pagos %}
+                <tr>
+                    <td>#{{ pago.id }}</td>
+                    <td>{{ pago.alquiler.cliente.nombre }}</td>
+                    <td>Alquiler #{{ pago.alquiler.id }}</td>
+                    <td>${{ pago.monto }}</td>
+                    <td>{{ pago.fecha_vencimiento|date:"d/m/Y" }}</td>
+                    <td>{{ pago.dias_retraso }}</td>
+                    <td class="acciones-cell">
+                        <a href="{% url 'detalle_pago' pago.id %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-eye"></i> Ver
+                        </a>
+                        <a href="{% url 'registrar_pago' %}?alquiler_id={{ pago.alquiler.id }}"
+                            class="btn btn-sm btn-success">
+                            <i class="fas fa-money-bill-wave"></i> Pagar
+                        </a>
+                        <a href="{% url 'editar_pago' pago.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="no-results">
+            <div class="no-results-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>No hay pagos vencidos</h3>
+            <p>¡Buen trabajo! No hay pagos vencidos en este momento.</p>
+            <a href="{% url 'lista_pagos' %}" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i> Volver a Pagos
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

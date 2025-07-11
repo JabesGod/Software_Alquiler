@@ -25,6 +25,9 @@
                 <i class="fas fa-file-pdf"></i> Exportar a PDF
             </button>
         </div>
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle"></i> Las estadísticas mostradas excluyen reservas no aprobadas.
+        </div>
     </div>
 
     <div class="filtros">
@@ -176,20 +179,20 @@
                             <span class="sin-datos">Sin datos</span>
                         {% endif %}
                     </td>
-                    <td>
-                        {% if equipo.ultimo_alquiler %}
-                            {{ equipo.ultimo_alquiler.fecha_inicio|date:"d/m/Y" }}
-                        {% else %}
-                            <span class="sin-datos">N/A</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if equipo.ultimo_alquiler %}
-                            {{ equipo.ultimo_alquiler.cliente.nombre }}
-                        {% else %}
-                            <span class="sin-datos">N/A</span>
-                        {% endif %}
-                    </td>
+                 <td>
+                    {% if equipo.ultimo_alquiler %}
+                        {{ equipo.ultimo_alquiler.alquiler.fecha_inicio|date:"d/m/Y" }}
+                    {% else %}
+                    <span class="sin-datos">N/A</span>
+                    {% endif %}
+                </td>
+                <td>
+                {% if equipo.ultimo_alquiler %}
+                {{ equipo.ultimo_alquiler.alquiler.cliente.nombre }}
+                {% else %}
+                <span class="sin-datos">N/A</span>
+                {% endif %}
+                </td>
                     <td class="text-center">
                         <a href="{% url 'detalle_equipo' equipo.id %}" class="btn-action" title="Ver detalle">
                             <i class="fas fa-eye"></i>

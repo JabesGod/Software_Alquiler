@@ -1,0 +1,142 @@
+:root {
+    /* Variables locales independientes del nav */
+    --local-bg: #ffffff;
+    --local-text: #333333;
+    --local-success: #28a745;
+    --local-border: #e0e0e0;
+}
+
+.clientes-container {
+    all: initial;
+    isolation: isolate;
+    color: var(--local-text);
+    font-family: inherit;
+    padding: 20px;
+}
+
+.clientes-cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: flex;
+    padding: 10px;
+}
+
+.btn-add-client {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    background-color: var(--primary-color); /* Cambiado a variable del nav */
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.btn-add-client:hover {
+    background-color: var(--secondary-color); /* Cambiado a variable del nav */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.cliente-card {
+    width: 280px;
+    border: 1px solid var(--local-border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    background-color: var(--local-bg);
+}
+
+.cliente-card .card-header img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-bottom: 1px solid var(--local-border);
+}
+
+.cliente-card .card-body {
+    padding: 15px;
+    font-size: 14px;
+}
+
+.cliente-card .card-body h3 {
+    margin-top: 0;
+    font-size: 18px;
+    color: var(--local-text);
+}
+
+.cliente-card .card-body p {
+    margin: 5px 0;
+    color: #555;
+}
+
+.cliente-card .card-footer {
+    padding: 10px 15px;
+    background-color: #f9f9f9;
+    text-align: center;
+}
+
+.cliente-card .btn-card {
+    display: inline-block;
+    margin: 5px 5px;
+    padding: 6px 12px;
+    background-color: var(--primary-color); /* Cambiado a variable del nav */
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.cliente-card .btn-card:hover {
+    background-color: var(--secondary-color); /* Cambiado a variable del nav */
+}
+
+.verificacion-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 12px;
+    display: inline-block;
+}
+
+.verificacion-badge.pendiente {
+    background-color: #ffe58f;
+    color: #ad8b00;
+}
+
+.verificacion-badge.verificado {
+    background-color: #b7eb8f;
+    color: #389e0d;
+}
+
+.verificacion-badge.rechazado {
+    background-color: #ffa39e;
+    color: #cf1322;
+}
+
+@media (max-width: 768px) {
+    .clientes-cards-container {
+        justify-content: center;
+    }
+
+    .cliente-card {
+        width: 100%;
+        max-width: 95%;
+    }
+
+    .cliente-card .card-header img {
+        height: auto;
+        max-height: 250px;
+    }
+
+    .cliente-card .btn-card {
+        width: 45%;
+        font-size: 14px;
+    }
+}

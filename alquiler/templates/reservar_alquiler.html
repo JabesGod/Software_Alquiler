@@ -1,19 +1,174 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <title>Reservar Equipo</title>
-    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
-</head>
-<body>
-<h2> Reservar Equipo</h2>
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Reservar</button>
-</form>
+{% block title %}Crear Nueva Reserva{% endblock %}
 
-<a href="{% url 'listar_alquileres' %}"> Volver al listado</a>
-</body>
-</html>
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="fas fa-calendar-plus"></i> Crear Nueva Reserva</h2>
+
+    <form method="post" id="reserva-form" class="needs-validation" novalidate>
+        {% csrf_token %}
+
+        <!-- CAMPOS OCULTOS DEL FORMSET -->
+        {{ formset.management_form }}
+
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-info-circle"></i> Información Principal
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.cliente.id_for_label }}" class="form-label"><i class="fas fa-user"></i>
+                            Cliente</label>
+                        {{ form.cliente }}
+                        <div class="invalid-feedback">
+                            Por favor seleccione un cliente.
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label"><i class="fas fa-calendar-check"></i> Estado de Reserva</label>
+                        <input type="text" class="form-control" value="Reservado" readonly>
+                        <input type="hidden" name="tipo_alquiler" value="reservado">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.fecha_inicio.id_for_label }}" class="form-label"><i
+                                class="fas fa-calendar-alt"></i> Fecha Inicio</label>
+                        {{ form.fecha_inicio }}
+                        <div class="invalid-feedback">
+                            Por favor ingrese una fecha de inicio válida.
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.fecha_fin.id_for_label }}" class="form-label"><i
+                                class="fas fa-calendar-alt"></i> Fecha Fin</label>
+                        {{ form.fecha_fin }}
+                        <div class="invalid-feedback">
+                            Por favor ingrese una fecha de fin válida.
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label"><i class="fas fa-clock"></i> Duración</label>
+                        <input type="text" class="form-control" id="duracion-reserva" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-laptop"></i> Equipos a Reservar
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label"><i class="fas fa-desktop"></i> Equipo</label>
+                        <select class="form-control select2" id="equipo-selector">
+                            <option value="">Seleccione un equipo...</option>
+                            {% for equipo in equipos_disponibles %}
+                            <option value="{{ equipo.id }}" data-precio-dia="{{ equipo.precio_dia|default:0 }}"
+                                data-precio-semana="{{ equipo.precio_semana|default:0 }}"
+                                data-precio-mes="{{ equipo.precio_mes|default:0 }}"
+                                data-precio-trimestre="{{ equipo.precio_trimestre|default:0 }}"
+                                data-precio-semestre="{{ equipo.precio_semestre|default:0 }}"
+                                data-precio-anio="{{ equipo.precio_anio|default:0 }}">
+                                {{ equipo.marca }} {{ equipo.modelo }} (Disponibles: {{ equipo.cantidad_disponible }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label"><i class="fas fa-calendar-week"></i> Periodo de Reserva</label>
+                        <select class="form-control" id="periodo-selector">
+                            <option value="dia">Por día</option>
+                            <option value="semana">Por semana</option>
+                            <option value="mes">Por mes</option>
+                            <option value="trimestre">Por trimestre</option>
+                            <option value="semestre">Por semestre</option>
+                            <option value="anio">Por año</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label"><i class="fas fa-barcode"></i> Números de Serie</label>
+                        <select class="form-control select2" id="serie-selector" multiple>
+                            <!-- Se llenará dinámicamente -->
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" id="agregar-equipo" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Agregar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="tabla-equipos">
+                        <thead class="table-dark">
+                            <tr>
+                                <th><i class="fas fa-desktop"></i> Equipo</th>
+                                <th><i class="fas fa-barcode"></i> Seriales</th>
+                                <th><i class="fas fa-dollar-sign"></i> Precio Unitario</th>
+                                <th><i class="fas fa-dollar-sign"></i> Precio Total</th>
+                                <th><i class="fas fa-times"></i> Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+                <div id="equipos-container">
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-comment-alt"></i> Información Adicional
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ form.observaciones.id_for_label }}" class="form-label"><i
+                                class="fas fa-sticky-note"></i> Observaciones</label>
+                        {{ form.observaciones }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{% url 'listar_alquileres' %}" class="btn btn-secondary me-md-2">
+                <i class="fas fa-arrow-left"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-calendar-check"></i> Confirmar Reserva
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- TEMPLATE PARA FORMULARIOS OCULTOS -->
+<div id="empty-form" style="display: none;">
+    {% for field in formset.empty_form %}
+    <input type="hidden" name="{{ field.html_name }}" id="{{ field.id_for_label }}" value="">
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'css/crear_alquiler.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/reservas.js' %}"></script>
+{% endblock %}

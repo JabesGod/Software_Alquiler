@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reportes de Pagos{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/pagos.css' %}">
+{% endblock %}
+
+{% block page_title %}Reportes de Pagos{% endblock %}
+
+{% block content %}
+<div class="pagos-container">
+    <div class="pagos-header">
+        <h2><i class="fas fa-chart-bar"></i> Reportes de Pagos</h2>
+        <div class="header-actions">
+            <a href="{% url 'lista_pagos' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="pago-summary-card">
+        <div class="card-header">
+            <h3 class="card-title">Filtros de Reporte</h3>
+        </div>
+        <div class="card-body">
+            <form method="get" class="mb-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="pago-form-group">
+                            <label for="fecha_inicio">Fecha Inicio</label>
+                            <input type="date" id="fecha_inicio" name="fecha_inicio" class="pago-form-control"
+                                value="{{ request.GET.fecha_inicio }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="pago-form-group">
+                            <label for="fecha_fin">Fecha Fin</label>
+                            <input type="date" id="fecha_fin" name="fecha_fin" class="pago-form-control"
+                                value="{{ request.GET.fecha_fin }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="pago-form-group">
+                    <label for="estado">Estado</label>
+                    <select id="estado" name="estado" class="pago-form-control pago-form-select">
+                        <option value="">Todos</option>
+                        {% for estado in estados %}
+                        <option value="{{ estado.0 }}" {% if request.GET.estado == estado.0|stringformat:"s" %}selected{% endif %}>{{ estado.1 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="pago-form-group">
+                    <label for="metodo_pago">Método de Pago</label>
+                    <select id="metodo_pago" name="metodo_pago" class="pago-form-control pago-form-select">
+                        <option value="">Todos</option>
+                        {% for metodo in metodos_pago %}
+                        <option value="{{ metodo.0 }}" {% if request.GET.metodo_pago == metodo.0|stringformat:"s" %}selected{% endif %}>{{ metodo.1 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                    <a href="{% url 'reportes_pagos' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-sync-alt"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="pago-summary-card">
+                <div class="card-header">
+                    <h3 class="card-title">Resumen General</h3>
+                </div>
+                <div class="card-body">
+                    <div class="pago-summary-item">
+                        <span class="label">Total Pagado</span>
+                        <span class="value amount">${{ total_pagado|default:"0" }}</span>
+                    </div>
+                    <div class="pago-summary-item">
+                        <span class="label">Cantidad de Pagos</span>
+                        <span class="value">{{ total_pagos|default:"0" }}</span>
+                    </div>
+                    <div class="pago-summary-item">
+                        <span class="label">Promedio por Pago</span>
+                        <span class="value amount">${{ promedio_pago|default:"0" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="pago-summary-card">
+                <div class="card-header">
+                    <h3 class="card-title">Por Estado</h3>
+                </div>
+                <div class="card-body">
+                    {% for estado in resumen_estados %}
+                    <div class="pago-summary-item">
+                        <span class="label">{{ estado.estado }}</span>
+                        <span class="value">${{ estado.total }} ({{ estado.cantidad }})</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="pago-summary-card">
+                <div class="card-header">
+                    <h3 class="card-title">Por Método</h3>
+                </div>
+                <div class="card-body">
+                    {% for metodo in resumen_metodos %}
+                    <div class="pago-summary-item">
+                        <span class="label">{{ metodo.metodo }}</span>
+                        <span class="value">${{ metodo.total }} ({{ metodo.cantidad }})</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pago-summary-card mt-4">
+        <div class="card-header">
+            <h3 class="card-title">Detalle de Pagos</h3>
+            <a href="?export=csv{% if request.GET.fecha_inicio %}&fecha_inicio={{ request.GET.fecha_inicio }}{% endif %}{% if request.GET.fecha_fin %}&fecha_fin={{ request.GET.fecha_fin }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.metodo_pago %}&metodo_pago={{ request.GET.metodo_pago }}{% endif %}"
+                class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-file-csv"></i> Exportar a CSV
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="pagos-table-container">
+                {% if pagos %}
+                <table class="pagos-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Monto</th>
+                            <th>Método</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pago in pagos %}
+                        <tr>
+                            <td>#{{ pago.id }}</td>
+                            <td>{{ pago.fecha_pago|date:"d/m/Y" }}</td>
+                            <td>{{ pago.alquiler.cliente.nombre }}</td>
+                            <td>${{ pago.monto }}</td>
+                            <td>{{ pago.get_metodo_pago_display }}</td>
+                            <td>
+                                <span class="status-badge status-{{ pago.estado_pago }}">
+                                    {{ pago.get_estado_pago_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="no-results">
+                    <div class="no-results-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>No hay pagos que coincidan</h3>
+                    <p>No se encontraron pagos con los filtros seleccionados.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

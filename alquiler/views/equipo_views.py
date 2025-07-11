@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from alquiler.models import Equipo, Alquiler, Cliente, Pago
+from alquiler.models import UnidadEquipo
 from alquiler.forms.equipo_forms import EquipoForm
 import csv
 from django.db import models
@@ -9,8 +10,8 @@ from django.utils import timezone
 from datetime import timedelta
 from django.contrib import messages
 from django.db.models import Count, Max
-from ..models import Equipo, Alquiler, FotoEquipo
-from ..forms import EquipoForm, FotoEquipoForm, SerialEquipoFormSet
+from ..models import Equipo, Alquiler, FotoEquipo, DetalleAlquiler
+from ..forms import EquipoForm, FotoEquipoForm, EquipoEditForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
 from django.forms.models import inlineformset_factory
@@ -40,6 +41,8 @@ import traceback
 from PIL import Image  
 from io import BytesIO
 from itertools import groupby
+from django.db.models import Exists, OuterRef
+
 
 def listar_equipos(request):
     equipos = Equipo.objects.all()
@@ -54,22 +57,33 @@ def crear_equipo(request):
 
     if request.method == 'POST':
         form = EquipoForm(request.POST, request.FILES)
-        formset = SerialEquipoFormSet(request.POST)
-        if form.is_valid() and formset.is_valid():
-            equipo = form.save()
-            formset.instance = equipo
-            formset.save()
-            messages.success(request, f'Equipo {equipo.marca} {equipo.modelo} creado exitosamente!')
-            return redirect('detalle_equipo', id=equipo.pk)
+        if form.is_valid():
+            try:
+                equipo = form.save()  # Guarda el equipo y las fotos
+
+                # Crear instancias de UnidadEquipo a partir del campo "seriales"
+                seriales = request.POST.get('seriales', '')
+                for linea in seriales.splitlines():
+                    linea = linea.strip()
+                    if linea:
+                        UnidadEquipo.objects.create(equipo=equipo, numero_serie=linea)
+
+                messages.success(request, f'Equipo {equipo.marca} {equipo.modelo} creado exitosamente!')
+                return redirect('detalle_equipo', id=equipo.pk)
+
+            except Exception as e:
+                messages.error(request, f'Error al guardar el equipo: {str(e)}')
+                print(f"[DEBUG] Error al guardar equipo: {str(e)}")
+        else:
+            print("[DEBUG] Formulario inválido:", form.errors)
     else:
         form = EquipoForm()
-        formset = SerialEquipoFormSet()
 
     return render(request, 'crear.html', {
         'form': form,
-        'formset_seriales': formset,
         'titulo': 'Crear Nuevo Equipo'
     })
+
 
 
 def editar_equipo(request, id):
@@ -80,31 +94,52 @@ def editar_equipo(request, id):
         return redirect('detalle_equipo', pk=equipo.pk)
 
     FotoEquipoFormSet = inlineformset_factory(
-        Equipo, 
-        FotoEquipo, 
-        form=FotoEquipoForm, 
+        Equipo,
+        FotoEquipo,
+        form=FotoEquipoForm,
         extra=1,
         can_delete=True
     )
 
     if request.method == 'POST':
-        form = EquipoForm(request.POST, request.FILES, instance=equipo)
+        form = EquipoEditForm(request.POST, request.FILES, instance=equipo)
         formset = FotoEquipoFormSet(request.POST, request.FILES, instance=equipo)
         
         if form.is_valid() and formset.is_valid():
-            form.save()
-            formset.save()
-            
-            # Asegurar que solo haya una foto principal
-            fotos_principales = equipo.fotos.filter(es_principal=True)
-            if fotos_principales.count() > 1:
-                ultima_principal = fotos_principales.order_by('-id').first()
-                equipo.fotos.exclude(id=ultima_principal.id).update(es_principal=False)
-            
-            messages.success(request, f'Equipo {equipo} actualizado exitosamente!')
-            return redirect('detalle_equipo', id=equipo.id)
+            try:
+                form.save()
+                instances = formset.save()
+                
+                # Procesar nuevas fotos subidas
+                nuevas_fotos = request.FILES.getlist('nuevas_fotos')
+                if nuevas_fotos:
+                    for i, foto in enumerate(nuevas_fotos):
+                        FotoEquipo.objects.create(
+                            equipo=equipo,
+                            foto=foto,
+                            es_principal=False,  # No marcar como principal automáticamente
+                            descripcion=f"Foto adicional del equipo {equipo.marca} {equipo.modelo}"
+                        )
+                
+                # Asegurar que solo haya una foto principal
+                fotos_principales = equipo.fotos.filter(es_principal=True)
+                if fotos_principales.count() > 1:
+                    # Mantener la más reciente como principal
+                    ultima_principal = fotos_principales.order_by('-id').first()
+                    equipo.fotos.exclude(id=ultima_principal.id).update(es_principal=False)
+                elif fotos_principales.count() == 0 and equipo.fotos.exists():
+                    # Si no hay principal pero hay fotos, establecer la primera como principal
+                    equipo.fotos.first().es_principal = True
+                    equipo.fotos.first().save()
+                
+                messages.success(request, f'Equipo {equipo} actualizado exitosamente!')
+                return redirect('detalle_equipo', id=equipo.id)
+                
+            except Exception as e:
+                messages.error(request, f'Error al guardar los cambios: {str(e)}')
+                print(f"Error al guardar equipo: {str(e)}")
     else:
-        form = EquipoForm(instance=equipo)
+        form = EquipoEditForm(instance=equipo)
         formset = FotoEquipoFormSet(instance=equipo)
     
     return render(request, 'editar.html', {
@@ -132,12 +167,12 @@ def eliminar_equipo(request, pk):
 
 def detalle_equipo(request, id):
     equipo = get_object_or_404(Equipo, id=id)
-    historial = Alquiler.objects.filter(equipo=equipo).order_by('-fecha_inicio')[:5]
+    historial = Alquiler.objects.filter(detalles__equipo=equipo).order_by('-fecha_inicio')[:5]
     
     # Obtener equipos similares (misma categoría o etiqueta)
     equipos_similares = Equipo.objects.filter(
         estado=equipo.estado
-    ).exclude(id=equipo.id)[:8]  # Limitar a 8 resultados
+    )
     
     if 'quick-view' in request.path:
         return render(request, 'quick_view.html', {
@@ -185,49 +220,33 @@ def dashboard_admin(request):
     
     # 3. Datos para el gráfico de estado de equipos
     estados_equipos = [
-        {
-            'nombre': 'Disponible',
-            'cantidad': Equipo.objects.filter(estado='disponible').count(),
-            'color': '#4e73df'
-        },
-        {
-            'nombre': 'Alquilado',
-            'cantidad': total_alquilados,
-            'color': '#1cc88a'
-        },
-        {
-            'nombre': 'Mantenimiento',
-            'cantidad': Equipo.objects.filter(estado='mantenimiento').count(),
-            'color': '#36b9cc'
-        },
-        {
-            'nombre': 'Reservado',
-            'cantidad': Equipo.objects.filter(estado='reservado').count(),
-            'color': '#f6c23e'
-        }
+        {'nombre': 'Disponible', 'cantidad': Equipo.objects.filter(estado='disponible').count(), 'color': '#4e73df'},
+        {'nombre': 'Alquilado', 'cantidad': total_alquilados, 'color': '#1cc88a'},
+        {'nombre': 'Mantenimiento', 'cantidad': Equipo.objects.filter(estado='mantenimiento').count(), 'color': '#36b9cc'},
+        {'nombre': 'Reservado', 'cantidad': Equipo.objects.filter(estado='reservado').count(), 'color': '#f6c23e'}
     ]
     
     # 4. Próximos vencimientos (7 días)
     fecha_limite = timezone.now().date() + timedelta(days=7)
     proximos_vencimientos = Alquiler.objects.filter(
-    fecha_fin__lte=fecha_limite,
-    fecha_fin__gte=timezone.now().date(),
-    estado_alquiler='activo'
-).select_related('cliente', 'equipo').annotate(
-    dias_restantes=ExpressionWrapper(
-        F('fecha_fin') - timezone.now(),
-        output_field=DurationField()
-    )
-).order_by('fecha_fin')[:5]
+        fecha_fin__lte=fecha_limite,
+        fecha_fin__gte=timezone.now().date(),
+        estado_alquiler='activo'
+    ).select_related('cliente').prefetch_related('detalles', 'detalles__equipo').annotate(
+        dias_restantes=ExpressionWrapper(
+            F('fecha_fin') - timezone.now().date(),
+            output_field=DurationField()
+        )
+    ).order_by('fecha_fin')[:5]
     
     # 5. Últimos alquileres registrados
-    ultimos_alquileres = Alquiler.objects.select_related(
-        'cliente', 'equipo'
-    ).order_by('-fecha_inicio')[:5]
+    ultimos_alquileres = Alquiler.objects.select_related('cliente')\
+        .prefetch_related('detalles', 'detalles__equipo')\
+        .order_by('-fecha_inicio')[:5]
     
     # 6. Equipos más alquilados (top 5)
     equipos_populares = Equipo.objects.annotate(
-        total_alquileres=Count('alquileres')
+        total_alquileres=Count('detallealquiler')
     ).order_by('-total_alquileres')[:5]
     
     # 7. Ingresos mensuales (últimos 6 meses)
@@ -248,15 +267,15 @@ def dashboard_admin(request):
         
         ingresos_mensuales.append(float(total))
     
-    # 8. Clientes con más alquileres
+    # 8. Clientes con más alquileres - CORRECCIÓN AQUÍ
     clientes_frecuentes = Cliente.objects.annotate(
         total_alquileres=Count('alquileres'),
         monto_total=Sum('alquileres__precio_total')
     ).order_by('-total_alquileres')[:5]
     
-    # 9. Equipos que generan más ingresos
+    # 9. Equipos que generan más ingresos - CORRECCIÓN AQUÍ
     equipos_rentables = Equipo.objects.annotate(
-        ingresos_totales=Sum('alquileres__precio_total')
+        ingresos_totales=Sum('detallealquiler__precio_total')
     ).order_by('-ingresos_totales')[:5]
     
     # 10. Pagos pendientes con mayor monto
@@ -265,37 +284,26 @@ def dashboard_admin(request):
     ).order_by('-monto')[:5]
     
     return render(request, 'dashboard.html', {
-        # Estadísticas principales
         'total_equipos': total_equipos,
         'total_alquilados': total_alquilados,
         'pagos_pendientes': pagos_pendientes,
         'clientes_verificados': clientes_verificados,
-        
-        # Porcentajes
         'porcentaje_alquilados': porcentaje_alquilados,
         'porcentaje_verificados': porcentaje_verificados,
-        
-        # Datos para gráficos
         'estados_equipos': estados_equipos,
-        'meses_ingresos': meses,
-        'ingresos_mensuales': ingresos_mensuales,
-        
-        # Listados
         'proximos_vencimientos': proximos_vencimientos,
         'ultimos_alquileres': ultimos_alquileres,
         'equipos_populares': equipos_populares,
-        'clientes_frecuentes': clientes_frecuentes,
-        'equipos_rentables': equipos_rentables,
-        'pagos_pendientes_importantes': pagos_pendientes_importantes,
-        
-        # Fecha actual para el dashboard
-        'fecha_actual': timezone.now().date().strftime('%d/%m/%Y')
     })
 
 
 def actualizar_estados_masivo(request):
     if request.method == 'POST':
+        # Obtener IDs como lista (maneja tanto lista como string separado por comas)
         ids_equipos = request.POST.getlist('ids_equipos')
+        if isinstance(ids_equipos, str):
+            ids_equipos = ids_equipos.split(',')
+        
         nuevo_estado = request.POST.get('nuevo_estado')
         
         if not ids_equipos:
@@ -306,27 +314,52 @@ def actualizar_estados_masivo(request):
             messages.error(request, "Debes seleccionar un estado válido")
             return redirect('actualizar_estados_masivo')
         
-        # Validar que el estado sea uno de los permitidos
+        # Validar estado
         estados_validos = [estado[0] for estado in Equipo.ESTADOS]
         if nuevo_estado not in estados_validos:
             messages.error(request, "Estado seleccionado no válido")
             return redirect('actualizar_estados_masivo')
         
-        # Actualizar los equipos seleccionados
-        equipos_actualizados = Equipo.objects.filter(id__in=ids_equipos)
-        count = equipos_actualizados.update(estado=nuevo_estado)
+        # Obtener equipos sin alquileres activos
+        equipos_permitidos = Equipo.objects.filter(
+        id__in=ids_equipos
+        ).exclude(
+        detallealquiler__alquiler__estado_alquiler='activo'
+        ).distinct()
+
+        equipos_con_alquiler = Equipo.objects.filter(
+        id__in=ids_equipos,
+        detallealquiler__alquiler__estado_alquiler='activo'
+        ).distinct().count()
+
         
-        messages.success(request, f"Se actualizaron {count} equipos correctamente")
+        # Actualizar solo los permitidos
+        count = equipos_permitidos.update(estado=nuevo_estado)
+        
+        if count > 0:
+            messages.success(request, f"Se actualizaron {count} equipos correctamente a estado {dict(Equipo.ESTADOS)[nuevo_estado]}")
+        if equipos_con_alquiler > 0:
+            messages.warning(request, f"{equipos_con_alquiler} equipos no se actualizaron porque tienen alquileres activos")
+        
         return redirect('listar_equipos')
     
-    # Obtener todos los equipos y los estados disponibles
-    equipos = Equipo.objects.all().order_by('marca', 'modelo')
-    estados = Equipo.ESTADOS  # Esto obtiene las tuplas (valor, nombre) de los estados
+    # Obtener todos los equipos con información de alquileres activos
+    equipos = Equipo.objects.annotate(
+        tiene_alquiler_activo=Exists(
+            DetalleAlquiler.objects.filter(
+                equipo=OuterRef('pk'),
+                alquiler__estado_alquiler='activo'
+            )
+        )
+    ).order_by('marca', 'modelo')
+    
+    estados = Equipo.ESTADOS
     
     return render(request, 'actualizar_masivo.html', {
         'equipos': equipos,
-        'estados': estados  # Pasar los estados al template
+        'estados': estados
     })
+
 
 
 def exportar_equipos_csv(request):
@@ -374,9 +407,10 @@ def enviar_alertas_vencimiento():
 
     # Obtener alquileres próximos a vencer
     alquileres_por_vencer = Alquiler.objects.filter(
-        fecha_fin__range=[hoy, fecha_limite],
-        estado_alquiler='activo'
-    ).select_related('cliente', 'equipo').order_by('cliente', 'numero_factura')
+    fecha_fin__range=[hoy, fecha_limite],
+    estado_alquiler='activo'
+    ).select_related('cliente').prefetch_related('detalles__equipo').order_by('cliente', 'numero_factura')
+
 
     if not alquileres_por_vencer.exists():
         print(f"📭 No hay alquileres por vencer en los próximos 7 días ({hoy} - {fecha_limite})")
@@ -393,7 +427,11 @@ def enviar_alertas_vencimiento():
             alquileres_list = list(alquileres)
             primer_alquiler = alquileres_list[0]
             dias_restantes = (primer_alquiler.fecha_fin - hoy).days
-            equipos = [alq.equipo for alq in alquileres_list]
+            equipos = []
+            for alq in alquileres_list:
+                for detalle in alq.detalles.all():
+                    equipos.append(detalle.equipo)
+
 
             # Determinar tipo de notificación
             if dias_restantes <= 3:
@@ -522,97 +560,76 @@ def ejecutar_alertas_vencimiento(request):
     messages.success(request, "Se han procesado las alertas de vencimiento (7 días antes).")
     return redirect('dashboard_admin')  # cambia al nombre de tu vista de inicio
 
-
 def equipos_mas_alquilados(request):
-    # Obtener parámetros de filtro
     fecha_inicio = request.GET.get('fecha_inicio')
     fecha_fin = request.GET.get('fecha_fin')
     marca = request.GET.get('tipo_equipo')
-    agrupar_por = request.GET.get('agrupar_por', 'equipo')  # equipo o mes
+    agrupar_por = request.GET.get('agrupar_por', 'equipo')
 
-    # Filtros para Equipo (relación con Alquileres)
-    filtros_equipos = Q(alquileres__isnull=False)
+    # Filtro base que incluye alquileres activos y sus renovaciones
+    filtros_equipos = Q(detallealquiler__alquiler__estado_alquiler__in=['activo', 'finalizado'])
+    
     if fecha_inicio and fecha_fin:
-        filtros_equipos &= Q(alquileres__fecha_inicio__gte=fecha_inicio, 
-                            alquileres__fecha_fin__lte=fecha_fin)
+        # Considerar alquileres que estuvieron activos en cualquier momento del rango
+        filtros_equipos &= (
+            Q(detallealquiler__alquiler__fecha_inicio__lte=fecha_fin) &
+            Q(detallealquiler__alquiler__fecha_fin__gte=fecha_inicio)
+        )
     if marca:
         filtros_equipos &= Q(marca__iexact=marca)
 
-    # Filtros para Alquiler directamente
-    filtros_alquiler = Q()
+    filtros_alquiler = Q(es_reserva=False) | Q(estado_alquiler='activo')
     if fecha_inicio and fecha_fin:
-        filtros_alquiler &= Q(fecha_inicio__gte=fecha_inicio, 
-                            fecha_fin__lte=fecha_fin)
+        filtros_alquiler &= Q(fecha_inicio__gte=fecha_inicio, fecha_fin__lte=fecha_fin)
 
-    # Redirigir si se agrupa por mes
     if agrupar_por == 'mes':
         return estadisticas_por_mes(request, filtros_alquiler)
 
-    # Obtener los 10 equipos más alquilados con output_field especificado
     equipos = (
         Equipo.objects.annotate(
-            total_alquileres=Count('alquileres', filter=filtros_equipos),
-            ingresos_generados=Coalesce(
-                Sum('alquileres__precio_total', filter=filtros_equipos, output_field=DecimalField()),
-                Decimal('0.00')
-            ),
-            precio_promedio=Coalesce(
-                Avg('alquileres__precio_total', filter=filtros_equipos, output_field=DecimalField()),
-                Decimal('0.00')
-            ),
-            ultimo_alquiler_fecha=Max('alquileres__fecha_inicio', filter=filtros_equipos)
-        )
-        .filter(total_alquileres__gt=0)
-        .order_by('-total_alquileres')[:10]
+            total_alquileres=Count('detallealquiler__alquiler', filter=filtros_equipos, distinct=True),
+            ingresos_generados=Coalesce(Sum('detallealquiler__alquiler__precio_total', filter=filtros_equipos), Decimal('0.00')),
+            precio_promedio=Coalesce(Avg('detallealquiler__alquiler__precio_total', filter=filtros_equipos), Decimal('0.00')),
+            ultimo_alquiler_fecha=Max('detallealquiler__alquiler__fecha_inicio', filter=filtros_equipos)
+        ).filter(total_alquileres__gt=0).order_by('-total_alquileres')[:10]
     )
 
-    # Totales con output_field especificado para campos decimales
     total_equipos = Equipo.objects.count()
     total_alquileres = Alquiler.objects.filter(filtros_alquiler).count()
-    total_clientes = Cliente.objects.filter(
-        alquileres__in=Alquiler.objects.filter(filtros_alquiler)
-    ).distinct().count()
-    
+    total_clientes = Cliente.objects.filter(alquileres__in=Alquiler.objects.filter(filtros_alquiler)).distinct().count()
     ingresos_totales = Alquiler.objects.filter(filtros_alquiler).aggregate(
-        total=Sum('precio_total', output_field=DecimalField())
+        total=Sum('precio_total')
     )['total'] or Decimal('0.00')
 
     marcas = Equipo.objects.values_list('marca', flat=True).distinct().order_by('marca')
 
-    # Añadir datos personalizados a cada equipo
     for equipo in equipos:
-        # Clientes frecuentes por equipo
-        cliente_filtros = Q(equipo=equipo)
+        clientes_frecuentes_query = DetalleAlquiler.objects.filter(equipo=equipo)
         if fecha_inicio and fecha_fin:
-            cliente_filtros &= Q(fecha_inicio__gte=fecha_inicio, fecha_fin__lte=fecha_fin)
-
+            clientes_frecuentes_query = clientes_frecuentes_query.filter(
+                alquiler__fecha_inicio__gte=fecha_inicio,
+                alquiler__fecha_fin__lte=fecha_fin
+            )
         clientes = (
-            Alquiler.objects
-            .filter(cliente_filtros)
-            .values('cliente__id', 'cliente__nombre')
-            .annotate(total=Count('cliente'))
+            clientes_frecuentes_query
+            .values('alquiler__cliente__id', 'alquiler__cliente__nombre')
+            .annotate(total=Count('alquiler__cliente'))
             .order_by('-total')[:3]
         )
-        equipo.clientes_frecuentes = [c['cliente__nombre'] for c in clientes]
+        equipo.clientes_frecuentes = [c['alquiler__cliente__nombre'] for c in clientes]
 
-        # Último alquiler
         equipo.ultimo_alquiler = (
-            Alquiler.objects
+            DetalleAlquiler.objects
             .filter(equipo=equipo)
-            .order_by('-fecha_inicio')
+            .select_related('alquiler', 'alquiler__cliente')
+            .order_by('-alquiler__fecha_inicio')
             .first()
         )
 
-    # Datos para gráficos
     labels = [f"{e.marca} {e.modelo}" for e in equipos]
     datos_alquileres = [e.total_alquileres for e in equipos]
     datos_ingresos = [float(e.ingresos_generados) for e in equipos]
 
-    labels_json = json.dumps(labels)
-    datos_alquileres_json = json.dumps(datos_alquileres)
-    datos_ingresos_json = json.dumps(datos_ingresos)
-
-    # Exportaciones
     if 'export' in request.GET:
         if request.GET['export'] == 'excel':
             return exportar_a_excel(equipos, labels, datos_alquileres, datos_ingresos)
@@ -620,11 +637,10 @@ def equipos_mas_alquilados(request):
             return exportar_a_pdf(equipos, labels, datos_alquileres, datos_ingresos,
                                 total_equipos, total_alquileres, total_clientes, ingresos_totales)
 
-    # Renderizar plantilla
     return render(request, 'estadisticas.html', {
-        'labels': labels_json,
-        'datos': datos_alquileres_json,
-        'ingresos_equipos': datos_ingresos_json,
+        'labels': json.dumps(labels),
+        'datos': json.dumps(datos_alquileres),
+        'ingresos_equipos': json.dumps(datos_ingresos),
         'equipos': equipos,
         'total_equipos': total_equipos,
         'total_alquileres': total_alquileres,

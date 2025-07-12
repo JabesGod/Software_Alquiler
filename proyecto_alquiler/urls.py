@@ -35,7 +35,7 @@ from alquiler.views.pago_views import (
 
 from alquiler.views.usuario_views import(
     registro_usuario,salir_sesion,asignar_rol, inicio_sesion, pagina_principal, lista_usuarios,editar_usuario,eliminar_usuario,cambiar_estado_usuario,
-    cambiar_contrasena, confirmar_eliminar_usuario, detalle_usuario, auditoria_usuario, activar_cuenta
+    cambiar_contrasena, confirmar_eliminar_usuario, detalle_usuario, auditoria_usuario, activar_cuenta,crear_rol,lista_roles,editar_rol,eliminar_rol
 
 )
 
@@ -112,7 +112,6 @@ urlpatterns = [
     path('', inicio_sesion, name='inicio_sesion'),
     path('registro/', registro_usuario, name='registro'),
     path('salir/', salir_sesion, name='salir'),
-    path('asignar-rol/<int:usuario_id>/', asignar_rol, name='asignar_rol'),
     path('inicio/', pagina_principal, name='pagina_principal'),
     path('usuarios/', lista_usuarios, name='lista_usuarios'),
     path('usuarios/editar/<int:usuario_id>/', editar_usuario, name='editar_usuario'),
@@ -123,6 +122,14 @@ urlpatterns = [
     path('usuarios/detalle/<int:usuario_id>/', detalle_usuario, name='detalle_usuario'),
     path('usuarios/auditoria/<int:usuario_id>/', auditoria_usuario, name='auditoria_usuario'),
     path('activar/<uidb64>/<token>/', activar_cuenta, name='activar_cuenta'),
+    #Roles
+    path('roles/', lista_roles, name='lista_roles'),
+    path('roles/crear/', crear_rol, name='crear_rol'),
+    path('roles/editar/<int:rol_id>/', editar_rol, name='editar_rol'),
+    path('roles/eliminar/<int:rol_id>/', eliminar_rol, name='eliminar_rol'),
+    
+    # Asignación de roles a usuarios
+    path('usuarios/<int:usuario_id>/asignar-rol/', asignar_rol, name='asignar_rol'),
 
 ]
 

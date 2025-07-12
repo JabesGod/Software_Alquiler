@@ -3,6 +3,7 @@ from django import forms
 from django.contrib.auth.password_validation import validate_password
 from ..models import Usuario, Rol
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import Permission
 
 
 class RegistroForm(forms.Form):
@@ -45,25 +46,50 @@ class RegistroForm(forms.Form):
     
 class UsuarioEditForm(forms.ModelForm):
     rol = forms.ModelChoiceField(
-        queryset=Rol.objects.all(),
+        queryset=Rol.objects.all().prefetch_related('permisos'),
         label="Rol del usuario",
         required=True,
-        widget=forms.Select(attrs={'class': 'form-select'})
+        widget=forms.Select(attrs={
+            'class': 'form-select select-rol',
+            'data-placeholder': 'Seleccione un rol'
+        })
     )
     
     class Meta:
         model = Usuario
         fields = ['nombre_usuario', 'rol', 'is_staff', 'is_active']
         widgets = {
-            'nombre_usuario': forms.TextInput(attrs={'class': 'form-control'}),
-            'is_staff': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'nombre_usuario': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre de usuario'
+            }),
+            'is_staff': forms.CheckboxInput(attrs={
+                'class': 'form-check-input toggle-switch-checkbox',
+                'data-toggle': 'toggle',
+                'data-on': 'Sí',
+                'data-off': 'No'
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'form-check-input toggle-switch-checkbox',
+                'data-toggle': 'toggle',
+                'data-on': 'Activo',
+                'data-off': 'Inactivo'
+            }),
         }
         labels = {
             'nombre_usuario': 'Nombre de usuario',
-            'is_staff': 'Es staff (acceso admin)',
-            'is_active': 'Usuario activo'
+            'is_staff': 'Acceso administrativo',
+            'is_active': 'Estado del usuario'
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            # Cargar los permisos del rol actual para el JS
+            self.fields['rol'].widget.attrs['data-current-permissions'] = [
+                perm.codename for perm in self.instance.rol.permisos.all()
+            ] if self.instance.rol else []
+
 
 class CambiarContrasenaForm(forms.Form):
     nueva_contrasena = forms.CharField(
@@ -97,3 +123,19 @@ class CambiarContrasenaForm(forms.Form):
             raise ValidationError("Las contraseñas no coinciden")
         
         return cleaned_data
+    
+
+
+class RolForm(forms.ModelForm):
+    permisos = forms.ModelMultipleChoiceField(
+        queryset=Permission.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False
+    )
+    
+    class Meta:
+        model = Rol
+        fields = ['nombre_rol', 'descripcion', 'permisos']
+        widgets = {
+            'descripcion': forms.Textarea(attrs={'rows': 3}),
+        }

@@ -1,10 +1,134 @@
-<form method="POST">
-    {% csrf_token %}
-    <label for="rol">Seleccionar rol:</label>
-    <select name="rol" required>
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Asignar Rol a {{ usuario.nombre_usuario }}{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-user-tag fa-fw"></i> Asignar Rol: {{ usuario.nombre_usuario }}
+{% endblock %}
+
+{% block content %}
+<div class="assign-role-container">
+    <div class="card corporate-card">
+        <div class="card-header">
+            <h2 class="card-title">Seleccionar Rol</h2>
+            <p class="header-description">Actualiza el rol para {{ usuario.nombre_usuario }}</p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="card-body">
+                <div class="current-role">
+                    <h5>Rol actual:</h5>
+                    {% if usuario.rol %}
+                    <div class="current-role-badge">
+                        <span class="badge badge-primary">{{ usuario.rol.nombre_rol }}</span>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No tiene rol asignado</p>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="rol">Seleccionar nuevo rol:</label>
+                    <select name="rol" id="rol" class="form-control" required>
+                        <option value="">--- Seleccione un rol ---</option>
+                        {% for rol in roles %}
+                        <option value="{{ rol.id }}" {% if usuario.rol and usuario.rol.id == rol.id %}selected{% endif %}>
+                            {{ rol.nombre_rol }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="role-description">
+                    <h5>Descripción del rol seleccionado:</h5>
+                    <div id="role-description-content">
+                        {% if usuario.rol %}
+                        <p>{{ usuario.rol.descripcion }}</p>
+                        {% else %}
+                        <p class="text-muted">Seleccione un rol para ver su descripción</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="role-permissions">
+                    <h5>Permisos incluidos:</h5>
+                    <div id="role-permissions-content">
+                        {% if usuario.rol %}
+                        <div class="permissions-list">
+                            {% for permiso in usuario.rol.permisos.all %}
+                            <span class="badge badge-secondary">{{ permiso.name }}</span>
+                            {% empty %}
+                            <p class="text-muted">Este rol no tiene permisos asignados</p>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted">Seleccione un rol para ver sus permisos</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Asignar Rol
+                </button>
+                <a href="{% url 'editar_usuario' usuario.id %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const roleSelect = document.getElementById('rol');
+    const roleDescription = document.getElementById('role-description-content');
+    const rolePermissions = document.getElementById('role-permissions-content');
+    
+    // Datos de roles (precargados en el template)
+    const rolesData = {
         {% for rol in roles %}
-            <option value="{{ rol.id }}">{{ rol.nombre_rol }}</option>
+        '{{ rol.id }}': {
+            description: `{{ rol.descripcion|default:"No hay descripción disponible" }}`,
+            permissions: [
+                {% for permiso in rol.permisos.all %}
+                '{{ permiso.name }}',
+                {% endfor %}
+            ]
+        },
         {% endfor %}
-    </select>
-    <button type="submit">Asignar rol</button>
-</form>
+    };
+    
+    roleSelect.addEventListener('change', function() {
+        const selectedRoleId = this.value;
+        
+        if (selectedRoleId && rolesData[selectedRoleId]) {
+            const role = rolesData[selectedRoleId];
+            
+            // Actualizar descripción
+            roleDescription.innerHTML = `<p>${role.description}</p>`;
+            
+            // Actualizar permisos
+            if (role.permissions.length > 0) {
+                let permissionsHTML = '<div class="permissions-list">';
+                role.permissions.forEach(perm => {
+                    permissionsHTML += `<span class="badge badge-secondary">${perm}</span>`;
+                });
+                permissionsHTML += '</div>';
+                rolePermissions.innerHTML = permissionsHTML;
+            } else {
+                rolePermissions.innerHTML = '<p class="text-muted">Este rol no tiene permisos asignados</p>';
+            }
+        } else {
+            roleDescription.innerHTML = '<p class="text-muted">Seleccione un rol para ver su descripción</p>';
+            rolePermissions.innerHTML = '<p class="text-muted">Seleccione un rol para ver sus permisos</p>';
+        }
+    });
+});
+</script>
+{% endblock %}

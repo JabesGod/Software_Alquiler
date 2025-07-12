@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if form.instance.id %}Editar{% else %}Crear{% endif %} Rol{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-user-tag fa-fw"></i> {% if form.instance.id %}Editar{% else %}Crear{% endif %} Rol
+{% endblock %}
+
+{% block content %}
+<div class="role-form-container">
+    <div class="card corporate-card">
+        <div class="card-header">
+            <h2 class="card-title">{% if form.instance.id %}Editar Rol{% else %}Nuevo Rol{% endif %}</h2>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="{{ form.nombre_rol.id_for_label }}">Nombre del Rol</label>
+                    {{ form.nombre_rol }}
+                    {% if form.nombre_rol.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.nombre_rol.errors.as_text }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.descripcion.id_for_label }}">Descripción</label>
+                    {{ form.descripcion }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Permisos</label>
+                    <div class="permissions-container">
+                        {% regroup form.permisos.field.queryset by content_type.app_label as permission_list %}
+                        {% for app in permission_list %}
+                        <div class="permission-app">
+                            <h5>{{ app.grouper|title }}</h5>
+                            <div class="permission-items">
+                                {% for permiso in app.list %}
+                                <div class="permission-item">
+                                    <label>
+                                        <input type="checkbox" name="permisos" value="{{ permiso.id }}"
+                                            {% if permiso in form.instance.permisos.all %}checked{% endif %}>
+                                        {{ permiso.name }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+                <a href="{% url 'lista_roles' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

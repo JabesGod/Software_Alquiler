@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from ..forms.usuario_forms import RegistroForm,UsuarioEditForm,CambiarContrasenaForm
+from ..forms.usuario_forms import RegistroForm,UsuarioEditForm,CambiarContrasenaForm, RolForm
 from ..models import Rol, Usuario, UserAuditLog
 from django.contrib.auth import login
 from django.db.models import Count
@@ -157,20 +157,69 @@ def salir_sesion(request):
 def vista_inicio(request):
     return render(request, 'inicio.html')
 
+
+@staff_member_required
+def lista_roles(request):
+    roles = Rol.objects.all().order_by('nombre_rol')
+    return render(request, 'roles/lista_roles.html', {'roles': roles})
+
+@staff_member_required
+def crear_rol(request):
+    if request.method == 'POST':
+        form = RolForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Rol creado exitosamente')
+            return redirect('lista_roles')
+    else:
+        form = RolForm()
+    
+    return render(request, 'roles/crear_rol.html', {'form': form})
+
+@staff_member_required
+def editar_rol(request, rol_id):
+    rol = get_object_or_404(Rol, id=rol_id)
+    if request.method == 'POST':
+        form = RolForm(request.POST, instance=rol)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Rol actualizado exitosamente')
+            return redirect('lista_roles')
+    else:
+        form = RolForm(instance=rol)
+    
+    return render(request, 'roles/editar_rol.html', {'form': form, 'rol': rol})
+
+@staff_member_required
+def eliminar_rol(request, rol_id):
+    rol = get_object_or_404(Rol, id=rol_id)
+    if request.method == 'POST':
+        rol.delete()
+        messages.success(request, 'Rol eliminado exitosamente')
+        return redirect('lista_roles')
+    return render(request, 'roles/eliminar_rol.html', {'rol': rol})
+
 @staff_member_required
 def asignar_rol(request, usuario_id):
-    usuario = Usuario.objects.get(id=usuario_id)
+    usuario = get_object_or_404(Usuario, id=usuario_id)
     roles = Rol.objects.all()
-
+    
     if request.method == 'POST':
         rol_id = request.POST.get('rol')
-        rol = Rol.objects.get(id=rol_id)
-        usuario.rol = rol
-        usuario.save()
-        messages.success(request, 'Rol asignado correctamente')
-        return redirect('lista_usuarios')
-
-    return render(request, 'asignar_rol.html', {
+        if rol_id:
+            rol = get_object_or_404(Rol, id=rol_id)
+            usuario.rol = rol
+            usuario.save()
+            
+            # Actualizar grupo del usuario
+            usuario.groups.clear()
+            if rol.grupo:
+                usuario.groups.add(rol.grupo)
+            
+            messages.success(request, f'Rol "{rol.nombre_rol}" asignado correctamente a {usuario.nombre_usuario}')
+            return redirect('editar_usuario', usuario_id=usuario.id)
+    
+    return render(request, 'usuarios/asignar_rol.html', {
         'usuario': usuario,
         'roles': roles
     })
@@ -212,6 +261,7 @@ def detalle_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     return render(request, 'detalle_usuario.html', {'usuario': usuario})
 
+
 @staff_member_required
 def editar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
@@ -219,7 +269,14 @@ def editar_usuario(request, usuario_id):
     if request.method == 'POST':
         form = UsuarioEditForm(request.POST, instance=usuario)
         if form.is_valid():
-            form.save()
+            usuario = form.save()
+            
+            # Actualizar grupo del usuario si cambió el rol
+            if 'rol' in form.changed_data:
+                usuario.groups.clear()
+                if usuario.rol and usuario.rol.grupo:
+                    usuario.groups.add(usuario.rol.grupo)
+            
             messages.success(request, 'Usuario actualizado correctamente')
             
             # Si el usuario editado es el mismo que está logueado
@@ -231,9 +288,20 @@ def editar_usuario(request, usuario_id):
     else:
         form = UsuarioEditForm(instance=usuario)
     
+    # Precargar datos de roles para el template
+    roles_data = {
+        rol.id: {
+            'nombre': rol.nombre_rol,
+            'descripcion': rol.descripcion,
+            'permisos': [perm.name for perm in rol.permisos.all()]
+        }
+        for rol in Rol.objects.all().prefetch_related('permisos')
+    }
+    
     return render(request, 'editar_usuario.html', {
         'form': form,
-        'usuario': usuario
+        'usuario': usuario,
+        'roles_data': roles_data
     })
 
 @staff_member_required

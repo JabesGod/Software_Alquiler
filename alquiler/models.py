@@ -19,6 +19,8 @@ from django.template.loader import render_to_string
 from xhtml2pdf import pisa
 from django.core.files.base import ContentFile
 import tempfile
+from django.contrib.auth.models import Permission, Group
+
 from django.core.validators import FileExtensionValidator
 from django.contrib.auth import get_user_model
 import json
@@ -643,9 +645,27 @@ class Contrato(models.Model):
 class Rol(models.Model):
     nombre_rol = models.CharField(max_length=50, unique=True)
     descripcion = models.TextField(blank=True)
+    permisos = models.ManyToManyField(Permission, blank=True)
+    grupo = models.OneToOneField(Group, null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.nombre_rol
+
+    def save(self, *args, **kwargs):
+        # Crear/actualizar grupo automáticamente
+        if not self.grupo:
+            grupo, created = Group.objects.get_or_create(name=f"Rol_{self.nombre_rol}")
+            self.grupo = grupo
+        else:
+            self.grupo.name = f"Rol_{self.nombre_rol}"
+            self.grupo.save()
+        super().save(*args, **kwargs)
+        
+        # Sincronizar permisos con el grupo
+        if self.grupo:
+            self.grupo.permissions.set(self.permisos.all())
+
+
 
 class UsuarioManager(BaseUserManager):
     def _create_user(self, nombre_usuario, password, **extra_fields):

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Gestión de Roles{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-user-tag fa-fw"></i> Gestión de Roles
+{% endblock %}
+
+{% block content %}
+<div class="roles-management-container">
+    <div class="card corporate-card">
+        <div class="card-header">
+            <h2 class="card-title">Listado de Roles</h2>
+            <div class="header-actions">
+                <a href="{% url 'crear_rol' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nuevo Rol
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="table-container">
+                <table class="roles-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Permisos</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rol in roles %}
+                        <tr>
+                            <td>{{ rol.nombre_rol }}</td>
+                            <td>{{ rol.descripcion|truncatechars:50 }}</td>
+                            <td>
+                                {% for permiso in rol.permisos.all|slice:":3" %}
+                                <span class="badge badge-secondary">{{ permiso.name }}</span>
+                                {% endfor %}
+                                {% if rol.permisos.count > 3 %}
+                                <span class="badge badge-info">+{{ rol.permisos.count|add:"-3" }} más</span>
+                                {% endif %}
+                            </td>
+                            <td class="actions-cell">
+                                <div class="action-buttons">
+                                    <a href="{% url 'editar_rol' rol.id %}" class="action-button edit" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'eliminar_rol' rol.id %}" class="action-button delete" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="no-results">
+                                <div class="empty-state">
+                                    <i class="fas fa-user-tag empty-icon"></i>
+                                    <p>No se encontraron roles</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

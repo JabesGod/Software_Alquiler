@@ -19,7 +19,7 @@
         <h1><i class="fas fa-box-open"></i> Listado de Alquileres</h1>
 
         <div class="alquileres-actions">
-            <a href="{% url 'crear_alquiler' %}" class="btn btn-primary">
+            <a href="{% url 'crear_alquiler' %}" class="btn btn-secondary">
                 <i class="fas fa-plus"></i> Nuevo Alquiler
             </a>
             <a href="{% url 'reservar_alquiler' %}" class="btn btn-secondary">
@@ -65,10 +65,10 @@
                     value="{{ request.GET.fecha_fin }}">
             </div>
 
-            <button type="submit" class="btn btn-filter">
+            <button type="submit" class="btn btn-secondary">
                 <i class="fas fa-search"></i> Filtrar
             </button>
-            <a href="{% url 'listar_alquileres' %}" class="btn btn-reset">
+            <a href="{% url 'listar_alquileres' %}" class="btn btn-secondary">
                 <i class="fas fa-sync-alt"></i> Limpiar
             </a>
         </form>

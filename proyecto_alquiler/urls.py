@@ -35,7 +35,7 @@ from alquiler.views.pago_views import (
 
 from alquiler.views.usuario_views import(
     registro_usuario,salir_sesion,asignar_rol, inicio_sesion, pagina_principal, lista_usuarios,editar_usuario,eliminar_usuario,cambiar_estado_usuario,
-    cambiar_contrasena, confirmar_eliminar_usuario, detalle_usuario, auditoria_usuario
+    cambiar_contrasena, confirmar_eliminar_usuario, detalle_usuario, auditoria_usuario, activar_cuenta
 
 )
 
@@ -122,6 +122,8 @@ urlpatterns = [
     path('usuarios/eliminar-confirmado/<int:usuario_id>/', eliminar_usuario, name='eliminar_usuario'),
     path('usuarios/detalle/<int:usuario_id>/', detalle_usuario, name='detalle_usuario'),
     path('usuarios/auditoria/<int:usuario_id>/', auditoria_usuario, name='auditoria_usuario'),
+    path('activar/<uidb64>/<token>/', activar_cuenta, name='activar_cuenta'),
+
 ]
 
 

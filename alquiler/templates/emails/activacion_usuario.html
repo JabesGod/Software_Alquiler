@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Solicitud de aprobación de nuevo usuario</title>
+</head>
+<body>
+    <p>Hola administrador,</p>
+
+    <p>Un nuevo usuario se ha registrado en el sistema:</p>
+    <ul>
+        <li><strong>Nombre de usuario:</strong> {{ user.nombre_usuario }}</li>
+        <li><strong>Fecha:</strong> {{ user.date_joined|default:"N/A" }}</li>
+    </ul>
+
+    <p>Para aprobar su cuenta y activarla, haz clic en el siguiente enlace:</p>
+
+    <p>
+        <a href="http://{{ domain }}{% url 'activar_cuenta' uidb64=uid token=token %}">
+            Activar cuenta de {{ user.nombre_usuario }}
+        </a>
+    </p>
+
+    <p>Si no reconoces este registro, puedes ignorar este mensaje.</p>
+
+    <p>Saludos,<br>Tu sistema de gestión de usuarios</p>
+</body>
+</html>

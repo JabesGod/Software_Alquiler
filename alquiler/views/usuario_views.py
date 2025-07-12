@@ -14,13 +14,24 @@ from django.db.models import Q
 from django.views.decorators.http import require_GET
 import json
 from django.http import JsonResponse
+from django.utils.crypto import get_random_string
+from django.core.mail import send_mail
+from django.utils.crypto import get_random_string
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Max
 from django.contrib.auth.hashers import make_password
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
 from django.contrib.auth import update_session_auth_hash
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
+from django.conf import settings
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -29,14 +40,41 @@ def registro_usuario(request):
     if request.method == 'POST':
         form = RegistroForm(request.POST)
         if form.is_valid():
+            # Crear usuario pero no activo todavía
             usuario = Usuario(
-                nombre_usuario=form.cleaned_data['nombre_usuario']
+                nombre_usuario=form.cleaned_data['nombre_usuario'],
+                is_active=False  # El usuario no estará activo hasta que confirme
             )
             usuario.set_password(form.cleaned_data['password1'])
             usuario.save()
             
-            messages.success(request, '¡Registro exitoso! Por favor inicia sesión.')
-            return redirect('inicio_sesion')  # Redirige a login en lugar de autenticar
+            # Generar token de confirmación
+            token = get_random_string(50)
+            usuario.activation_token = token  # Asegúrate de tener este campo en tu modelo
+            usuario.save()
+            
+            # Enviar correo de confirmación
+            current_site = get_current_site(request)
+            mail_subject = 'Activa tu cuenta en nuestro sitio'
+            message = render_to_string('emails/activacion_usuario.html', {
+                'user': usuario,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(usuario.pk)),
+                'token': token,
+            })
+            
+            send_mail(
+                mail_subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,  # ✅ Correcto
+                [settings.EMAIL_HOST_USER],  # ✅ Enviar al admin
+                fail_silently=False,
+                html_message=message
+            )
+
+            
+            messages.success(request, '¡Registro exitoso! Por favor revisa tu correo para activar tu cuenta.')
+            return redirect('inicio_sesion')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -48,6 +86,25 @@ def registro_usuario(request):
         'form_type': 'registro',
         'form': form
     })
+
+
+def activar_cuenta(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        usuario = Usuario.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, Usuario.DoesNotExist):
+        usuario = None
+    
+    if usuario is not None and usuario.activation_token == token:
+        usuario.is_active = True
+        usuario.activation_token = None  # Limpiar el token después de usar
+        usuario.save()
+        messages.success(request, '¡Tu cuenta ha sido activada! Ahora puedes iniciar sesión.')
+    else:
+        messages.error(request, 'El enlace de activación es inválido o ha expirado.')
+    
+    return redirect('inicio_sesion')
+
 
 def inicio_sesion(request):
     if request.user.is_authenticated:

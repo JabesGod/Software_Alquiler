@@ -3,6 +3,10 @@
 
 {% block title %}Cambiar Contraseña - {{ usuario.nombre_usuario }}{% endblock %}
 
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/cambiar_contraseña.css' %}">
+{% endblock %}
+
 {% block page_title %}
 <i class="fas fa-key fa-fw"></i> Cambiar Contraseña: {{ usuario.nombre_usuario }}
 {% endblock %}
@@ -19,7 +23,13 @@
                 <div class="card-body">
                     <div class="form-group">
                         <label for="{{ form.nueva_contrasena.id_for_label }}">{{ form.nueva_contrasena.label }}</label>
-                        {{ form.nueva_contrasena }}
+                        <div class="password-wrapper" data-username="{{ usuario.nombre_usuario }}"
+                            data-email="{{ usuario.email }}">
+                            {{ form.nueva_contrasena }}
+                            <button type="button" class="toggle-password"
+                                data-target-id="{{ form.nueva_contrasena.id_for_label }}">👁️</button>
+                        </div>
+
                         {% if form.nueva_contrasena.errors %}
                         <div class="invalid-feedback d-block">
                             {{ form.nueva_contrasena.errors.as_text }}
@@ -29,9 +39,15 @@
                             La contraseña debe tener al menos 8 caracteres y no ser demasiado común.
                         </small>
                     </div>
+
                     <div class="form-group">
-                        <label for="{{ form.confirmar_contrasena.id_for_label }}">{{ form.confirmar_contrasena.label }}</label>
-                        {{ form.confirmar_contrasena }}
+                        <label for="{{ form.confirmar_contrasena.id_for_label }}">{{ form.confirmar_contrasena.label}}</label>
+                        <div class="password-wrapper">
+                            {{ form.confirmar_contrasena }}
+                            <button type="button" class="toggle-password"
+                                data-target-id="{{ form.confirmar_contrasena.id_for_label }}">👁️</button>
+                        </div>
+
                         {% if form.confirmar_contrasena.errors %}
                         <div class="invalid-feedback d-block">
                             {{ form.confirmar_contrasena.errors.as_text }}
@@ -40,7 +56,7 @@
                     </div>
                 </div>
                 <div class="card-footer">
-                    <button type="submit" class="btn btn-warning">
+                    <button type="submit" class="btn btn-secondary">
                         <i class="fas fa-save"></i> Cambiar contraseña
                     </button>
                     <a href="{% url 'detalle_usuario' usuario.id %}" class="btn btn-secondary">
@@ -50,25 +66,32 @@
             </form>
         </div>
     </div>
+
     <div class="col-md-6">
         <div class="card card-info">
             <div class="card-header">
                 <h3 class="card-title">Requisitos de contraseña</h3>
             </div>
             <div class="card-body">
-                <ul class="list-unstyled">
-                    <li><i class="fas fa-check text-success mr-2"></i> Mínimo 8 caracteres</li>
-                    <li><i class="fas fa-check text-success mr-2"></i> No puede ser similar a tu información personal</li>
-                    <li><i class="fas fa-check text-success mr-2"></i> No puede ser una contraseña común</li>
-                    <li><i class="fas fa-check text-success mr-2"></i> Debe contener al menos un número</li>
-                    <li><i class="fas fa-check text-success mr-2"></i> Se recomienda usar caracteres especiales</li>
+                <ul class="list-unstyled password-requirements">
+                    <li data-requirement="length"><i class="fas fa-times text-danger mr-2"></i> Mínimo 8 caracteres</li>
+                    <li data-requirement="personal"><i class="fas fa-times text-danger mr-2"></i> No similar a tu
+                        información</li>
+                    <li data-requirement="common"><i class="fas fa-times text-danger mr-2"></i> No puede ser común</li>
+                    <li data-requirement="number"><i class="fas fa-times text-danger mr-2"></i> Al menos un número</li>
+                    <li data-requirement="special"><i class="fas fa-times text-danger mr-2"></i> Carácter especial
+                        recomendado</li>
                 </ul>
                 <div class="alert alert-info mt-3">
-                    <i class="fas fa-info-circle"></i> 
+                    <i class="fas fa-info-circle"></i>
                     Si estás cambiando tu propia contraseña, se cerrará tu sesión en otros dispositivos.
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/cambiar_contrasena.js' %}"></script>
 {% endblock %}

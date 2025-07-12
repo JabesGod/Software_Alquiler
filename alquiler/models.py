@@ -691,6 +691,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     rol = models.ForeignKey(Rol, on_delete=models.PROTECT)  # Cambiado a PROTECT para mayor seguridad
     cliente = models.OneToOneField('Cliente', on_delete=models.SET_NULL, null=True, blank=True)
     activation_token = models.CharField(max_length=50, blank=True, null=True)
+    activation_token_created = models.DateTimeField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 

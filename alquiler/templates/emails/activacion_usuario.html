@@ -1,27 +1,50 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>Solicitud de aprobación de nuevo usuario</title>
+    <meta charset="utf-8">
+    <title>Nuevo usuario registrado</title>
 </head>
-<body>
-    <p>Hola administrador,</p>
 
-    <p>Un nuevo usuario se ha registrado en el sistema:</p>
-    <ul>
-        <li><strong>Nombre de usuario:</strong> {{ user.nombre_usuario }}</li>
-        <li><strong>Fecha:</strong> {{ user.date_joined|default:"N/A" }}</li>
-    </ul>
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
 
-    <p>Para aprobar su cuenta y activarla, haz clic en el siguiente enlace:</p>
+    <div
+        style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h2 style="color: #2d3748; margin-bottom: 10px;">📥 Nuevo usuario registrado</h2>
 
-    <p>
-        <a href="http://{{ domain }}{% url 'activar_cuenta' uidb64=uid token=token %}">
-            Activar cuenta de {{ user.nombre_usuario }}
-        </a>
-    </p>
+        <p style="color: #4a5568; font-size: 15px;">
+            Se ha registrado un nuevo usuario en el sistema.
+        </p>
 
-    <p>Si no reconoces este registro, puedes ignorar este mensaje.</p>
+        <table style="width: 100%; font-size: 14px; margin: 20px 0;">
+            <tr>
+                <td style="padding: 8px 0;"><strong>👤 Nombre de usuario:</strong></td>
+                <td>{{ user.nombre_usuario }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0;"><strong>🕒 Fecha de registro:</strong></td>
+                <td>{{ user.date_joined|default:"N/A" }}</td>
+            </tr>
+        </table>
 
-    <p>Saludos,<br>Tu sistema de gestión de usuarios</p>
+        <p style="margin: 20px 0; font-size: 14px; color: #2d3748;">
+            Para aprobar su cuenta, haz clic en el siguiente botón:
+        </p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="http://{{ domain }}{% url 'activar_cuenta' uidb64=uid token=token %}"
+                style="background-color: #3182ce; color: white; padding: 12px 25px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                ✅ Activar cuenta
+            </a>
+        </div>
+
+        <p style="color: #718096; font-size: 12px; margin-top: 30px;">
+            Si no esperabas este registro, puedes ignorar este mensaje.
+        </p>
+
+        <p style="color: #4a5568; font-size: 13px;">Gracias,<br>El sistema de gestión de usuarios</p>
+    </div>
+
 </body>
+
 </html>

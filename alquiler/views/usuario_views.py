@@ -40,40 +40,48 @@ def registro_usuario(request):
     if request.method == 'POST':
         form = RegistroForm(request.POST)
         if form.is_valid():
-            # Crear usuario pero no activo todavía
+            # Crear usuario inactivo
             usuario = Usuario(
                 nombre_usuario=form.cleaned_data['nombre_usuario'],
-                is_active=False  # El usuario no estará activo hasta que confirme
+                is_active=False
             )
             usuario.set_password(form.cleaned_data['password1'])
             usuario.save()
-            
-            # Generar token de confirmación
+
+            # Generar y guardar token de activación con marca de tiempo
             token = get_random_string(50)
-            usuario.activation_token = token  # Asegúrate de tener este campo en tu modelo
+            usuario.activation_token = token
+            usuario.activation_token_created = timezone.now()  # ⏰ Marca de tiempo
             usuario.save()
-            
-            # Enviar correo de confirmación
+
+            # Preparar correo
             current_site = get_current_site(request)
             mail_subject = 'Activa tu cuenta en nuestro sitio'
-            message = render_to_string('emails/activacion_usuario.html', {
+
+            html_message = render_to_string('emails/activacion_usuario.html', {
                 'user': usuario,
                 'domain': current_site.domain,
                 'uid': urlsafe_base64_encode(force_bytes(usuario.pk)),
                 'token': token,
             })
-            
+
+            plain_message = f"""
+Nuevo usuario registrado: {usuario.nombre_usuario}
+Activa su cuenta aquí:
+http://{current_site.domain}/activar/{urlsafe_base64_encode(force_bytes(usuario.pk))}/{token}/
+"""
+
+            # Enviar correo al administrador
             send_mail(
-                mail_subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,  # ✅ Correcto
-                [settings.EMAIL_HOST_USER],  # ✅ Enviar al admin
+                subject=mail_subject,
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[settings.EMAIL_HOST_USER],
                 fail_silently=False,
-                html_message=message
+                html_message=html_message
             )
 
-            
-            messages.success(request, '¡Registro exitoso! Por favor revisa tu correo para activar tu cuenta.')
+            messages.success(request, '¡Registro exitoso! Por favor revisa tu correo para activar la cuenta desde el panel de administración.')
             return redirect('inicio_sesion')
         else:
             for field, errors in form.errors.items():
@@ -81,12 +89,11 @@ def registro_usuario(request):
                     messages.error(request, f"{field}: {error}")
     else:
         form = RegistroForm()
-    
+
     return render(request, 'inicio_sesion.html', {
         'form_type': 'registro',
         'form': form
     })
-
 
 def activar_cuenta(request, uidb64, token):
     try:
@@ -94,17 +101,22 @@ def activar_cuenta(request, uidb64, token):
         usuario = Usuario.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, Usuario.DoesNotExist):
         usuario = None
-    
-    if usuario is not None and usuario.activation_token == token:
-        usuario.is_active = True
-        usuario.activation_token = None  # Limpiar el token después de usar
-        usuario.save()
-        messages.success(request, '¡Tu cuenta ha sido activada! Ahora puedes iniciar sesión.')
-    else:
-        messages.error(request, 'El enlace de activación es inválido o ha expirado.')
-    
-    return redirect('inicio_sesion')
 
+    if usuario is not None and usuario.activation_token == token:
+        # Validar si el token no ha expirado
+        tiempo_limite = usuario.activation_token_created + timedelta(minutes=10)
+        if timezone.now() <= tiempo_limite:
+            usuario.is_active = True
+            usuario.activation_token = None
+            usuario.activation_token_created = None
+            usuario.save()
+            messages.success(request, '¡Tu cuenta ha sido activada! Ahora puedes iniciar sesión.')
+        else:
+            messages.error(request, 'El enlace de activación ha expirado.')
+    else:
+        messages.error(request, 'El enlace de activación es inválido.')
+
+    return redirect('inicio_sesion')
 
 def inicio_sesion(request):
     if request.user.is_authenticated:

@@ -161,7 +161,7 @@ def vista_inicio(request):
 @staff_member_required
 def lista_roles(request):
     roles = Rol.objects.all().order_by('nombre_rol')
-    return render(request, 'roles/lista_roles.html', {'roles': roles})
+    return render(request, 'lista_roles.html', {'roles': roles})
 
 @staff_member_required
 def crear_rol(request):
@@ -174,7 +174,7 @@ def crear_rol(request):
     else:
         form = RolForm()
     
-    return render(request, 'roles/crear_rol.html', {'form': form})
+    return render(request, 'crear_rol.html', {'form': form})
 
 @staff_member_required
 def editar_rol(request, rol_id):
@@ -188,7 +188,7 @@ def editar_rol(request, rol_id):
     else:
         form = RolForm(instance=rol)
     
-    return render(request, 'roles/editar_rol.html', {'form': form, 'rol': rol})
+    return render(request, 'editar_rol.html', {'form': form, 'rol': rol})
 
 @staff_member_required
 def eliminar_rol(request, rol_id):
@@ -197,7 +197,7 @@ def eliminar_rol(request, rol_id):
         rol.delete()
         messages.success(request, 'Rol eliminado exitosamente')
         return redirect('lista_roles')
-    return render(request, 'roles/eliminar_rol.html', {'rol': rol})
+    return render(request, 'eliminar_rol.html', {'rol': rol})
 
 @staff_member_required
 def asignar_rol(request, usuario_id):

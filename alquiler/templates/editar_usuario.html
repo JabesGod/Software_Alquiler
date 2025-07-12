@@ -3,176 +3,151 @@
 
 {% block title %}Editar Usuario - {{ usuario.nombre_usuario }}{% endblock %}
 
+{% block page_title %}
+<i class="fas fa-user-edit fa-fw"></i> Editar Usuario: {{ usuario.nombre_usuario }}
+{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/editar_usuario.css' %}">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
 {% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h3 class="mb-0">
-                <i class="fas fa-user-edit me-2"></i>
-                Editar Usuario: {{ usuario.nombre_usuario }}
-            </h3>
+<div class="edit-user-container">
+    <div class="edit-user-card">
+        <div class="card-header">
+            <div class="header-content">
+                <i class="fas fa-user-cog"></i>
+                <h2>Editar información de usuario</h2>
+            </div>
+            <p class="header-description">Actualiza los detalles del usuario {{ usuario.nombre_usuario }}</p>
         </div>
         
-        <div class="card-body">
-            <form method="post" class="needs-validation" novalidate>
-                {% csrf_token %}
-                
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <div class="card h-100">
-                            <div class="card-header">
-                                <h4 class="mb-0"><i class="fas fa-id-card me-2"></i>Información Básica</h4>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label for="{{ form.nombre_usuario.id_for_label }}" class="form-label">
-                                        {{ form.nombre_usuario.label }}
-                                        <span class="text-danger">*</span>
-                                    </label>
-                                    {{ form.nombre_usuario }}
-                                    <div class="invalid-feedback">
-                                        Por favor ingrese un nombre de usuario válido.
-                                    </div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ form.rol.id_for_label }}" class="form-label">
-                                        {{ form.rol.label }}
-                                        <span class="text-danger">*</span>
-                                    </label>
-                                    <div class="input-group">
-                                        {{ form.rol }}
-                                        <button type="button" class="btn btn-outline-secondary" 
-                                                data-bs-toggle="modal" data-bs-target="#rolesModal">
-                                            <i class="fas fa-info-circle"></i>
-                                        </button>
-                                    </div>
-                                    <div class="invalid-feedback">
-                                        Por favor seleccione un rol.
-                                    </div>
-                                    
-                                    <div id="permisos-actuales" class="mt-3">
-                                        <h6 class="text-muted">Permisos del rol seleccionado:</h6>
-                                        <div id="permisos-container" class="d-flex flex-wrap gap-2">
-                                            {% if usuario.rol %}
-                                                {% for permiso in usuario.rol.permisos.all|slice:":6" %}
-                                                <span class="badge bg-primary">{{ permiso.name }}</span>
-                                                {% endfor %}
-                                                {% if usuario.rol.permisos.count > 6 %}
-                                                <span class="badge bg-secondary">+{{ usuario.rol.permisos.count|add:"-6" }} más</span>
-                                                {% endif %}
-                                            {% else %}
-                                                <span class="badge bg-secondary">Sin permisos asignados</span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+        <form method="post" class="user-edit-form">
+            {% csrf_token %}
+            
+            <div class="form-grid">
+                <!-- Sección de información básica -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-id-card"></i>
+                        <h3>Información básica</h3>
                     </div>
                     
-                    <div class="col-md-6">
-                        <div class="card h-100">
-                            <div class="card-header">
-                                <h4 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Configuración de Acceso</h4>
-                            </div>
-                            <div class="card-body">
-                                <div class="form-check form-switch mb-4">
-                                    {{ form.is_staff }}
-                                    <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">
-                                        {{ form.is_staff.label }}
-                                    </label>
-                                    <div class="form-text">
-                                        Permite acceder al panel de administración del sistema.
-                                    </div>
-                                </div>
-                                
-                                <div class="form-check form-switch">
-                                    {{ form.is_active }}
-                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                        {{ form.is_active.label }}
-                                    </label>
-                                    <div class="form-text">
-                                        Los usuarios inactivos no pueden iniciar sesión en el sistema.
-                                    </div>
-                                </div>
+                    <div class="form-group">
+                        <label for="{{ form.nombre_usuario.id_for_label }}" class="form-label">
+                            Nombre de usuario
+                            <span class="required">*</span>
+                        </label>
+                        {{ form.nombre_usuario }}
+                        {% if form.nombre_usuario.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.nombre_usuario.errors.as_text }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.rol.id_for_label }}" class="form-label">
+                            Rol del usuario
+                            <span class="required">*</span>
+                        </label>
+                        <div class="role-select-container">
+                            {{ form.rol }}
+                            <a href="{% url 'asignar_rol' usuario.id %}" class="btn-role-details" title="Ver detalles del rol">
+                                <i class="fas fa-info-circle"></i>
+                            </a>
+                        </div>
+                        {% if form.rol.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.rol.errors.as_text }}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Visualización de permisos actuales -->
+                        <div class="current-permissions">
+                            <h4>Permisos actuales:</h4>
+                            <div class="permissions-list">
+                                {% if usuario.rol %}
+                                    {% for permiso in usuario.rol.permisos.all|slice:":5" %}
+                                    <span class="permission-badge">{{ permiso.name }}</span>
+                                    {% endfor %}
+                                    {% if usuario.rol.permisos.count > 5 %}
+                                    <span class="permission-more">+{{ usuario.rol.permisos.count|add:"-5" }} más</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="no-permissions">No tiene permisos asignados</span>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="d-flex justify-content-between">
-                    <a href="{% url 'detalle_usuario' usuario.id %}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Cancelar
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-2"></i>Guardar Cambios
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal para información de roles -->
-<div class="modal fade" id="rolesModal" tabindex="-1" aria-labelledby="rolesModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="rolesModalLabel">Información de Roles</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Rol</th>
-                                <th>Descripción</th>
-                                <th>N° Permisos</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for rol in form.rol.field.queryset %}
-                            <tr>
-                                <td><strong>{{ rol.nombre_rol }}</strong></td>
-                                <td>{{ rol.descripcion|default:"-" }}</td>
-                                <td>{{ rol.permisos.count }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                <!-- Sección de permisos -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>Permisos y estado</h3>
+                    </div>
+                    
+                    <div class="toggle-group">
+                        <div class="toggle-item">
+                            <label class="toggle-switch">
+                                {{ form.is_staff }}
+                                <span class="slider round"></span>
+                            </label>
+                            <div class="toggle-content">
+                                <h4 class="toggle-label">Acceso al panel de administración</h4>
+                                <p class="toggle-description">
+                                    Permite acceder al área administrativa del sistema
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="toggle-item">
+                            <label class="toggle-switch">
+                                {{ form.is_active }}
+                                <span class="slider round"></span>
+                            </label>
+                            <div class="toggle-content">
+                                <h4 class="toggle-label">Usuario activo</h4>
+                                <p class="toggle-description">
+                                    Los usuarios inactivos no pueden iniciar sesión
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Guardar cambios
+                </button>
+                <a href="{% url 'lista_usuarios' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+                <a href="{% url 'asignar_rol' usuario.id %}" class="btn btn-info">
+                    <i class="fas fa-user-tag"></i> Cambiar Rol Avanzado
+                </a>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-$(document).ready(function() {
-    // Inicializar Select2 para el campo de rol
-    $('.select-rol').select2({
-        placeholder: $(this).data('placeholder'),
-        allowClear: false,
-        width: '100%'
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    // Actualizar visualización de permisos cuando cambia el rol
+    const rolSelect = document.getElementById('{{ form.rol.id_for_label }}');
     
-    // Cargar datos de roles desde Django
+    // Datos de permisos por rol (precargados)
     const rolesData = {
         {% for rol in form.rol.field.queryset %}
         '{{ rol.id }}': {
-            permisos: [
+            permissions: [
                 {% for permiso in rol.permisos.all %}
                 '{{ permiso.name }}',
                 {% endfor %}
@@ -181,40 +156,30 @@ $(document).ready(function() {
         {% endfor %}
     };
     
-    // Actualizar visualización de permisos cuando cambia el rol
-    $('#{{ form.rol.id_for_label }}').on('change', function() {
-        const rolId = $(this).val();
-        const permisosContainer = $('#permisos-container');
+    rolSelect.addEventListener('change', function() {
+        const selectedRolId = this.value;
+        const permissionsContainer = document.querySelector('.current-permissions .permissions-list');
         
-        if (rolId && rolesData[rolId]) {
-            const permisos = rolesData[rolId].permisos;
+        if (selectedRolId && rolesData[selectedRolId]) {
+            const rol = rolesData[selectedRolId];
             
-            if (permisos.length > 0) {
+            if (rol.permissions.length > 0) {
                 let html = '';
-                permisos.slice(0, 6).forEach(perm => {
-                    html += `<span class="badge bg-primary">${perm}</span>`;
+                rol.permissions.slice(0, 5).forEach(perm => {
+                    html += `<span class="permission-badge">${perm}</span>`;
                 });
                 
-                if (permisos.length > 6) {
-                    html += `<span class="badge bg-secondary">+${permisos.length - 6} más</span>`;
+                if (rol.permissions.length > 5) {
+                    html += `<span class="permission-more">+${rol.permissions.length - 5} más</span>`;
                 }
                 
-                permisosContainer.html(html);
+                permissionsContainer.innerHTML = html;
             } else {
-                permisosContainer.html('<span class="badge bg-secondary">Sin permisos asignados</span>');
+                permissionsContainer.innerHTML = '<span class="no-permissions">No tiene permisos asignados</span>';
             }
         } else {
-            permisosContainer.html('<span class="badge bg-secondary">Seleccione un rol</span>');
+            permissionsContainer.innerHTML = '<span class="no-permissions">Seleccione un rol</span>';
         }
-    });
-    
-    // Validación de formulario
-    $('.needs-validation').on('submit', function(event) {
-        if (!this.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-        $(this).addClass('was-validated');
     });
 });
 </script>

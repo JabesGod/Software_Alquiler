@@ -220,7 +220,7 @@ def asignar_rol(request, usuario_id):
             messages.success(request, f'Rol "{rol.nombre_rol}" asignado correctamente a {usuario.nombre_usuario}')
             return redirect('editar_usuario', usuario_id=usuario.id)
     
-    return render(request, 'usuarios/asignar_rol.html', {
+    return render(request, 'asignar_rol.html', {
         'usuario': usuario,
         'roles': roles
     })

@@ -199,6 +199,7 @@ def eliminar_rol(request, rol_id):
         return redirect('lista_roles')
     return render(request, 'eliminar_rol.html', {'rol': rol})
 
+
 @staff_member_required
 def asignar_rol(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)

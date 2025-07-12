@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Eliminar Rol - {{ rol.nombre_rol }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/eliminar_rol.css' %}">
+{% endblock %}
+
+{% block page_title %}
+<div class="d-flex align-items-center">
+    <i class="fas fa-trash-alt fa-fw me-3"></i>
+    <h1 class="mb-0">Eliminar Rol: {{ rol.nombre_rol }}</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="delete-role-container">
+    <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+            <h3 class="card-title mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Confirmar Eliminación
+            </h3>
+        </div>
+        
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <strong>¡Advertencia!</strong> Esta acción no se puede deshacer.
+            </div>
+            
+            <div class="role-details mb-4">
+                <h4>Detalles del Rol:</h4>
+                <div class="detail-item">
+                    <span class="detail-label">Nombre:</span>
+                    <span class="detail-value">{{ rol.nombre_rol }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Descripción:</span>
+                    <span class="detail-value">{{ rol.descripcion|default:"Sin descripción" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Permisos asociados:</span>
+                    <span class="detail-value">{{ rol.permisos.count }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Usuarios con este rol:</span>
+                    <span class="detail-value">{{ rol.usuario_set.count }}</span>
+                </div>
+            </div>
+            
+            <div class="impact-section">
+                <h4>Impacto de la eliminación:</h4>
+                <ul class="impact-list">
+                    {% if rol.usuario_set.count > 0 %}
+                    <li class="text-danger">
+                        <i class="fas fa-user-times me-2"></i>
+                        <strong>{{ rol.usuario_set.count }} usuario(s)</strong> perderán este rol
+                    </li>
+                    {% else %}
+                    <li class="text-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Ningún usuario tiene asignado este rol
+                    </li>
+                    {% endif %}
+                    
+                    {% if rol.permisos.count > 0 %}
+                    <li>
+                        <i class="fas fa-shield-alt me-2"></i>
+                        <strong>{{ rol.permisos.count }} permiso(s)</strong> serán desvinculados
+                    </li>
+                    {% else %}
+                    <li class="text-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Este rol no tiene permisos asignados
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+            
+            <form method="post" class="mt-4">
+                {% csrf_token %}
+                
+                {% if rol.usuario_set.count > 0 %}
+                <div class="mb-3">
+                    <label for="replacement_role" class="form-label">
+                        <i class="fas fa-exchange-alt me-2"></i>
+                        Asignar nuevo rol a los usuarios afectados:
+                    </label>
+                    <select name="replacement_role" id="replacement_role" class="form-select">
+                        <option value="">--- No asignar nuevo rol ---</option>
+                        {% for other_role in other_roles %}
+                        <option value="{{ other_role.id }}">{{ other_role.nombre_rol }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">
+                        Seleccione un rol alternativo para los usuarios que actualmente tienen este rol.
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'lista_roles' %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-2"></i> Confirmar Eliminación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

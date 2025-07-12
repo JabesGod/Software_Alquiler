@@ -1,13 +1,13 @@
 
 /* Estructura principal */
 .card-primary.card-outline {
-    border-top: 3px solid var(--secondary-color);
     margin-bottom: 20px;
 }
 
+
+
 .card-header {
     background-color: white;
-    border-bottom: 1px solid var(--border-color);
     padding: 15px 20px;
     display: flex;
     flex-wrap: wrap;
@@ -15,7 +15,6 @@
     align-items: center;
     gap: 15px;
 }
-
 
 
 .card-header h3 {
@@ -96,7 +95,7 @@
 
 /* Estilos generales */
 .card-primary.card-outline {
-    border-top: 3px solid #007bff;
+    border-top: 3px solid;
 }
 
 .card-header {

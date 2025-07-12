@@ -94,17 +94,18 @@
             </div>
             <div class="card-body">
                 {% if stats_data.months %}
-                <!-- Elemento oculto para pasar los datos al JS -->
-                <div id="chart-data" style="display: none;">
+                    <div class="chart-container" style="position: relative; height: 300px;">
+                        <canvas id="accesosChart"></canvas>
+                    </div>
+                    <!-- Pasar los datos usando json_script -->
                     {{ stats_data|json_script:"chart-data" }}
-                </div>
-                <div class="chart-container" style="position: relative; height: 300px;">
-                    <canvas id="accesosChart"></canvas>
-                </div>
+                    <script id="chart-data" type="application/json">
+                        {{ stats_data|safe }}
+                    </script>
                 {% else %}
-                <div class="alert alert-info mb-0">
-                    No hay suficientes datos para mostrar estadísticas
-                </div>
+                    <div class="alert alert-info mb-0">
+                        No hay suficientes datos para mostrar estadísticas
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -153,8 +154,12 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- ChartJS -->
-<script src="{% static 'plugins/chart.js/Chart.min.js' %}"></script>
+<!-- ChartJS desde CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Debug: Verificar si Chart.js se carga -->
+<script>
+    console.log('Chart.js cargado:', typeof Chart !== 'undefined');
+</script>
 <!-- Nuestro archivo JS separado -->
 <script src="{% static 'js/auditoria.js' %}"></script>
 {% endblock %}

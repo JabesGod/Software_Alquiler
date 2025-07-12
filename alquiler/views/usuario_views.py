@@ -8,6 +8,7 @@ from ..models import Rol, Usuario, UserAuditLog
 from django.contrib.auth import login
 from django.db.models import Count
 from datetime import datetime, timedelta
+from django.utils import timezone
 from django.db.models.functions import TruncMonth
 from django.db.models import Q
 from django.views.decorators.http import require_GET
@@ -250,7 +251,7 @@ def auditoria_usuario(request, usuario_id):
     logs = logs.order_by('-timestamp')[:100]  # Limitar a 100 registros
     
     # 2. Estadísticas para el gráfico (últimos 6 meses)
-    six_months_ago = datetime.now() - timedelta(days=180)
+    six_months_ago = timezone.now() - timedelta(days=180)
     
     # Consulta compatible con múltiples bases de datos
     stats = UserAuditLog.objects.filter(
@@ -267,16 +268,17 @@ def auditoria_usuario(request, usuario_id):
     success_data = []
     failed_data = []
     
+    # Generar los últimos 6 meses
     current_month = six_months_ago.replace(day=1)
-    while current_month <= datetime.now():
+    while current_month <= timezone.now():
         month_str = current_month.strftime('%b %Y')
         months.append(month_str)
         
         # Buscar datos para este mes
-        month_stats = [s for s in stats if s['month'].month == current_month.month and s['month'].year == current_month.year]
+        month_stats = [s for s in stats if s['month'] and s['month'].month == current_month.month and s['month'].year == current_month.year]
         
-        success = next((s['count'] for s in month_stats if s['status'] == 'success'), 0)
-        failed = next((s['count'] for s in month_stats if s['status'] == 'failed'), 0)
+        success = sum(s['count'] for s in month_stats if s['status'] == 'success')
+        failed = sum(s['count'] for s in month_stats if s['status'] == 'failed')
         
         success_data.append(success)
         failed_data.append(failed)
@@ -287,8 +289,8 @@ def auditoria_usuario(request, usuario_id):
         else:
             current_month = current_month.replace(month=current_month.month+1)
     
-    # 3. Dispositivos conocidos
-    devices = UserAuditLog.objects.filter(
+    # 3. Dispositivos conocidos (procesamiento mejorado)
+    devices_raw = UserAuditLog.objects.filter(
         user=usuario,
         user_agent__isnull=False
     ).values('user_agent', 'ip_address').annotate(
@@ -296,14 +298,67 @@ def auditoria_usuario(request, usuario_id):
         count=Count('id')
     ).order_by('-last_used')[:5]
     
+    # Procesar información de dispositivos
+    devices = []
+    for device in devices_raw:
+        # Parsear user_agent para obtener información del navegador y OS
+        user_agent = device['user_agent']
+        
+        # Lógica simple para identificar navegador y OS
+        browser = 'Desconocido'
+        os = 'Desconocido'
+        is_mobile = False
+        
+        if 'Chrome' in user_agent:
+            browser = 'Chrome'
+        elif 'Firefox' in user_agent:
+            browser = 'Firefox'
+        elif 'Safari' in user_agent:
+            browser = 'Safari'
+        elif 'Edge' in user_agent:
+            browser = 'Edge'
+        
+        if 'Windows' in user_agent:
+            os = 'Windows'
+        elif 'Mac' in user_agent:
+            os = 'macOS'
+        elif 'Linux' in user_agent:
+            os = 'Linux'
+        elif 'Android' in user_agent:
+            os = 'Android'
+            is_mobile = True
+        elif 'iOS' in user_agent:
+            os = 'iOS'
+            is_mobile = True
+        
+        if 'Mobile' in user_agent or 'mobile' in user_agent:
+            is_mobile = True
+        
+        devices.append({
+            'browser': browser,
+            'os': os,
+            'is_mobile': is_mobile,
+            'ip_address': device['ip_address'],
+            'last_used': device['last_used'],
+            'count': device['count'],
+            'is_current': False  # Puedes implementar lógica para detectar el dispositivo actual
+        })
+    
+    # Crear datos para el gráfico
+    stats_data = {
+        'months': months,
+        'success': success_data,
+        'failed': failed_data
+    }
+    
+    # Debug: Imprimir datos para verificar
+    print("Stats data:", stats_data)
+    
     return render(request, 'auditoria_usuario.html', {
         'usuario': usuario,
         'logs': logs,
         'devices': devices,
-        'stats_data': {
-            'months': months,
-            'success': success_data,
-            'failed': failed_data
-        },
-        'query': query  # Para mantener el valor de búsqueda
+        'stats_data': stats_data,
+        'stats_data_json': json.dumps(stats_data),  # Versión JSON para debug
+        'query': query
     })

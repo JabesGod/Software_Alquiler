@@ -13,6 +13,9 @@ from django.db.models.functions import TruncMonth
 from django.db.models import Q
 from django.views.decorators.http import require_GET
 import json
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_protect
 from django.db.models import Max
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import update_session_auth_hash
@@ -217,20 +220,127 @@ def confirmar_eliminar_usuario(request, usuario_id):
     
     return render(request, 'confirmar_eliminar.html', {'usuario': usuario})
 
+
 @staff_member_required
+@require_POST
+@csrf_protect
 def eliminar_usuario(request, usuario_id):
-    usuario = get_object_or_404(Usuario, id=usuario_id)
-    
-    if usuario.id == request.user.id:
-        messages.error(request, 'No puedes eliminar tu propia cuenta')
+    try:
+        usuario = get_object_or_404(Usuario, id=usuario_id)
+        
+        # Validación: No puede eliminar su propia cuenta
+        if usuario.id == request.user.id:
+            messages.error(request, 'No puedes eliminar tu propia cuenta')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False, 
+                    'message': 'No puedes eliminar tu propia cuenta'
+                })
+            return redirect('lista_usuarios')
+        
+        # Validación: No puede eliminar superusuarios (opcional)
+        if hasattr(usuario, 'is_superuser') and usuario.is_superuser and not request.user.is_superuser:
+            messages.error(request, 'No tienes permisos para eliminar este usuario')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False, 
+                    'message': 'No tienes permisos para eliminar este usuario'
+                })
+            return redirect('lista_usuarios')
+        
+        # Guardar información antes de eliminar
+        nombre_usuario = usuario.nombre_usuario
+        usuario_email = getattr(usuario, 'email', 'N/A')
+        
+        # Registrar en auditoría ANTES de eliminar
+        try:
+            # Obtener IP del usuario
+            ip_address = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+            if not ip_address:
+                ip_address = request.META.get('REMOTE_ADDR', '127.0.0.1')
+            
+            # Crear log de auditoría
+            UserAuditLog.objects.create(
+                user=request.user,
+                action='user_delete',
+                ip_address=ip_address,
+                status='success',
+                target_user=usuario,
+                details={
+                    'deleted_user': nombre_usuario,
+                    'deleted_email': usuario_email,
+                    'deleted_by': request.user.nombre_usuario,
+                    'timestamp': timezone.now().isoformat()
+                }
+            )
+        except Exception as audit_error:
+            logger.error(f"Error al registrar auditoría: {audit_error}")
+        
+        # Eliminar usuario
+        usuario.delete()
+        
+        # Log del sistema
+        logger.info(f"Usuario {nombre_usuario} eliminado por {request.user.nombre_usuario}")
+        
+        # Mensaje de éxito
+        success_message = f'Usuario {nombre_usuario} eliminado correctamente'
+        messages.success(request, success_message)
+        
+        # Respuesta para AJAX
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True, 
+                'message': success_message,
+                'redirect': '/usuarios/'  # Ajusta la URL según tu configuración
+            })
+        
         return redirect('lista_usuarios')
-    
-    nombre_usuario = usuario.nombre_usuario
-    usuario.delete()
-    
-    logger.info(f"Usuario {nombre_usuario} eliminado por {request.user.nombre_usuario}")
-    messages.success(request, f'Usuario {nombre_usuario} eliminado correctamente')
-    return redirect('lista_usuarios')
+        
+    except Usuario.DoesNotExist:
+        error_message = 'El usuario que intentas eliminar no existe'
+        messages.error(request, error_message)
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False, 
+                'message': error_message
+            })
+        
+        return redirect('lista_usuarios')
+        
+    except Exception as e:
+        error_message = f'Error al eliminar el usuario: {str(e)}'
+        logger.error(f"Error al eliminar usuario {usuario_id}: {str(e)}")
+        messages.error(request, 'Ocurrió un error al eliminar el usuario')
+        
+        # Registrar error en auditoría
+        try:
+            ip_address = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+            if not ip_address:
+                ip_address = request.META.get('REMOTE_ADDR', '127.0.0.1')
+                
+            UserAuditLog.objects.create(
+                user=request.user,
+                action='user_delete',
+                ip_address=ip_address,
+                status='failed',
+                details={
+                    'error': str(e),
+                    'target_user_id': usuario_id,
+                    'attempted_by': request.user.nombre_usuario
+                }
+            )
+        except Exception as audit_error:
+            logger.error(f"Error al registrar auditoría de fallo: {audit_error}")
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False, 
+                'message': 'Ocurrió un error al eliminar el usuario'
+            })
+        
+        return redirect('lista_usuarios')
+
 
 @staff_member_required
 @require_GET
@@ -298,13 +408,12 @@ def auditoria_usuario(request, usuario_id):
         count=Count('id')
     ).order_by('-last_used')[:5]
     
-    # Procesar información de dispositivos
+
     devices = []
     for device in devices_raw:
-        # Parsear user_agent para obtener información del navegador y OS
+
         user_agent = device['user_agent']
-        
-        # Lógica simple para identificar navegador y OS
+
         browser = 'Desconocido'
         os = 'Desconocido'
         is_mobile = False
@@ -341,24 +450,20 @@ def auditoria_usuario(request, usuario_id):
             'ip_address': device['ip_address'],
             'last_used': device['last_used'],
             'count': device['count'],
-            'is_current': False  # Puedes implementar lógica para detectar el dispositivo actual
+            'is_current': False  
         })
-    
-    # Crear datos para el gráfico
+
     stats_data = {
         'months': months,
         'success': success_data,
         'failed': failed_data
     }
     
-    # Debug: Imprimir datos para verificar
-    print("Stats data:", stats_data)
-    
     return render(request, 'auditoria_usuario.html', {
         'usuario': usuario,
         'logs': logs,
         'devices': devices,
         'stats_data': stats_data,
-        'stats_data_json': json.dumps(stats_data),  # Versión JSON para debug
+        'stats_data_json': json.dumps(stats_data),  
         'query': query
     })

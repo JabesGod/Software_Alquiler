@@ -22,7 +22,7 @@
             Estás a punto de eliminar permanentemente al usuario <strong>{{ usuario.nombre_usuario }}</strong>.
             Esta acción no se puede deshacer.
         </div>
-        
+
         <div class="callout callout-warning">
             <h5>Información del Usuario</h5>
             <ul>
@@ -33,7 +33,7 @@
         </div>
     </div>
     <div class="card-footer">
-        <form method="post">
+        <form method="post" action="{% url 'eliminar_usuario' usuario.id %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger">
                 <i class="fas fa-trash"></i> Confirmar Eliminación

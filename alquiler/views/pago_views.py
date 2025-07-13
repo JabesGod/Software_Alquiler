@@ -61,7 +61,8 @@ def listar_pagos(request):
         'estados_pago': Pago.ESTADO_PAGO
     })
 
-
+@login_required
+@permission_required('alquiler.view_pago', raise_exception=True)
 @login_required
 def pagos_vencidos(request):
     hoy = timezone.now().date()
@@ -78,7 +79,9 @@ def pagos_vencidos(request):
         'titulo': 'Pagos Vencidos'
     })
 
+
 @login_required
+@permission_required('alquiler.change_pago', raise_exception=True)
 def cambiar_estado_pago(request, pago_id, nuevo_estado):
     pago = get_object_or_404(Pago, id=pago_id)
     
@@ -96,8 +99,8 @@ def cambiar_estado_pago(request, pago_id, nuevo_estado):
     
     return redirect('detalle_pago', pago_id=pago.id)
 
-# views/pago_views.py
 @login_required
+@permission_required('alquiler.view_pago', raise_exception=True)
 def pagos_proximos_vencer(request):
     hoy = timezone.now().date()
     fecha_limite = hoy + timedelta(days=3)  # Próximos 3 días
@@ -112,8 +115,8 @@ def pagos_proximos_vencer(request):
         'titulo': 'Pagos Próximos a Vencer'
     })
 
-
 @login_required
+@permission_required('alquiler.view_pago', raise_exception=True)
 def detalle_pago(request, pago_id):
     pago = get_object_or_404(Pago, id=pago_id)
     
@@ -132,7 +135,9 @@ def detalle_pago(request, pago_id):
     }
     return render(request, 'detalle_pago.html', context)
 
+
 @login_required
+@permission_required('alquiler.add_pago', raise_exception=True)
 def registrar_pago(request):
     if request.method == 'POST':
         form = PagoForm(request.POST, request.FILES)
@@ -153,6 +158,7 @@ def registrar_pago(request):
     return render(request, 'registrar_pago.html', {'form': form})
 
 @login_required
+@permission_required('alquiler.change_pago', raise_exception=True)
 def editar_pago(request, pago_id):
     print(f"===> Ingresando a editar_pago con ID: {pago_id}")
     pago = get_object_or_404(Pago, id=pago_id)
@@ -203,8 +209,8 @@ def editar_pago(request, pago_id):
     return render(request, 'editar_pago.html', context)
 
 
-
 @login_required
+@permission_required('alquiler.delete_pago', raise_exception=True)
 def eliminar_pago(request, pago_id):
     print(f"===> Entrando a eliminar_pago con ID: {pago_id}")
     pago = get_object_or_404(Pago, id=pago_id)
@@ -227,6 +233,7 @@ def eliminar_pago(request, pago_id):
 
 
 @login_required
+@permission_required('alquiler.view_factura', raise_exception=True)
 def generar_factura_pdf(request, pago_id):
     pago = get_object_or_404(Pago, id=pago_id)
     
@@ -271,6 +278,9 @@ def verificar_morosidad_cliente(cliente_id):
         return True
     return False
 
+
+@login_required
+@permission_required('alquiler.view_pago', raise_exception=True)
 def pagos_parciales(request):
     # Obtener solo pagos parciales
     pagos = Pago.objects.filter(estado_pago='parcial').order_by('-fecha_pago')
@@ -293,6 +303,8 @@ def pagos_parciales(request):
     
     return render(request, 'pagos_parciales.html', context)
 
+@login_required
+@permission_required('alquiler.add_pago', raise_exception=True)
 def registrar_pago_parcial(request):
     if request.method == 'POST':
         form = PagoParcialForm(request.POST, request.FILES)
@@ -327,6 +339,9 @@ def registrar_pago_parcial(request):
     
     return render(request, 'registrar_pago_parcial.html', context)
 
+
+@login_required
+@permission_required('alquiler.view_pago', raise_exception=True)
 def reportes_pagos(request):
     # Obtener todos los pagos inicialmente
     pagos = Pago.objects.all().order_by('-fecha_pago')
@@ -431,6 +446,7 @@ def verificar_estado_pago_alquiler(alquiler):
     return False
 
 @login_required
+@permission_required('alquiler.change_pago', raise_exception=True)
 def registrar_pago_contra_obligacion(request, pago_id):
     pago_obligacion = get_object_or_404(Pago, id=pago_id)
     

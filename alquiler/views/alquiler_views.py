@@ -36,14 +36,15 @@ from django.conf import settings
 import os
 from django.urls import reverse
 from alquiler.utils import crear_pago_inicial  # Asegúrate de importar
-
+from django.contrib.auth.decorators import login_required, permission_required
 from django.forms import inlineformset_factory
 import logging
 logger = logging.getLogger(__name__)
 
 
 
-
+@login_required
+@permission_required('alquiler.view_alquiler', raise_exception=True)
 def listar_alquileres(request):
     alquileres = Alquiler.objects.all().select_related('cliente').prefetch_related('detalles__equipo').order_by('-id')
     estado = request.GET.get('estado')
@@ -78,6 +79,8 @@ def listar_alquileres(request):
     
     return render(request, 'lista_alquileres.html', context)
 
+@login_required
+@permission_required('alquiler.export_alquiler', raise_exception=True)
 def generar_pdf_acta(alquiler, request):
     html = render_to_string('acta_entrega.html', {
         'alquiler': alquiler,
@@ -96,6 +99,8 @@ def generar_pdf_acta(alquiler, request):
     result.seek(0)
     return result.getvalue()
 
+@login_required
+@permission_required('alquiler.add_alquiler', raise_exception=True)
 def crear_alquiler(request):
     equipos_disponibles = Equipo.objects.filter(cantidad_disponible__gt=0)
 
@@ -185,7 +190,8 @@ def crear_alquiler(request):
 
 
 
-
+@login_required
+@permission_required('alquiler.change_alquiler', raise_exception=True)
 def editar_alquiler(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
     equipos_disponibles = Equipo.objects.filter(cantidad_disponible__gt=0)
@@ -314,6 +320,9 @@ def editar_alquiler(request, id):
         'equipos_json': mark_safe(equipos_json)
     })
 
+
+@login_required
+@permission_required('alquiler.add_alquiler', raise_exception=True)
 def reservar_alquiler(request):
     equipos_disponibles = Equipo.objects.filter(cantidad_disponible__gt=0)
     DetalleAlquilerFormSet = inlineformset_factory(
@@ -395,6 +404,9 @@ def reservar_alquiler(request):
         'equipos_disponibles': equipos_disponibles
     })
 
+
+@login_required
+@permission_required('alquiler.change_alquiler', raise_exception=True)
 def aprobar_alquiler(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
     
@@ -423,6 +435,9 @@ def aprobar_alquiler(request, id):
     
     return redirect('listar_alquileres')
 
+
+@login_required
+@permission_required('alquiler.view_equipo', raise_exception=True)
 def series_disponibles(request, equipo_id):
     equipo = get_object_or_404(Equipo, id=equipo_id)
     series = equipo.numeros_serie_lista()
@@ -438,7 +453,8 @@ def series_disponibles(request, equipo_id):
         'cantidad_disponible': equipo.cantidad_disponible
     })
 
-
+@login_required
+@permission_required('alquiler.change_alquiler', raise_exception=True)
 def finalizar_alquiler(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
     alquiler.estado_alquiler = 'finalizado'
@@ -451,7 +467,8 @@ def finalizar_alquiler(request, id):
     messages.success(request, "Alquiler finalizado exitosamente.")
     return redirect('listar_alquileres')
 
-
+@login_required
+@permission_required('alquiler.change_alquiler', raise_exception=True)
 def renovar_alquiler(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
     if request.method == 'POST':
@@ -464,7 +481,8 @@ def renovar_alquiler(request, id):
     return render(request, 'renovar_alquiler.html', {'alquiler': alquiler})
 
 
-
+@login_required
+@permission_required('alquiler.view_acta', raise_exception=True)
 def generar_acta_entrega(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
     
@@ -491,7 +509,8 @@ def generar_acta_entrega(request, id):
     
     return response
 
-
+@login_required
+@permission_required('alquiler.view_acta', raise_exception=True)
 def generar_acta_devolucion(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
     
@@ -545,7 +564,8 @@ def alertas_devoluciones_proximas():
             fail_silently=False,
         )
 
-
+@login_required
+@permission_required('alquiler.view_alquiler', raise_exception=True)
 def detalle_alquiler(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
     
@@ -575,7 +595,8 @@ def detalle_alquiler(request, id):
     
     return render(request, 'detalle_alquiler.html', context)
 
-
+@login_required
+@permission_required('alquiler.view_alquiler', raise_exception=True)
 def calendario_alquileres(request):
     alquileres = Alquiler.objects.filter(estado_alquiler='activo').prefetch_related('detalles__equipo')
     eventos = []
@@ -614,7 +635,8 @@ def calendario_alquileres(request):
         "current_year": datetime.now().year
     })
 
-
+@login_required
+@permission_required('alquiler.change_alquiler', raise_exception=True)
 def cancelar_alquiler(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
     if alquiler.estado_alquiler != 'cancelado':
@@ -630,7 +652,8 @@ def cancelar_alquiler(request, id):
         messages.info(request, "Este alquiler ya estaba cancelado.")
     return redirect('listar_alquileres')
 
-
+@login_required
+@permission_required('alquiler.add_contrato', raise_exception=True)
 def crear_contrato(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
 
@@ -652,6 +675,8 @@ def crear_contrato(request, id):
     return redirect('firmar_contrato', id=alquiler.id)
 
 
+@login_required
+@permission_required('alquiler.change_contrato', raise_exception=True)
 def firmar_contrato(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
     contrato = get_object_or_404(Contrato, alquiler=alquiler)
@@ -805,6 +830,8 @@ def firmar_contrato(request, id):
         'contrato': contrato
     })
 
+@login_required
+@permission_required('alquiler.change_contrato', raise_exception=True)
 def renovar_contrato(request, id):
     alquiler_original = get_object_or_404(Alquiler, id=id)
 
@@ -909,7 +936,8 @@ def renovar_contrato(request, id):
 
     return render(request, 'renovar_contrato.html', context)
 
-
+@login_required
+@permission_required('alquiler.delete_alquiler', raise_exception=True)
 def eliminar_alquiler(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
 

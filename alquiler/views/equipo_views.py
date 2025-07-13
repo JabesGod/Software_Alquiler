@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.db.models import Count, Max
 from ..models import Equipo, Alquiler, FotoEquipo, DetalleAlquiler
 from ..forms import EquipoForm, FotoEquipoForm, EquipoEditForm
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 from django.views.decorators.http import require_POST
 from django.forms.models import inlineformset_factory
 from django.db.models.functions import Coalesce
@@ -43,13 +43,15 @@ from io import BytesIO
 from itertools import groupby
 from django.db.models import Exists, OuterRef
 
-
+@login_required
+@permission_required('alquiler.view_equipo', raise_exception=True)
 def listar_equipos(request):
     equipos = Equipo.objects.all()
     form = EquipoForm() if request.user.is_staff else None
     return render(request, 'lista.html', {'equipos': equipos, 'form': form})
 
-
+@login_required
+@permission_required('alquiler.add_equipo', raise_exception=True)
 def crear_equipo(request):
     if not request.user.is_staff:
         messages.error(request, 'No tienes permiso para realizar esta acción.')
@@ -85,7 +87,8 @@ def crear_equipo(request):
     })
 
 
-
+@login_required
+@permission_required('alquiler.change_equipo', raise_exception=True)
 def editar_equipo(request, id):
     equipo = get_object_or_404(Equipo, pk=id)
     
@@ -149,6 +152,8 @@ def editar_equipo(request, id):
         'titulo': f'Editar {equipo.marca} {equipo.modelo}'
     })
 
+
+@permission_required('alquiler.delete_equipo', raise_exception=True)
 @require_POST
 @login_required
 @user_passes_test(lambda u: u.is_staff)
@@ -164,6 +169,7 @@ def eliminar_equipo(request, pk):
         messages.error(request, f'Error al eliminar el equipo: {str(e)}')
     
     return redirect('listar_equipos')
+
 
 def detalle_equipo(request, id):
     equipo = get_object_or_404(Equipo, id=id)
@@ -190,6 +196,8 @@ def equipos_disponibles(request):
     equipos = Equipo.objects.filter(estado='disponible')
     return render(request, 'lista.html', {'equipos': equipos})
 
+@login_required
+@permission_required('alquiler.change_equipo', raise_exception=True)
 def cambiar_estado_equipo(request, id, nuevo_estado):
     equipo = get_object_or_404(Equipo, id=id)
     equipo.estado = nuevo_estado
@@ -201,11 +209,14 @@ def equipos_por_estado(request, estado):
     equipos = Equipo.objects.filter(estado=estado)
     return render(request, 'lista.html', {'equipos': equipos})
 
+@login_required
+@permission_required('alquiler.view_pago', raise_exception=True)
 def pagos_pendientes_admin(request):
     pagos = Pago.objects.filter(estado_pago='pendiente').select_related('alquiler', 'alquiler__cliente')
     return render(request, 'pagos_pendientes.html', {'pagos': pagos})
 
-
+@login_required
+@permission_required('alquiler.view_reportes', raise_exception=True)
 def dashboard_admin(request):
     # 1. Estadísticas básicas
     total_equipos = Equipo.objects.count()
@@ -296,7 +307,8 @@ def dashboard_admin(request):
         'equipos_populares': equipos_populares,
     })
 
-
+@login_required
+@permission_required('alquiler.change_equipo', raise_exception=True)
 def actualizar_estados_masivo(request):
     if request.method == 'POST':
         # Obtener IDs como lista (maneja tanto lista como string separado por comas)
@@ -361,7 +373,8 @@ def actualizar_estados_masivo(request):
     })
 
 
-
+@login_required
+@permission_required('alquiler.view_equipo', raise_exception=True)
 def exportar_equipos_csv(request):
     equipos = Equipo.objects.all()
     response = HttpResponse(content_type='text/csv')
@@ -379,7 +392,8 @@ def exportar_equipos_csv(request):
 def error_404_view(request, exception):
     return render(request, '404.html', status=404)
 
-
+@login_required
+@permission_required('alquiler.view_equipo', raise_exception=True)
 def historial_equipo(request, id):
     equipo = get_object_or_404(Equipo, id=id)
     historial = equipo.historial_alquileres()
@@ -388,6 +402,8 @@ def historial_equipo(request, id):
         'historial': historial
     })
 
+@login_required
+@permission_required('alquiler.view_equipo', raise_exception=True)
 def proxima_disponibilidad(request, id):
     equipo = get_object_or_404(Equipo, id=id)
     fecha_disponible = equipo.proxima_fecha_disponible()
@@ -396,6 +412,8 @@ def proxima_disponibilidad(request, id):
         'fecha_disponible': fecha_disponible
     })
 
+@login_required
+@permission_required('alquiler.view_equipo', raise_exception=True)
 def exportar_equipos_json(request):
     equipos = Equipo.objects.all()
     data = [equipo.exportar_informacion() for equipo in equipos]
@@ -555,22 +573,24 @@ def enviar_alertas_vencimiento():
     print(f"\n📤 Resumen: {sent_count} correos enviados, {error_count} errores")
 
 
+@login_required
+@permission_required('alquiler.send_notifications', raise_exception=True)
 def ejecutar_alertas_vencimiento(request):
     enviar_alertas_vencimiento()
     messages.success(request, "Se han procesado las alertas de vencimiento (7 días antes).")
     return redirect('dashboard_admin')  # cambia al nombre de tu vista de inicio
 
+@login_required
+@permission_required('alquiler.view_equipo', raise_exception=True)
 def equipos_mas_alquilados(request):
     fecha_inicio = request.GET.get('fecha_inicio')
     fecha_fin = request.GET.get('fecha_fin')
     marca = request.GET.get('tipo_equipo')
     agrupar_por = request.GET.get('agrupar_por', 'equipo')
 
-    # Filtro base que incluye alquileres activos y sus renovaciones
     filtros_equipos = Q(detallealquiler__alquiler__estado_alquiler__in=['activo', 'finalizado'])
-    
+
     if fecha_inicio and fecha_fin:
-        # Considerar alquileres que estuvieron activos en cualquier momento del rango
         filtros_equipos &= (
             Q(detallealquiler__alquiler__fecha_inicio__lte=fecha_fin) &
             Q(detallealquiler__alquiler__fecha_fin__gte=fecha_inicio)
@@ -594,15 +614,7 @@ def equipos_mas_alquilados(request):
         ).filter(total_alquileres__gt=0).order_by('-total_alquileres')[:10]
     )
 
-    total_equipos = Equipo.objects.count()
-    total_alquileres = Alquiler.objects.filter(filtros_alquiler).count()
-    total_clientes = Cliente.objects.filter(alquileres__in=Alquiler.objects.filter(filtros_alquiler)).distinct().count()
-    ingresos_totales = Alquiler.objects.filter(filtros_alquiler).aggregate(
-        total=Sum('precio_total')
-    )['total'] or Decimal('0.00')
-
-    marcas = Equipo.objects.values_list('marca', flat=True).distinct().order_by('marca')
-
+    # Agregar datos adicionales para cada equipo (clientes frecuentes y último alquiler)
     for equipo in equipos:
         clientes_frecuentes_query = DetalleAlquiler.objects.filter(equipo=equipo)
         if fecha_inicio and fecha_fin:
@@ -626,16 +638,31 @@ def equipos_mas_alquilados(request):
             .first()
         )
 
+        # Protección: asegurar que `cantidad_disponible` y `cantidad_total` existan
+        equipo.cantidad_total = getattr(equipo, 'cantidad_total', 1)
+        equipo.cantidad_disponible = equipo.cantidad_total - equipo.total_alquileres
+
+    total_equipos = Equipo.objects.count()
+    total_alquileres = Alquiler.objects.filter(filtros_alquiler).count()
+    total_clientes = Cliente.objects.filter(alquileres__in=Alquiler.objects.filter(filtros_alquiler)).distinct().count()
+    ingresos_totales = Alquiler.objects.filter(filtros_alquiler).aggregate(
+        total=Sum('precio_total')
+    )['total'] or Decimal('0.00')
+
+    marcas = Equipo.objects.values_list('marca', flat=True).distinct().order_by('marca')
+
     labels = [f"{e.marca} {e.modelo}" for e in equipos]
     datos_alquileres = [e.total_alquileres for e in equipos]
     datos_ingresos = [float(e.ingresos_generados) for e in equipos]
 
     if 'export' in request.GET:
         if request.GET['export'] == 'excel':
-            return exportar_a_excel(equipos, labels, datos_alquileres, datos_ingresos)
+            return exportar_a_excel(request, equipos, labels, datos_alquileres, datos_ingresos)
+
         elif request.GET['export'] == 'pdf':
-            return exportar_a_pdf(equipos, labels, datos_alquileres, datos_ingresos,
-                                total_equipos, total_alquileres, total_clientes, ingresos_totales)
+            return exportar_a_pdf(request, equipos, labels, datos_alquileres, datos_ingresos,
+                      total_equipos, total_alquileres, total_clientes, ingresos_totales)
+
 
     return render(request, 'estadisticas.html', {
         'labels': json.dumps(labels),
@@ -650,10 +677,11 @@ def equipos_mas_alquilados(request):
         'fecha_inicio': fecha_inicio,
         'fecha_fin': fecha_fin,
         'marca_seleccionada': marca,
-        'agrupar_por': agrupar_por
+        'agrupar_por': agrupar_por, 
     })
 
-
+@login_required
+@permission_required('alquiler.view_equipo', raise_exception=True)
 def estadisticas_por_mes(request, filtros_base):
     # Obtener alquileres agrupados por mes
     alquileres_por_mes = (
@@ -725,7 +753,9 @@ def estadisticas_por_mes(request, filtros_base):
         'vista_mensual': True
     })
 
-def exportar_a_excel(equipos, labels, datos_alquileres, datos_ingresos):
+@login_required
+@permission_required('alquiler.export_reports', raise_exception=True)
+def exportar_a_excel(request, equipos, labels, datos_alquileres, datos_ingresos):
     output = io.BytesIO()
     
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
@@ -822,6 +852,8 @@ def exportar_a_excel(equipos, labels, datos_alquileres, datos_ingresos):
     response['Content-Disposition'] = 'attachment; filename=estadisticas_alquileres.xlsx'
     return response
 
+@login_required
+@permission_required('alquiler.export_reports', raise_exception=True)
 def exportar_a_excel_mensual(labels, datos_alquileres, datos_ingresos):
     output = io.BytesIO()
     
@@ -907,8 +939,9 @@ def exportar_a_excel_mensual(labels, datos_alquileres, datos_ingresos):
     response['Content-Disposition'] = 'attachment; filename=estadisticas_mensuales.xlsx'
     return response
 
-def exportar_a_pdf(equipos, labels, datos_alquileres, datos_ingresos, 
-                  total_equipos, total_alquileres, total_clientes, ingresos_totales):
+
+def exportar_a_pdf(request, equipos, labels, datos_alquileres, datos_ingresos, 
+                   total_equipos, total_alquileres, total_clientes, ingresos_totales):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="estadisticas_alquileres.pdf"'
     
@@ -978,6 +1011,8 @@ def exportar_a_pdf(equipos, labels, datos_alquileres, datos_ingresos,
     
     return response
 
+@login_required
+@permission_required('alquiler.export_reports', raise_exception=True)
 def exportar_a_pdf_mensual(labels, datos_alquileres, datos_ingresos, 
                           total_equipos, total_alquileres, total_clientes, ingresos_totales):
     response = HttpResponse(content_type='application/pdf')

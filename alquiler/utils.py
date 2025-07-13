@@ -8,6 +8,8 @@ from decimal import Decimal
 import logging
 from .models import Pago, Alquiler, Cliente
 from django.db.models import Sum
+from django.core.exceptions import PermissionDenied
+from functools import wraps
 
 logger = logging.getLogger(__name__)
 
@@ -293,3 +295,18 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+from django.core.exceptions import PermissionDenied
+from functools import wraps
+
+def rol_requerido(*roles_permitidos):
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            if not request.user.is_authenticated or not hasattr(request.user, 'rol'):
+                raise PermissionDenied
+            if request.user.rol.nombre_rol.lower() not in [r.lower() for r in roles_permitidos]:
+                raise PermissionDenied
+            return view_func(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator

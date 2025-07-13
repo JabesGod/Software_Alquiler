@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from ..forms.usuario_forms import RegistroForm,UsuarioEditForm,CambiarContrasenaForm, RolForm
 from ..models import Rol, Usuario, UserAuditLog
 from django.contrib.auth import login
@@ -35,6 +35,7 @@ from django.conf import settings
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 def registro_usuario(request):
     if request.method == 'POST':
@@ -159,11 +160,14 @@ def vista_inicio(request):
 
 
 @staff_member_required
+@permission_required('usuarios.view_rol', raise_exception=True)
+
 def lista_roles(request):
     roles = Rol.objects.all().order_by('nombre_rol')
     return render(request, 'lista_roles.html', {'roles': roles})
 
-@staff_member_required
+@login_required
+@permission_required('usuarios.add_rol', raise_exception=True)  # 👈 Solo usuarios con ese rol pasan
 def crear_rol(request):
     if request.method == 'POST':
         form = RolForm(request.POST)
@@ -176,31 +180,50 @@ def crear_rol(request):
     
     return render(request, 'crear_rol.html', {'form': form})
 
-@staff_member_required
+@login_required
+@permission_required('usuarios.change_rol', raise_exception=True)  # o @staff_member_required si preferís
 def editar_rol(request, rol_id):
     rol = get_object_or_404(Rol, id=rol_id)
+
     if request.method == 'POST':
         form = RolForm(request.POST, instance=rol)
         if form.is_valid():
-            form.save()
+            rol = form.save(commit=False)
+            rol.save()  # Esto ejecuta la lógica de sincronización con el grupo
+            form.save_m2m()  # Guarda permisos (many-to-many)
             messages.success(request, 'Rol actualizado exitosamente')
             return redirect('lista_roles')
     else:
         form = RolForm(instance=rol)
-    
+
     return render(request, 'editar_rol.html', {'form': form, 'rol': rol})
 
-@staff_member_required
+@login_required
+@permission_required('usuarios.delete_rol', raise_exception=True)  # o el decorador que uses
 def eliminar_rol(request, rol_id):
     rol = get_object_or_404(Rol, id=rol_id)
+    other_roles = Rol.objects.exclude(id=rol.id)
+
     if request.method == 'POST':
+        replacement_id = request.POST.get('replacement_role')
+        if rol.usuario_set.exists():
+            if replacement_id:
+                replacement_role = get_object_or_404(Rol, id=replacement_id)
+                for usuario in rol.usuario_set.all():
+                    usuario.rol = replacement_role
+                    usuario.save()
         rol.delete()
         messages.success(request, 'Rol eliminado exitosamente')
         return redirect('lista_roles')
-    return render(request, 'eliminar_rol.html', {'rol': rol})
+
+    return render(request, 'eliminar_rol.html', {
+        'rol': rol,
+        'other_roles': other_roles
+    })
 
 
-@staff_member_required
+@login_required
+@permission_required('usuarios.change_usuario', raise_exception=True)
 def asignar_rol(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     roles = Rol.objects.all()
@@ -226,7 +249,8 @@ def asignar_rol(request, usuario_id):
     })
 
 
-@staff_member_required
+@login_required
+@permission_required('usuarios.view_usuario', raise_exception=True)
 def lista_usuarios(request):
     query = request.GET.get('q', '')
     estado = request.GET.get('estado', '')
@@ -257,13 +281,15 @@ def lista_usuarios(request):
         'rol_seleccionado': int(rol_id) if rol_id else ''
     })
 
-@staff_member_required
+@login_required
+@permission_required('usuarios.view_usuario', raise_exception=True)
 def detalle_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     return render(request, 'detalle_usuario.html', {'usuario': usuario})
 
 
-@staff_member_required
+@login_required
+@permission_required('usuarios.change_usuario', raise_exception=True)
 def editar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
@@ -305,7 +331,8 @@ def editar_usuario(request, usuario_id):
         'roles_data': roles_data
     })
 
-@staff_member_required
+@login_required
+@permission_required('usuarios.change_usuario', raise_exception=True)
 def cambiar_contrasena(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
@@ -331,7 +358,9 @@ def cambiar_contrasena(request, usuario_id):
         'usuario': usuario
     })
 
-@staff_member_required
+
+@login_required
+@permission_required('usuarios.change_usuario', raise_exception=True)
 def cambiar_estado_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
@@ -347,7 +376,9 @@ def cambiar_estado_usuario(request, usuario_id):
     messages.success(request, f'Usuario {usuario.nombre_usuario} {action} correctamente')
     return redirect('lista_usuarios')
 
-@staff_member_required
+
+@login_required
+@permission_required('usuarios.delete_usuario', raise_exception=True)
 def confirmar_eliminar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
@@ -359,7 +390,8 @@ def confirmar_eliminar_usuario(request, usuario_id):
     return render(request, 'confirmar_eliminar.html', {'usuario': usuario})
 
 
-@staff_member_required
+@login_required
+@permission_required('usuarios.delete_usuario', raise_exception=True)
 @require_POST
 @csrf_protect
 def eliminar_usuario(request, usuario_id):
@@ -480,8 +512,8 @@ def eliminar_usuario(request, usuario_id):
         return redirect('lista_usuarios')
 
 
-@staff_member_required
-@require_GET
+@login_required
+@permission_required('usuarios.view_auditoria', raise_exception=True)
 def auditoria_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     

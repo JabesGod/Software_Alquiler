@@ -643,10 +643,26 @@ class Contrato(models.Model):
 
 
 class Rol(models.Model):
-    nombre_rol = models.CharField(max_length=50, unique=True)
-    descripcion = models.TextField(blank=True)
-    permisos = models.ManyToManyField(Permission, blank=True)
-    grupo = models.OneToOneField(Group, null=True, blank=True, on_delete=models.SET_NULL)
+    nombre_rol = models.CharField(max_length=50, unique=True, verbose_name="Nombre del Rol")
+    descripcion = models.TextField(blank=True, verbose_name="Descripción")
+    permisos = models.ManyToManyField(
+        Permission, 
+        blank=True,
+        verbose_name="Permisos",
+        related_name="roles"
+    )
+    grupo = models.OneToOneField(
+        Group, 
+        null=True, 
+        blank=True, 
+        on_delete=models.SET_NULL,
+        verbose_name="Grupo asociado"
+    )
+
+    class Meta:
+        verbose_name = "Rol"
+        verbose_name_plural = "Roles"
+        ordering = ['nombre_rol']
 
     def __str__(self):
         return self.nombre_rol
@@ -659,12 +675,55 @@ class Rol(models.Model):
         else:
             self.grupo.name = f"Rol_{self.nombre_rol}"
             self.grupo.save()
+        
         super().save(*args, **kwargs)
         
         # Sincronizar permisos con el grupo
         if self.grupo:
             self.grupo.permissions.set(self.permisos.all())
 
+    def get_permissions_by_app(self):
+        """Devuelve los permisos agrupados por aplicación"""
+        return (
+            self.permisos.all()
+            .order_by('content_type__app_label', 'content_type__model', 'codename')
+            .select_related('content_type')
+        )
+
+    def get_permission_summary(self):
+        """Resumen legible de permisos"""
+        perms = self.get_permissions_by_app()
+        summary = {}
+        for perm in perms:
+            app_label = perm.content_type.app_label
+            model_name = perm.content_type.model
+            key = f"{app_label}.{model_name}"
+            
+            if key not in summary:
+                summary[key] = {
+                    'app_label': app_label,
+                    'model_name': model_name,
+                    'permissions': []
+                }
+            
+            # Simplificar el nombre del permiso
+            action = perm.codename.split('_')[0]
+            summary[key]['permissions'].append({
+                'id': perm.id,
+                'name': perm.name,
+                'action': action,
+                'codename': perm.codename
+            })
+        return summary
+
+    def get_app_labels(self):
+        """Obtiene las apps distintas que tiene permisos este rol"""
+        return (
+            self.permisos.all()
+            .values_list('content_type__app_label', flat=True)
+            .distinct()
+            .order_by('content_type__app_label')
+        )
 
 
 class UsuarioManager(BaseUserManager):
@@ -699,25 +758,73 @@ class UsuarioManager(BaseUserManager):
         # Asignar rol de administrador
         extra_fields['rol'], _ = Rol.objects.get_or_create(
             nombre_rol="administrador",
-            defaults={'descripcion': 'Administrador del sistema'}
+            defaults={
+                'descripcion': 'Administrador del sistema con todos los permisos',
+            }
         )
         
         return self._create_user(nombre_usuario, password, **extra_fields)
 
+
 class Usuario(AbstractBaseUser, PermissionsMixin):
-    nombre_usuario = models.CharField(max_length=100, unique=True)
-    estado_usuario = models.CharField(max_length=20, default='activo')
-    ultimo_acceso = models.DateTimeField(auto_now=True)
-    rol = models.ForeignKey(Rol, on_delete=models.PROTECT)  # Cambiado a PROTECT para mayor seguridad
-    cliente = models.OneToOneField('Cliente', on_delete=models.SET_NULL, null=True, blank=True)
-    activation_token = models.CharField(max_length=50, blank=True, null=True)
-    activation_token_created = models.DateTimeField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    nombre_usuario = models.CharField(
+        max_length=100, 
+        unique=True,
+        verbose_name="Nombre de usuario"
+    )
+    estado_usuario = models.CharField(
+        max_length=20, 
+        default='activo',
+        verbose_name="Estado"
+    )
+    ultimo_acceso = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Último acceso"
+    )
+    rol = models.ForeignKey(
+        Rol, 
+        on_delete=models.PROTECT,
+        verbose_name="Rol asignado",
+        related_name="usuarios"
+    )
+    cliente = models.OneToOneField(
+        'Cliente', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        verbose_name="Cliente asociado"
+    )
+    activation_token = models.CharField(
+        max_length=50, 
+        blank=True, 
+        null=True,
+        verbose_name="Token de activación"
+    )
+    activation_token_created = models.DateTimeField(
+        blank=True, 
+        null=True,
+        verbose_name="Fecha creación token"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Activo"
+    )
+    is_staff = models.BooleanField(
+        default=False,
+        verbose_name="Acceso administración"
+    )
 
     objects = UsuarioManager()
 
     USERNAME_FIELD = 'nombre_usuario'
+
+    class Meta:
+        verbose_name = "Usuario"
+        verbose_name_plural = "Usuarios"
+        ordering = ['nombre_usuario']
+
+    def __str__(self):
+        return self.nombre_usuario
 
     def save(self, *args, **kwargs):
         """Asigna automáticamente el rol de cliente si no tiene rol asignado"""
@@ -726,7 +833,25 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
                 nombre_rol="cliente",
                 defaults={'descripcion': 'Rol por defecto para clientes'}
             )[0]
+        
         super().save(*args, **kwargs)
+        
+        # Sincronizar grupos si cambió el rol
+        if hasattr(self, '_rol_changed') and self._rol_changed:
+            self.groups.clear()
+            if self.rol and self.rol.grupo:
+                self.groups.add(self.rol.grupo)
+
+    @property
+    def has_admin_access(self):
+        """Determina si el usuario tiene acceso administrativo"""
+        return self.is_staff or self.is_superuser
+
+    def get_role_permissions(self):
+        """Obtiene los permisos del rol del usuario"""
+        if hasattr(self, 'rol'):
+            return self.rol.get_permission_summary()
+        return {}
 
 
 class UserAuditLog(models.Model):

@@ -46,17 +46,17 @@
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Usuarios con este rol:</span>
-                    <span class="detail-value">{{ rol.usuario_set.count }}</span>
+                    <span class="detail-value"> {{ rol.usuarios.count }} </span>
                 </div>
             </div>
             
             <div class="impact-section">
                 <h4>Impacto de la eliminación:</h4>
                 <ul class="impact-list">
-                    {% if rol.usuario_set.count > 0 %}
+                    {% if rol.usuarios.count  > 0 %}
                     <li class="text-danger">
                         <i class="fas fa-user-times me-2"></i>
-                        <strong>{{ rol.usuario_set.count }} usuario(s)</strong> perderán este rol
+                        <strong> {{ rol.usuarios.count }} usuario(s): {{ rol.usuarios.all|join:", " }} perderán este rol </strong> 
                     </li>
                     {% else %}
                     <li class="text-success">

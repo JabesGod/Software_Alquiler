@@ -5,13 +5,18 @@ from django.db.models import Count
 from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required,permission_required
 
 
-# Listado general de clientes
+def es_admin(user):
+    return user.is_authenticated and user.is_staff  # o user.is_superuser
+
+@login_required
+@permission_required('alquiler.view_cliente', raise_exception=True)
 def listar_clientes(request):
     clientes = Cliente.objects.all()
     return render(request, 'lista_clientes.html', {'clientes': clientes})
+
 
 def crear_cliente(request):
     if request.method == 'POST':

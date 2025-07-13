@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% load static %}
-
+{% load permission_tags %}
 {% block title %}{% if form.instance.id %}Editar{% else %}Crear{% endif %} Rol{% endblock %}
-
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/crear_editar_roles.css' %}">
+{% endblock %}
 {% block page_title %}
 <i class="fas fa-user-tag fa-fw"></i> {% if form.instance.id %}Editar{% else %}Crear{% endif %} Rol
 {% endblock %}
@@ -13,7 +15,7 @@
         <div class="card-header">
             <h2 class="card-title">{% if form.instance.id %}Editar Rol{% else %}Nuevo Rol{% endif %}</h2>
         </div>
-        
+
         <form method="post">
             {% csrf_token %}
             <div class="card-body">
@@ -26,27 +28,36 @@
                     </div>
                     {% endif %}
                 </div>
-                
+
                 <div class="form-group">
                     <label for="{{ form.descripcion.id_for_label }}">Descripción</label>
                     {{ form.descripcion }}
                 </div>
-                
+
                 <div class="form-group">
                     <label>Permisos</label>
                     <div class="permissions-container">
                         {% regroup form.permisos.field.queryset by content_type.app_label as permission_list %}
                         {% for app in permission_list %}
                         <div class="permission-app">
-                            <h5>{{ app.grouper|title }}</h5>
-                            <div class="permission-items">
+                            <div class="permission-app-header">
+                                <h5>{{ app.grouper|translate_app_label|title }}</h5>
+                                <button type="button" class="btn-toggle-permissions"
+                                    data-target="perm-{{ app.grouper }}">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                            <div class="permission-items" id="perm-{{ app.grouper }}">
                                 {% for permiso in app.list %}
                                 <div class="permission-item">
-                                    <label>
+                                    <div class="form-check">
                                         <input type="checkbox" name="permisos" value="{{ permiso.id }}"
-                                            {% if permiso in form.instance.permisos.all %}checked{% endif %}>
-                                        {{ permiso.name }}
-                                    </label>
+                                            id="perm-{{ permiso.id }}" {% if permiso in form.instance.permisos.all %}checked{% endif %} class="form-check-input">
+                                        <label for="perm-{{ permiso.id }}" class="form-check-label">
+                                            {{ permiso.codename|translate_permission }}
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">{{ permiso.content_type.model|translate_model_name|title }}</small>
                                 </div>
                                 {% endfor %}
                             </div>
@@ -55,7 +66,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="card-footer">
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Guardar
@@ -67,4 +78,39 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Ocultar todos los permisos al cargar (excepto el primero si quieres)
+    document.querySelectorAll('.permission-items').forEach((container, index) => {
+        if (index !== 0) {  // Mantener el primero abierto
+            container.style.display = 'none';
+            const icon = container.previousElementSibling.querySelector('i');
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-right');
+        }
+    });
+
+    // Toggle para mostrar/ocultar permisos por app
+    document.querySelectorAll('.btn-toggle-permissions').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const target = this.getAttribute('data-target');
+            const container = document.getElementById(target);
+            const icon = this.querySelector('i');
+            
+            if (container.style.display === 'none') {
+                container.style.display = 'grid';
+                icon.classList.remove('fa-chevron-right');
+                icon.classList.add('fa-chevron-down');
+            } else {
+                container.style.display = 'none';
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-right');
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

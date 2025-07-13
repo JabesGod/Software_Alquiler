@@ -6,6 +6,9 @@
 {% block page_title %}
 <i class="fas fa-user-tag fa-fw"></i> Asignar Rol: {{ usuario.nombre_usuario }}
 {% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/asigar_rol.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="assign-role-container">
@@ -22,7 +25,7 @@
                     <h5>Rol actual:</h5>
                     {% if usuario.rol %}
                     <div class="current-role-badge">
-                        <span class="badge badge-primary">{{ usuario.rol.nombre_rol }}</span>
+                        <span class="badge badge-secondary">{{ usuario.rol.nombre_rol }}</span>
                     </div>
                     {% else %}
                     <p class="text-muted">No tiene rol asignado</p>

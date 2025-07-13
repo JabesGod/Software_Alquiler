@@ -15,7 +15,7 @@ from django.contrib import messages
 from ..serializers import PagoSerializer, PagoDetalleSerializer
 from ..utils import enviar_notificacion_pago
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.http import HttpResponse
 from django.template.loader import get_template
 from xhtml2pdf import pisa
@@ -23,6 +23,7 @@ from io import BytesIO
 from django.db.models import Count, Sum
 
 @login_required
+@permission_required('alquiler.view_pago', raise_exception=True)
 def listar_pagos(request):
     pagos = Pago.objects.select_related('alquiler', 'alquiler__cliente')
     

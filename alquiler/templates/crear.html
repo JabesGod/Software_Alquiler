@@ -209,13 +209,17 @@
             <div class="upload-area">
                 <div class="file-upload-card">
                     <label class="file-upload-label">
-                        {{ form.fotos }}
-                        <div class="upload-content">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p>Arrastra fotos aquí o haz clic para seleccionar</p>
-                            <small class="text-muted">Formatos: JPG, PNG. Máx. 5MB por imagen.</small>
-                        </div>
-                    </label>
+    <input type="file" name="fotos" multiple>
+    <div class="upload-content">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p>Arrastra fotos aquí o haz clic para seleccionar</p>
+        <small class="text-muted">
+            Formatos: JPG, PNG. Máx. 5MB por imagen.<br>
+            <strong>Este campo es opcional.</strong>
+        </small>
+    </div>
+</label>
+
                     <div class="invalid-feedback">{{ form.fotos.errors }}</div>
                 </div>
             </div>

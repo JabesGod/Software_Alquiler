@@ -215,9 +215,10 @@ class FotoEquipo(models.Model):
         verbose_name="Equipo asociado"
     )
     foto = models.ImageField(
-        upload_to='fotos_equipos/',  # asegúrate que `equipo_foto_upload_path` esté definido, o usa una ruta por defecto
+        upload_to='fotos_equipos/',  
         verbose_name="Archivo de imagen",
-        help_text="Suba una foto del equipo"
+        help_text="Suba una foto del equipo",
+        null=True, blank=True
     )
     es_principal = models.BooleanField(
         default=False,

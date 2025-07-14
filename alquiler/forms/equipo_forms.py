@@ -63,11 +63,10 @@ class EquipoBaseForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Ingrese números de serie separados por comas\nEj: SN123, SN456, SN789'
             }),
-            # ... (otros widgets permanecen igual)
+
         }
         help_texts = {
             'numero_serie': 'Ingrese todos los números de serie separados por comas',
-            # ... (otros help_texts)
         }
 
     def clean_numero_serie(self):
@@ -140,15 +139,13 @@ class EquipoForm(EquipoBaseForm):
 
     def clean_fotos(self):
         fotos = self.files.getlist('fotos')
-        if not self.instance.pk and not fotos:
-            raise ValidationError("Debe subir al menos una foto del equipo.")
-        
         for foto in fotos:
-            if foto.size > 5 * 1024 * 1024:  # 5MB
+            if foto.size > 5 * 1024 * 1024:
                 raise ValidationError(f"La foto {foto.name} es demasiado grande (máximo 5MB).")
             if foto.content_type not in ['image/jpeg', 'image/png', 'image/gif', 'image/webp']:
                 raise ValidationError(f"Tipo de archivo no soportado para {foto.name}. Use JPG, PNG, GIF o WEBP.")
         return fotos
+
 
     def save(self, commit=True):
         equipo = super().save(commit=False)
@@ -176,37 +173,50 @@ class EquipoEditForm(EquipoBaseForm):
     # Versión para edición que no requiere fotos
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['fotos'] = MultipleFileField(
+        # Agregar campo para nuevas fotos adicionales
+        self.fields['nuevas_fotos'] = MultipleFileField(
             required=False,
             label="Subir fotos adicionales",
             help_text="Seleccione fotos adicionales (opcional)"
         )
     
+    def clean_nuevas_fotos(self):
+        """Validar las nuevas fotos que se están subiendo"""
+        fotos = self.files.getlist('nuevas_fotos[]')  # Nota el [] en el nombre
+        for foto in fotos:
+            if foto.size > 5 * 1024 * 1024:
+                raise ValidationError(f"La foto {foto.name} es demasiado grande (máximo 5MB).")
+            if foto.content_type not in ['image/jpeg', 'image/png', 'image/gif', 'image/webp']:
+                raise ValidationError(f"Tipo de archivo no soportado para {foto.name}. Use JPG, PNG, GIF o WEBP.")
+        return fotos
+    
     def clean(self):
         cleaned_data = super().clean()
         
-        # Validar que haya al menos una foto (existente o nueva)
-        fotos_subidas = self.files.getlist('fotos')
-        if not self.instance.fotos.exists() and not fotos_subidas:
-            raise ValidationError("El equipo debe tener al menos una foto.")
+        # No validar fotos aquí, ya que se manejan a través del formset
+        # La validación de fotos se debe hacer en la vista después de procesar el formset
         
         return cleaned_data
     
     def save(self, commit=True):
-        equipo = super().save(commit=commit)
-        
-        fotos_subidas = self.files.getlist('fotos')
-        if fotos_subidas:
-            # Al editar, las nuevas fotos no serán principales
-            for foto in fotos_subidas:
-                FotoEquipo.objects.create(
-                    equipo=equipo,
-                    foto=foto,
-                    es_principal=False,
-                    descripcion=f"Foto adicional del equipo {equipo.marca} {equipo.modelo}"
-                )
-        
+        equipo = super().save(commit=False)
+
+        if commit:
+            equipo.save()
+
+            # Guardar nuevas fotos adicionales si las hay
+            nuevas_fotos = self.files.getlist('nuevas_fotos[]')
+            if nuevas_fotos:
+                for i, foto in enumerate(nuevas_fotos):
+                    FotoEquipo.objects.create(
+                        equipo=equipo,
+                        foto=foto,
+                        es_principal=False,  # Las nuevas fotos no son principales por defecto
+                        descripcion=f"Foto del equipo {equipo.marca} {equipo.modelo}"
+                    )
+
         return equipo
+
 
 # Formset para manejar fotos existentes
 FotoEquipoFormSet = forms.inlineformset_factory(

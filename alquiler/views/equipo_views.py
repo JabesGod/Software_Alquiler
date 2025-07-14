@@ -86,12 +86,11 @@ def crear_equipo(request):
         'titulo': 'Crear Nuevo Equipo'
     })
 
-
 @login_required
 @permission_required('alquiler.change_equipo', raise_exception=True)
 def editar_equipo(request, id):
     equipo = get_object_or_404(Equipo, pk=id)
-    
+
     if not request.user.is_staff:
         messages.error(request, 'No tienes permiso para editar equipos.')
         return redirect('alquiler:detalle_equipo', pk=equipo.pk)
@@ -105,53 +104,86 @@ def editar_equipo(request, id):
     )
 
     if request.method == 'POST':
-        form = EquipoEditForm(request.POST, request.FILES, instance=equipo)
-        formset = FotoEquipoFormSet(request.POST, request.FILES, instance=equipo)
-        
+        form = EquipoEditForm(data=request.POST, files=request.FILES, instance=equipo)
+        formset = FotoEquipoFormSet(data=request.POST, files=request.FILES, instance=equipo)
+
         if form.is_valid() and formset.is_valid():
             try:
-                form.save()
-                instances = formset.save()
+                # Verificar que habrá al menos una foto después de las operaciones
+                fotos_existentes = equipo.fotos.all()
+                fotos_a_eliminar = []
                 
-                # Procesar nuevas fotos subidas
-                nuevas_fotos = request.FILES.getlist('nuevas_fotos')
-                if nuevas_fotos:
-                    for i, foto in enumerate(nuevas_fotos):
+                # Contar fotos que se van a eliminar
+                for form_foto in formset.forms:
+                    if form_foto.cleaned_data.get('DELETE'):
+                        if form_foto.instance.pk:
+                            fotos_a_eliminar.append(form_foto.instance.pk)
+                
+                # Contar fotos que quedarán después de eliminar
+                fotos_restantes = fotos_existentes.exclude(pk__in=fotos_a_eliminar).count()
+                
+                # Contar nuevas fotos que se están agregando
+                nuevas_fotos_formset = sum(1 for form_foto in formset.forms 
+                                        if form_foto.cleaned_data.get('foto') and not form_foto.cleaned_data.get('DELETE'))
+                
+                # Contar fotos adicionales desde el input múltiple
+                nuevas_fotos_adicionales = len(request.FILES.getlist('nuevas_fotos[]'))
+                
+                total_fotos_finales = fotos_restantes + nuevas_fotos_formset + nuevas_fotos_adicionales
+                
+                if total_fotos_finales == 0:
+                    form.add_error(None, "El equipo debe tener al menos una foto.")
+                    print("[DEBUG] No hay fotos suficientes:", {
+                        'fotos_restantes': fotos_restantes,
+                        'nuevas_fotos_formset': nuevas_fotos_formset,
+                        'nuevas_fotos_adicionales': nuevas_fotos_adicionales
+                    })
+                else:
+                    # Guardar el equipo y las fotos
+                    equipo = form.save()
+                    formset.save()
+                    
+                    # Procesar fotos adicionales
+                    nuevas_fotos = request.FILES.getlist('nuevas_fotos[]')
+                    for foto in nuevas_fotos:
                         FotoEquipo.objects.create(
                             equipo=equipo,
                             foto=foto,
-                            es_principal=False,  # No marcar como principal automáticamente
-                            descripcion=f"Foto adicional del equipo {equipo.marca} {equipo.modelo}"
+                            es_principal=False,
+                            descripcion=f"Foto del equipo {equipo.marca} {equipo.modelo}"
                         )
-                
-                # Asegurar que solo haya una foto principal
-                fotos_principales = equipo.fotos.filter(es_principal=True)
-                if fotos_principales.count() > 1:
-                    # Mantener la más reciente como principal
-                    ultima_principal = fotos_principales.order_by('-id').first()
-                    equipo.fotos.exclude(id=ultima_principal.id).update(es_principal=False)
-                elif fotos_principales.count() == 0 and equipo.fotos.exists():
-                    # Si no hay principal pero hay fotos, establecer la primera como principal
-                    equipo.fotos.first().es_principal = True
-                    equipo.fotos.first().save()
-                
-                messages.success(request, f'Equipo {equipo} actualizado exitosamente!')
-                return redirect('alquiler:detalle_equipo', id=equipo.id)
-                
+
+                    # Validar que haya al menos una principal
+                    fotos_principales = equipo.fotos.filter(es_principal=True)
+                    if fotos_principales.count() > 1:
+                        ultima = fotos_principales.order_by('-id').first()
+                        equipo.fotos.exclude(id=ultima.id).update(es_principal=False)
+                    elif fotos_principales.count() == 0 and equipo.fotos.exists():
+                        primera = equipo.fotos.first()
+                        primera.es_principal = True
+                        primera.save()
+
+                    messages.success(request, f'Equipo {equipo} actualizado exitosamente!')
+                    return redirect('alquiler:detalle_equipo', id=equipo.id)
+
             except Exception as e:
                 messages.error(request, f'Error al guardar los cambios: {str(e)}')
-                print(f"Error al guardar equipo: {str(e)}")
+                print(f"[ERROR] Guardando equipo: {str(e)}")
+
+        if not (form.is_valid() and formset.is_valid()):
+            print("[DEBUG] Errores form:", form.errors)
+            print("[DEBUG] Errores formset:", formset.errors)
+
     else:
         form = EquipoEditForm(instance=equipo)
         formset = FotoEquipoFormSet(instance=equipo)
-    
+
     return render(request, 'editar.html', {
         'form': form,
         'formset': formset,
         'equipo': equipo,
         'titulo': f'Editar {equipo.marca} {equipo.modelo}'
     })
-
 
 @permission_required('alquiler.delete_equipo', raise_exception=True)
 @require_POST

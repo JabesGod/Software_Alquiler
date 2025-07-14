@@ -7,7 +7,9 @@
 <link rel="stylesheet" href="{% static 'css/equipos.css' %}">
 <link rel="stylesheet" href="{% static 'css/crear_equipo.css' %}">
 {% endblock %}
-
+{% block extra_js %}
+<script src="{% static 'js/crear_cliente.js' %}"></script>
+{% endblock %}
 {% block content %}
 <div class="client-form-container">
     <div class="client-form-header">
@@ -278,8 +280,6 @@
     </form>
 </div>
 
-{% block extra_js %}
-<script src="{% static 'js/crear_cliente.js' %}"></script>
-{% endblock %}
+
 
 {% endblock %}

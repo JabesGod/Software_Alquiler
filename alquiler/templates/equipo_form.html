@@ -142,7 +142,7 @@
         </div>
         
         <div class="d-flex justify-content-between">
-            <a href="{% if equipo %}{% url 'detalle_equipo' equipo.pk %}{% else %}{% url 'listar_equipos' %}{% endif %}" class="btn btn-secondary">
+            <a href="{% if equipo %}{% url 'alquiler:detalle_equipo' equipo.pk %}{% else %}{% url 'alquiler:listar_equipos' %}{% endif %}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Cancelar
             </a>
             <button type="submit" class="btn btn-primary">

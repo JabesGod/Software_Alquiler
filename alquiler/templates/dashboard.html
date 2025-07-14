@@ -19,7 +19,7 @@
             <!-- Botones de acción -->
             <div class="d-flex flex-wrap gap-2">
                 <!-- Botón: Enviar alertas -->
-                <form action="{% url 'enviar_alertas_vencimiento' %}" method="post" class="d-inline m-0">
+                <form action="{% url 'alquiler:enviar_alertas_vencimiento' %}" method="post" class="d-inline m-0">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-warning btn-sm btn-action d-flex align-items-center">
                         <i class="fas fa-bell me-1"></i> Enviar Alertas
@@ -27,7 +27,7 @@
                 </form>
 
                 <!-- Botón: Exportar CSV -->
-                <a href="{% url 'exportar_equipos_csv' %}"
+                <a href="{% url 'alquiler:exportar_equipos_csv' %}"
                     class="btn btn-primary btn-sm btn-action d-flex align-items-center">
                     <i class="fas fa-file-export me-1"></i> Exportar Datos
                 </a>
@@ -87,7 +87,7 @@
                                     Pagos Pendientes</div>
                                 <div class="h5 mb-0 fw-bold text-gray-800">{{ pagos_pendientes }}</div>
                                 <div class="mt-2">
-                                    <a href="{% url 'pagos_pendientes_admin' %}" class="text-xs">Ver detalles</a>
+                                    <a href="{% url 'alquiler:pagos_pendientes_admin' %}" class="text-xs">Ver detalles</a>
                                 </div>
                             </div>
                             <div class="col-auto">
@@ -210,7 +210,7 @@
                     <h6 class="m-0 font-weight-bold text-success">
                         <i class="fas fa-history me-1"></i>Últimos Alquileres (excluye reservas)
                     </h6>
-                    <a href="{% url 'listar_alquileres' %}" class="btn btn-sm btn-success">Ver todos</a>
+                    <a href="{% url 'alquiler:listar_alquileres' %}" class="btn btn-sm btn-success">Ver todos</a>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -254,7 +254,7 @@
                     <h6 class="m-0 font-weight-bold text-info">
                         <i class="fas fa-chart-bar me-1"></i>Equipos Más Alquilados
                     </h6>
-                    <a href="{% url 'equipos_mas_alquilados' %}" class="btn btn-sm btn-info">Ver ranking</a>
+                    <a href="{% url 'alquiler:equipos_mas_alquilados' %}" class="btn btn-sm btn-info">Ver ranking</a>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">

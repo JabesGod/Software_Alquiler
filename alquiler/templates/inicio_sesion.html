@@ -52,7 +52,7 @@
       </div>
 
       <!-- Formulario Login -->
-      <form method="post" action="{% url 'inicio_sesion' %}"
+      <form method="post" action="{% url 'alquiler:inicio_sesion' %}"
         class="form {% if form_type == 'inicio' %}active{% endif %}" id="login-form">
         {% csrf_token %}
         <div class="input-group">
@@ -68,7 +68,7 @@
       </form>
 
       <!-- Formulario Registro -->
-      <form method="post" action="{% url 'registro' %}" class="form {% if form_type == 'registro' %}active{% endif %}"
+      <form method="post" action="{% url 'alquiler:registro' %}" class="form {% if form_type == 'registro' %}active{% endif %}"
         id="register-form">
         {% csrf_token %}
         <div class="input-group">

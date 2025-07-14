@@ -23,7 +23,7 @@ def crear_cliente(request):
         form = ClienteForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect('listar_clientes')
+            return redirect('alquiler:listar_clientes')
         else:
             print("Errores de formulario:", form.errors)  # <--- Agrega esto
     else:
@@ -38,7 +38,7 @@ def editar_cliente(request, id):
     form = ClienteForm(request.POST or None, request.FILES or None, instance=cliente)
     if form.is_valid():
         form.save()
-        return redirect('listar_clientes')
+        return redirect('alquiler:listar_clientes')
     return render(request, 'editar_cliente.html', {'form': form, 'cliente': cliente})
 
 # Detalle del cliente con historial completo
@@ -59,14 +59,14 @@ def cambiar_estado_verificacion(request, id, nuevo_estado):
     cliente = get_object_or_404(Cliente, id=id)
     cliente.estado_verificacion = nuevo_estado
     cliente.save()
-    return redirect('detalle_cliente', id=id)
+    return redirect('alquiler:detalle_cliente', id=id)
 
 # Bloquear cliente
 def bloquear_cliente(request, id):
     cliente = get_object_or_404(Cliente, id=id)
     cliente.estado_verificacion = 'rechazado'
     cliente.save()
-    return redirect('detalle_cliente', id=id)
+    return redirect('alquiler:detalle_cliente', id=id)
 
 def clientes_morosos(request):
     # Ejecutar la actualización primero
@@ -90,7 +90,7 @@ def marcar_como_moroso(request, cliente_id):
         cliente.save()
         
         messages.warning(request, f'{cliente.nombre} ha sido marcado como moroso')
-        return redirect('detalle_cliente', cliente_id=cliente.id)
+        return redirect('alquiler:detalle_cliente', cliente_id=cliente.id)
     
     return render(request, 'confirmar_moroso.html', {'cliente': cliente})
 
@@ -133,7 +133,7 @@ def validar_documentos_cliente(request, id):
     else:
         messages.error(request, "Faltan documentos por subir.")
 
-    return redirect('detalle_cliente', id=id)
+    return redirect('alquiler:detalle_cliente', id=id)
 
 
 
@@ -148,7 +148,7 @@ def registrar_pago_parcial(request, id_alquiler):
             pago.estado_pago = 'parcial'
             pago.save()
             messages.success(request, "Pago parcial registrado.")
-            return redirect('detalle_cliente', id=alquiler.cliente.id)
+            return redirect('alquiler:detalle_cliente', id=alquiler.cliente.id)
     else:
         form = PagoForm()
 

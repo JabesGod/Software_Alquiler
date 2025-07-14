@@ -124,19 +124,19 @@
         </div>
     </div>
     <div class="action-buttons">
-        <a href="{% url 'cambiar_estado_verificacion' cliente.id 'verificado' %}" class="btn-action btn-verify">
+        <a href="{% url 'alquiler:cambiar_estado_verificacion' cliente.id 'verificado' %}" class="btn-action btn-verify">
             <i class="fas fa-check-circle"></i> Verificar
         </a>
-        <a href="{% url 'bloquear_cliente' cliente.id %}" class="btn-action btn-block">
+        <a href="{% url 'alquiler:bloquear_cliente' cliente.id %}" class="btn-action btn-block">
             <i class="fas fa-ban"></i> Bloquear
         </a>
-        <a href="{% url 'validar_documentos_cliente' cliente.id %}" class="btn-action btn-docs">
+        <a href="{% url 'alquiler:validar_documentos_cliente' cliente.id %}" class="btn-action btn-docs">
             <i class="fas fa-file-alt"></i> Validar Documentos
         </a>
-        <a href="{% url 'listar_clientes' %}" class="btn-action btn-back">
+        <a href="{% url 'alquiler:listar_clientes' %}" class="btn-action btn-back">
             <i class="fas fa-arrow-left"></i> Volver
         </a>
-        <a href="{% url 'editar_cliente' cliente.id %}" class="btn-action btn-edit-cliente">
+        <a href="{% url 'alquiler:editar_cliente' cliente.id %}" class="btn-action btn-edit-cliente">
             <i class="fas fas fa-pencil-alt"></i>Editar
         </a>
     </div>
@@ -186,7 +186,7 @@
                     Vence: {{ pago.fecha_pago|date:"d/m/Y" }}
                 </div>
                 <div class="history-item-actions">
-                    <a href="{% url 'registrar_pago_parcial' pago.alquiler.id %}" class="btn-payment">
+                    <a href="{% url 'alquiler:registrar_pago_parcial' pago.alquiler.id %}" class="btn-payment">
                         <i class="fas fa-money-check-alt"></i> Registrar Pago
                     </a>
                 </div>

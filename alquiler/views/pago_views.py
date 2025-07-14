@@ -97,7 +97,7 @@ def cambiar_estado_pago(request, pago_id, nuevo_estado):
     else:
         messages.error(request, 'Estado inválido')
     
-    return redirect('detalle_pago', pago_id=pago.id)
+    return redirect('alquiler:detalle_pago', pago_id=pago.id)
 
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)
@@ -151,7 +151,7 @@ def registrar_pago(request):
                 pago.alquiler.estado_alquiler = 'finalizado'
                 pago.alquiler.save()
             
-            return redirect('detalle_pago', pago_id=pago.id)
+            return redirect('alquiler:detalle_pago', pago_id=pago.id)
     else:
         form = PagoForm()
     
@@ -193,7 +193,7 @@ def editar_pago(request, pago_id):
             pago.save()
             print(f"Pago actualizado y guardado: {pago}")
             messages.success(request, 'Pago actualizado correctamente')
-            return redirect('detalle_pago', pago_id=pago.id)
+            return redirect('alquiler:detalle_pago', pago_id=pago.id)
         else:
             print("Formulario inválido")
             print("Errores del formulario:", form.errors)
@@ -221,7 +221,7 @@ def eliminar_pago(request, pago_id):
         pago.delete()
         print(f"Pago #{pago_id} eliminado.")
         messages.success(request, f'Pago #{pago_id} eliminado correctamente.')
-        return redirect('lista_pagos')
+        return redirect('alquiler:lista_pagos')
     
     print("Método: GET - mostrando plantilla de confirmación")
     context = {
@@ -314,7 +314,7 @@ def registrar_pago_parcial(request):
             pago.save()
             
             messages.success(request, f'Pago parcial #{pago.id} registrado correctamente.')
-            return redirect('detalle_pago', pago_id=pago.id)
+            return redirect('alquiler:detalle_pago', pago_id=pago.id)
     else:
         # Si viene con alquiler_id en los parámetros GET
         alquiler_id = request.GET.get('alquiler_id')
@@ -469,7 +469,7 @@ def registrar_pago_contra_obligacion(request, pago_id):
                 pago_obligacion.save()
                 
                 messages.success(request, 'Pago registrado correctamente actualizando la obligación existente')
-                return redirect('detalle_pago', pago_id=pago_obligacion.id)
+                return redirect('alquiler:detalle_pago', pago_id=pago_obligacion.id)
             else:
                 # Pago parcial - crear nuevo registro y ajustar obligación
                 pago_obligacion.monto -= nuevo_pago.monto
@@ -481,7 +481,7 @@ def registrar_pago_contra_obligacion(request, pago_id):
                 nuevo_pago.save()
                 
                 messages.success(request, 'Pago parcial registrado correctamente')
-                return redirect('detalle_pago', pago_id=nuevo_pago.id)
+                return redirect('alquiler:detalle_pago', pago_id=nuevo_pago.id)
     else:
         form = PagoForm(initial={
             'alquiler': pago_obligacion.alquiler,

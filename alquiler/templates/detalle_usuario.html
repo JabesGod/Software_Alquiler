@@ -30,10 +30,10 @@
         </div>
         
         <div class="user-actions">
-            <a href="{% url 'editar_usuario' usuario.id %}" class="btn btn-secondary">
+            <a href="{% url 'alquiler:editar_usuario' usuario.id %}" class="btn btn-secondary">
                 <i class="fas fa-edit"></i> Editar
             </a>
-            <a href="{% url 'cambiar_contrasena' usuario.id %}" class="btn btn-secondary">
+            <a href="{% url 'alquiler:cambiar_contrasena' usuario.id %}" class="btn btn-secondary">
                 <i class="fas fa-key"></i> Contraseña
             </a>
             {% if usuario.id != request.user.id %}
@@ -107,11 +107,11 @@
                 <h3>Acciones Rápidas</h3>
             </div>
             <div class="info-block-content actions">
-                <a href="{% url 'auditoria_usuario' usuario.id %}" class="action-link">
+                <a href="{% url 'alquiler:auditoria_usuario' usuario.id %}" class="action-link">
                     <i class="fas fa-history"></i> Ver historial de auditoría
                 </a>
                 {% if usuario.id != request.user.id %}
-                <a href="{% url 'confirmar_eliminar_usuario' usuario.id %}" class="action-link text-danger">
+                <a href="{% url 'alquiler:confirmar_eliminar_usuario' usuario.id %}" class="action-link text-danger">
                     <i class="fas fa-trash"></i> Eliminar usuario
                 </a>
                 {% endif %}
@@ -129,7 +129,7 @@
                     <i class="fas fa-info-circle"></i> 
                     Módulo de actividad en desarrollo. Próximamente se mostrará el historial completo.
                 </div>
-                <a href="{% url 'auditoria_usuario' usuario.id %}" class="btn btn-secondary">
+                <a href="{% url 'alquiler:auditoria_usuario' usuario.id %}" class="btn btn-secondary">
                     <i class="fas fa-history mt-5"></i> Ver historial completo
                 </a>
             </div>

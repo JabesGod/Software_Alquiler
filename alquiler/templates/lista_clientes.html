@@ -12,7 +12,7 @@
 {% block content %}
 <div class="clientes-container">
     <div class="clientes-container">
-        <a href="{% url 'crear_cliente' %}" class="btn-add-client btn-cliente">
+        <a href="{% url 'alquiler:crear_cliente' %}" class="btn-add-client btn-cliente">
             <i class="fas fa-user-plus"></i> Registrar Cliente
         </a>
         <div class="clientes-cards-container">
@@ -41,7 +41,7 @@
                     </p>
                 </div>
                 <div class="card-footer">
-                    <a href="{% url 'detalle_cliente' cliente.id %}" class="btn-card">Ver Detalle</a>
+                    <a href="{% url 'alquiler:detalle_cliente' cliente.id %}" class="btn-card">Ver Detalle</a>
                 </div>
             </div>
             {% empty %}

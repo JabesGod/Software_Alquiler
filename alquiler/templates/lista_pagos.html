@@ -13,19 +13,19 @@
     <div class="pagos-header">
         <h2>Todos los Pagos</h2>
         <div class="header-actions">
-            <a href="{% url 'registrar_pago' %}" class="btn btn-primary">
+            <a href="{% url 'alquiler:registrar_pago' %}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Registrar Pago
             </a>
-            <a href="{% url 'pagos_vencidos' %}" class="btn btn-outline-primary">
+            <a href="{% url 'alquiler:pagos_vencidos' %}" class="btn btn-outline-primary">
                 <i class="fas fa-exclamation-triangle"></i> Pagos Vencidos
             </a>
-            <a href="{% url 'pagos_proximos' %}" class="btn btn-outline-primary">
+            <a href="{% url 'alquiler:pagos_proximos' %}" class="btn btn-outline-primary">
                 <i class="fas fa-clock"></i> Próximos a Vencer
             </a>
-            <a href="{% url 'pagos_parciales' %}" class="btn btn-outline-primary">
+            <a href="{% url 'alquiler:pagos_parciales' %}" class="btn btn-outline-primary">
                 <i class="fas fa-money-bill-alt"></i> Parciales
             </a>
-            <a href="{% url 'reportes_pagos' %}" class="btn btn-outline-primary">
+            <a href="{% url 'alquiler:reportes_pagos' %}" class="btn btn-outline-primary">
                 <i class="fas fa-chart-bar"></i> Reportes
             </a>
         </div>
@@ -89,7 +89,7 @@
             <button type="submit" class="btn btn-primary mr-2">
                 <i class="fas fa-filter"></i> Filtrar
             </button>
-            <a href="{% url 'lista_pagos' %}" class="btn btn-outline-secondary">
+            <a href="{% url 'alquiler:lista_pagos' %}" class="btn btn-outline-secondary">
                 <i class="fas fa-broom"></i> Limpiar
             </a>
         </form>
@@ -116,12 +116,12 @@
                 <tr>
                     <td>#{{ pago.id }}</td>
                     <td>
-                        <a href="{% url 'detalle_cliente' pago.alquiler.cliente.id %}">
+                        <a href="{% url 'alquiler:detalle_cliente' pago.alquiler.cliente.id %}">
                             {{ pago.alquiler.cliente.nombre }}
                         </a>
                     </td>
                     <td>
-                        <a href="{% url 'detalle_alquiler' pago.alquiler.id %}">
+                        <a href="{% url 'alquiler:detalle_alquiler' pago.alquiler.id %}">
                             {{ pago.alquiler.numero_factura|default:"Sin factura" }}
                         </a>
                     </td>
@@ -152,7 +152,7 @@
                                 title="Ver detalle">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{% url 'editar_pago' pago.id %}" class="btn btn-sm btn-warning" title="Editar">
+                            <a href="{% url 'alquiler:editar_pago' pago.id %}" class="btn btn-sm btn-warning" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </a>
                             {% if pago.estado_pago == 'pendiente' %}
@@ -161,7 +161,7 @@
                                 <i class="fas fa-check"></i>
                             </a>
                             {% endif %}
-                            <a href="{% url 'eliminar_pago' pago.id %}" class="btn btn-sm btn-danger" title="Eliminar">
+                            <a href="{% url 'alquiler:eliminar_pago' pago.id %}" class="btn btn-sm btn-danger" title="Eliminar">
                                 <i class="fas fa-trash-alt"></i>
                             </a>
                         </div>
@@ -202,7 +202,7 @@
             </div>
             <h3>No se encontraron pagos</h3>
             <p class="text-muted mb-4">No hay registros de pagos que coincidan con los criterios de búsqueda.</p>
-            <a href="{% url 'registrar_pago' %}" class="btn btn-primary btn-lg">
+            <a href="{% url 'alquiler:registrar_pago' %}" class="btn btn-primary btn-lg">
                 <i class="fas fa-plus"></i> Registrar Primer Pago
             </a>
         </div>

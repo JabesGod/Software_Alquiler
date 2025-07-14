@@ -11,7 +11,7 @@
 
 {% block content %}
 <div class="contenedor">
-    <a href="{% url 'listar_equipos' %}" class="btn-back">
+    <a href="{% url 'alquiler:listar_equipos' %}" class="btn-back">
         <i class="fas fa-arrow-left"></i> Volver a la lista
     </a>
 
@@ -194,7 +194,7 @@
                 {% endif %}
                 </td>
                     <td class="text-center">
-                        <a href="{% url 'detalle_equipo' equipo.id %}" class="btn-action" title="Ver detalle">
+                        <a href="{% url 'alquiler:detalle_equipo' equipo.id %}" class="btn-action" title="Ver detalle">
                             <i class="fas fa-eye"></i>
                         </a>
                     </td>

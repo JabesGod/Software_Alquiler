@@ -71,7 +71,7 @@
                         {% for usuario in page_obj %}
                         <tr>
                             <td class="user-cell">
-                                <a href="{% url 'detalle_usuario' usuario.id %}" class="user-link">
+                                <a href="{% url 'alquiler:detalle_usuario' usuario.id %}" class="user-link">
                                     {{ usuario.nombre_usuario }}
                                 </a>
                                 {% if usuario.is_staff %}
@@ -95,19 +95,19 @@
                             </td>
                             <td class="actions-cell">
                                 <div class="action-buttons">
-                                    <a href="{% url 'editar_usuario' usuario.id %}" class="action-button edit" title="Editar">
+                                    <a href="{% url 'alquiler:editar_usuario' usuario.id %}" class="action-button edit" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="{% url 'cambiar_contrasena' usuario.id %}" class="action-button password" title="Cambiar contraseña">
+                                    <a href="{% url 'alquiler:cambiar_contrasena' usuario.id %}" class="action-button password" title="Cambiar contraseña">
                                         <i class="fas fa-key"></i>
                                     </a>
-                                    <a href="{% url 'cambiar_estado_usuario' usuario.id %}" 
+                                    <a href="{% url 'alquiler:cambiar_estado_usuario' usuario.id %}" 
                                        class="action-button status {% if usuario.is_active %}deactivate{% else %}activate{% endif %}" 
                                        title="{% if usuario.is_active %}Desactivar{% else %}Activar{% endif %}">
                                         <i class="fas fa-{% if usuario.is_active %}times{% else %}check{% endif %}"></i>
                                     </a>
                                     {% if usuario.id != request.user.id %}
-                                    <a href="{% url 'confirmar_eliminar_usuario' usuario.id %}" class="action-button delete" title="Eliminar">
+                                    <a href="{% url 'alquiler:confirmar_eliminar_usuario' usuario.id %}" class="action-button delete" title="Eliminar">
                                         <i class="fas fa-trash "></i>
                                     </a>
                                     {% endif %}

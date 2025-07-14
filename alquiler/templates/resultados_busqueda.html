@@ -17,17 +17,17 @@
                 <div class="result-item" data-type="{{ resultado.tipo_resultado|lower }}">
                     <h3>
                         {% if resultado.tipo_resultado == 'Equipo' %}
-                            <a href="{% url 'detalle_equipo' resultado.id %}">
+                            <a href="{% url 'alquiler:detalle_equipo' resultado.id %}">
                                 <i class="fas fa-laptop"></i>
                                 {{ resultado.marca }} {{ resultado.modelo }} {{resultado.foto}}
                             </a>
                         {% elif resultado.tipo_resultado == 'Cliente' %}
-                            <a href="{% url 'detalle_cliente' resultado.id %}">
+                            <a href="{% url 'alquiler:detalle_cliente' resultado.id %}">
                                 <i class="fas fa-user"></i>
                                 {{ resultado.nombre }}
                             </a>
                         {% elif resultado.tipo_resultado == 'Alquiler' %}
-                            <a href="{% url 'detalle_alquiler' resultado.id %}">
+                            <a href="{% url 'alquiler:detalle_alquiler' resultado.id %}">
                                 <i class="fas fa-handshake"></i>
                                 Alquiler de: {{ resultado.cliente }}
                             </a>

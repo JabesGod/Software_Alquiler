@@ -15,7 +15,7 @@
         <div class="card-header">
             <h2 class="card-title">Listado de Roles</h2>
             <div class="header-actions">
-                <a href="{% url 'crear_rol' %}" class="btn btn-primary">
+                <a href="{% url 'alquiler:crear_rol' %}" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Nuevo Rol
                 </a>
             </div>
@@ -54,10 +54,10 @@
                             </td>
                             <td class="actions-cell">
                                 <div class="action-buttons">
-                                    <a href="{% url 'editar_rol' rol.id %}" class="action-button edit" title="Editar">
+                                    <a href="{% url 'alquiler:editar_rol' rol.id %}" class="action-button edit" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="{% url 'eliminar_rol' rol.id %}" class="action-button delete"
+                                    <a href="{% url 'alquiler:eliminar_rol' rol.id %}" class="action-button delete"
                                         title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                     </a>

@@ -15,7 +15,7 @@
         </h1>
 
         {% if request.user.is_staff %}
-        <a href="{% url 'crear_equipo' %}" class="btn btn-primary">
+        <a href="{% url 'alquiler:crear_equipo' %}" class="btn btn-primary">
             <i class="fas fa-plus-circle me-2"></i>Agregar nuevo equipo
         </a>
         {% endif %}
@@ -25,35 +25,35 @@
         <div class="d-flex flex-wrap justify-content-start align-items-center gap-3 mt-5 filtro-botones mt-5">
             {% if request.user.is_staff %}
             <button type="button" class="btn btn-sm btn-outline-secondary"
-                onclick="window.location.href='{% url 'listar_equipos' %}'">
+                onclick="window.location.href='{% url 'alquiler:listar_equipos' %}'">
                 <i class="fas fa-list-ol me-1"></i>Todos
             </button>
             {% endif %}
             <button type="button" class="btn btn-sm btn-outline-success"
-                onclick="window.location.href='{% url 'equipos_por_estado' 'disponible' %}'">
+                onclick="window.location.href='{% url 'alquiler:equipos_por_estado' 'disponible' %}'">
                 <i class="fas fa-check-circle me-1"></i>Disponibles
             </button>
             {% if request.user.is_staff %}
             <button type="button" class="btn btn-sm btn-outline-danger"
-                onclick="window.location.href='{% url 'equipos_por_estado' 'alquilado' %}'">
+                onclick="window.location.href='{% url 'alquiler:equipos_por_estado' 'alquilado' %}'">
                 <i class="fas fa-handshake me-1"></i>Alquilados
             </button>
             {% endif %}
             {% if request.user.is_staff %}
             <button type="button" class="btn btn-sm btn-outline-warning"
-                onclick="window.location.href='{% url 'equipos_por_estado' 'reservado' %}'">
+                onclick="window.location.href='{% url 'alquiler:equipos_por_estado' 'reservado' %}'">
                 <i class="fas fa-calendar-check me-1"></i>Reservados
             </button>
             {% endif %}
             {% if request.user.is_staff %}
             <button type="button" class="btn btn-sm btn-outline-info"
-                onclick="window.location.href='{% url 'equipos_por_estado' 'mantenimiento' %}'">
+                onclick="window.location.href='{% url 'alquiler:equipos_por_estado' 'mantenimiento' %}'">
                 <i class="fas fa-tools me-1"></i>Mantenimiento
             </button>
             {% endif %}
             {% if request.user.is_staff %}
             <button type="button" class="btn btn-sm btn-outline-info"
-                onclick="window.location.href='{% url 'equipos_mas_alquilados' %}'">
+                onclick="window.location.href='{% url 'alquiler:equipos_mas_alquilados' %}'">
                 <i class="fas fa-chart-line me-1"></i>Más Alquilados
             </button>
             {% endif %}
@@ -118,11 +118,11 @@
                         <i class="fas fa-{{ equipo.estado_icono }} me-1"></i>
                         {{ equipo.get_estado_display }}
                     </span>
-                    <a href="{% url 'detalle_equipo' equipo.id %}" class="btn-action btn-detalle">
+                    <a href="{% url 'alquiler:detalle_equipo' equipo.id %}" class="btn-action btn-detalle">
                         <i class="fas fa-eye me-1"></i>Ver
                     </a>
                     {% if request.user.is_staff %}
-                    <a href="{% url 'proxima_disponibilidad' equipo.id %}" class="btn-action btn-disponibilidad">
+                    <a href="{% url 'alquiler:proxima_disponibilidad' equipo.id %}" class="btn-action btn-disponibilidad">
                         <i class="fas fa-calendar me-1"></i> Disponibilidad
                     </a>
                     {% endif %}
@@ -174,7 +174,7 @@
                 </div>
 
                 <div class="quick-view-footer">
-                    <a href="{% url 'detalle_equipo' equipo.id %}" class="btn-action btn-detalle">
+                    <a href="{% url 'alquiler:detalle_equipo' equipo.id %}" class="btn-action btn-detalle">
                         <i class="fas fa-eye me-1"></i> Ver detalle completo
                     </a>
                     <button class="btn-action btn-secondary close-quick-view-btn">
@@ -190,7 +190,7 @@
         <i class="fas fa-info-circle fa-2x mb-3"></i>
         <h4>No hay equipos registrados</h4>
         <p>Parece que aún no has agregado ningún equipo al sistema.</p>
-        <a href="{% url 'crear_equipo' %}" class="btn btn-primary">
+        <a href="{% url 'alquiler:crear_equipo' %}" class="btn btn-primary">
             <i class="fas fa-plus-circle me-2"></i>Agregar primer equipo
         </a>
     </div>

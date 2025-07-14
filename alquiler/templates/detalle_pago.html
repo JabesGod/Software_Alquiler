@@ -13,13 +13,13 @@
     <div class="pagos-header">
         <h2><i class="fas fa-file-invoice-dollar"></i> Pago #{{ pago.id }}</h2>
         <div class="header-actions">
-            <a href="{% url 'lista_pagos' %}" class="btn btn-outline-primary">
+            <a href="{% url 'alquiler:lista_pagos' %}" class="btn btn-outline-primary">
                 <i class="fas fa-arrow-left"></i> Volver
             </a>
-            <a href="{% url 'editar_pago' pago.id %}" class="btn btn-outline-primary">
+            <a href="{% url 'alquiler:editar_pago' pago.id %}" class="btn btn-outline-primary">
                 <i class="fas fa-edit"></i> Editar
             </a>
-            <a href="{% url 'generar_factura_pdf' pago.id %}" class="btn btn-primary">
+            <a href="{% url 'alquiler:generar_factura_pdf' pago.id %}" class="btn btn-primary">
                 <i class="fas fa-file-pdf"></i> Generar Factura
             </a>
         </div>
@@ -167,10 +167,10 @@
 
     <div class="d-flex justify-content-end gap-2 mt-4">
         {% if pago.estado_pago == 'pendiente' %}
-        <a href="{% url 'cambiar_estado_pago' pago.id 'pagado' %}" class="btn btn-success">
+        <a href="{% url 'alquiler:cambiar_estado_pago' pago.id 'pagado' %}" class="btn btn-success">
             <i class="fas fa-check"></i> Marcar como Pagado
         </a>
-        <a href="{% url 'cambiar_estado_pago' pago.id 'rechazado' %}" class="btn btn-danger">
+        <a href="{% url 'alquiler:cambiar_estado_pago' pago.id 'rechazado' %}" class="btn btn-danger">
             <i class="fas fa-times"></i> Rechazar Pago
         </a>
         {% endif %}

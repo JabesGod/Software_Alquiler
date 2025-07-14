@@ -14,21 +14,21 @@
             <h2>Gestión de Equipos</h2>
             <div class="panel-grid">
                 {% if user.is_staff %}
-                <a href="{% url 'listar_equipos' %}" class="panel-item">
+                <a href="{% url 'alquiler:listar_equipos' %}" class="panel-item">
                     <i class="fas fa-laptop"></i>
                     <span>Ver todos los equipos</span>
                 </a>
-                <a href="{% url 'equipos_disponibles' %}" class="panel-item">
+                <a href="{% url 'alquiler:equipos_disponibles' %}" class="panel-item">
                     <i class="fas fa-check-circle"></i>
                     <span>Equipos disponibles</span>
                 </a>
                 
                 {% if user.is_staff %}
-                <a href="{% url 'crear_equipo' %}" class="panel-item admin">
+                <a href="{% url 'alquiler:crear_equipo' %}" class="panel-item admin">
                     <i class="fas fa-plus-circle"></i>
                     <span>Agregar nuevo equipo</span>
                 </a>
-                <a href="{% url 'equipos_mas_alquilados' %}" class="panel-item admin">
+                <a href="{% url 'alquiler:equipos_mas_alquilados' %}" class="panel-item admin">
                     <i class="fas fa-chart-line"></i>
                     <span>Estadísticas de equipos</span>
                 </a>
@@ -42,21 +42,21 @@
         <div class="panel-categoria">
             <h2>Gestión de Alquileres</h2>
             <div class="panel-grid">
-                <a href="{% url 'listar_alquileres' %}" class="panel-item">
+                <a href="{% url 'alquiler:listar_alquileres' %}" class="panel-item">
                     <i class="fas fa-list"></i>
                     <span>Ver todos los alquileres</span>
                 </a>
                 
                 {% if user.is_staff %}
-                <a href="{% url 'crear_alquiler' %}" class="panel-item admin">
+                <a href="{% url 'alquiler:crear_alquiler' %}" class="panel-item admin">
                     <i class="fas fa-cart-plus"></i>
                     <span>Crear nuevo alquiler</span>
                 </a>
-                <a href="{% url 'calendario_alquileres' %}" class="panel-item admin">
+                <a href="{% url 'alquiler:calendario_alquileres' %}" class="panel-item admin">
                     <i class="fas fa-calendar-alt"></i>
                     <span>Calendario de alquileres</span>
                 </a>
-                <a href="{% url 'reservar_alquiler' %}" class="panel-item admin">
+                <a href="{% url 'alquiler:reservar_alquiler' %}" class="panel-item admin">
                     <i class="fas fa-clock"></i>
                     <span>Reservar equipo</span>
                 </a>
@@ -70,17 +70,17 @@
         <div class="panel-categoria">
             <h2>Gestión de Clientes</h2>
             <div class="panel-grid">
-                <a href="{% url 'listar_clientes' %}" class="panel-item">
+                <a href="{% url 'alquiler:listar_clientes' %}" class="panel-item">
                     <i class="fas fa-users"></i>
                     <span>Ver todos los clientes</span>
                 </a>
                 
                 {% if user.is_staff %}
-                <a href="{% url 'crear_cliente' %}" class="panel-item admin">
+                <a href="{% url 'alquiler:crear_cliente' %}" class="panel-item admin">
                     <i class="fas fa-user-plus"></i>
                     <span>Agregar nuevo cliente</span>
                 </a>
-                <a href="{% url 'clientes_morosos' %}" class="panel-item admin">
+                <a href="{% url 'alquiler:clientes_morosos' %}" class="panel-item admin">
                     <i class="fas fa-exclamation-triangle"></i>
                     <span>Clientes morosos</span>
                 </a>
@@ -94,19 +94,19 @@
         <div class="panel-categoria">
             <h2>Administración</h2>
             <div class="panel-grid">
-                <a href="{% url 'dashboard_admin' %}" class="panel-item admin">
+                <a href="{% url 'alquiler:dashboard_admin' %}" class="panel-item admin">
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard Admin</span>
                 </a>
-                <a href="{% url 'exportar_equipos_csv' %}" class="panel-item admin">
+                <a href="{% url 'alquiler:exportar_equipos_csv' %}" class="panel-item admin">
                     <i class="fas fa-file-export"></i>
                     <span>Exportar equipos</span>
                 </a>
-                <a href="{% url 'actualizar_estados_masivo' %}" class="panel-item admin">
+                <a href="{% url 'alquiler:actualizar_estados_masivo' %}" class="panel-item admin">
                     <i class="fas fa-sync-alt"></i>
                     <span>Actualización masiva</span>
                 </a>
-                <a href="{% url 'enviar_alertas_vencimiento' %}" class="panel-item admin">
+                <a href="{% url 'alquiler:enviar_alertas_vencimiento' %}" class="panel-item admin">
                     <i class="fas fa-bell"></i>
                     <span>Alertas de vencimiento</span>
                 </a>

@@ -1,6 +1,0 @@
-<h2>Registro</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}  <!-- Esto solo mostrará los campos definidos en el formulario, sin 'rol' -->
-    <button type="submit">Registrar</button>
-</form>

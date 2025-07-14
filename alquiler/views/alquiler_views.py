@@ -158,7 +158,7 @@ def crear_alquiler(request):
                     crear_pago_inicial(alquiler, aprobado_por=request.user if request.user.is_authenticated else None)
 
                     messages.success(request, "Alquiler creado exitosamente.")
-                    return redirect(f"{reverse('listar_alquileres')}?alquiler_id={alquiler.id}")
+                    return redirect(f"{reverse('alquiler:listar_alquileres')}?alquiler_id={alquiler.id}")
 
             except Exception as e:
                 messages.error(request, f"Error al guardar: {str(e)}")
@@ -281,7 +281,7 @@ def editar_alquiler(request, id):
                     alquiler_actualizado.calcular_precio_total()
 
                     messages.success(request, "Alquiler actualizado exitosamente!")
-                    return redirect('listar_alquileres')
+                    return redirect('alquiler:listar_alquileres')
 
             except Exception as e:
                 messages.error(request, f"Error al actualizar: {str(e)}")
@@ -373,7 +373,7 @@ def reservar_alquiler(request):
                         detalle.equipo.save()
                     
                     messages.success(request, "Reserva creada exitosamente!")
-                    return redirect('listar_alquileres') + f'?alquiler_id={alquiler.id}'
+                    return redirect('alquiler:listar_alquileres') + f'?alquiler_id={alquiler.id}'
 
 
             except Exception as e:
@@ -433,7 +433,7 @@ def aprobar_alquiler(request, id):
     else:
         messages.warning(request, "Solo se pueden aprobar reservas pendientes.")
     
-    return redirect('listar_alquileres')
+    return redirect('alquiler:listar_alquileres')
 
 
 @login_required
@@ -465,7 +465,7 @@ def finalizar_alquiler(request, id):
         detalle.equipo.save()
 
     messages.success(request, "Alquiler finalizado exitosamente.")
-    return redirect('listar_alquileres')
+    return redirect('alquiler:listar_alquileres')
 
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)
@@ -477,7 +477,7 @@ def renovar_alquiler(request, id):
         alquiler.renovacion = True
         alquiler.save()
         messages.success(request, "Alquiler renovado exitosamente.")
-        return redirect('listar_alquileres')
+        return redirect('alquiler:listar_alquileres')
     return render(request, 'renovar_alquiler.html', {'alquiler': alquiler})
 
 
@@ -650,7 +650,7 @@ def cancelar_alquiler(request, id):
         messages.warning(request, "Alquiler cancelado.")
     else:
         messages.info(request, "Este alquiler ya estaba cancelado.")
-    return redirect('listar_alquileres')
+    return redirect('alquiler:listar_alquileres')
 
 @login_required
 @permission_required('alquiler.add_contrato', raise_exception=True)
@@ -659,20 +659,20 @@ def crear_contrato(request, id):
 
     if hasattr(alquiler, 'contrato'):
         messages.warning(request, "Este alquiler ya tiene un contrato generado.")
-        return redirect('detalle_alquiler', id=alquiler.id)
+        return redirect('alquiler:detalle_alquiler', id=alquiler.id)
 
     if not alquiler.detalles.exists():
         messages.error(request, "No hay equipos asociados a este alquiler.")
-        return redirect('detalle_alquiler', id=alquiler.id)
+        return redirect('alquiler:detalle_alquiler', id=alquiler.id)
 
     # Validar que el alquiler tenga un número de factura
     if not alquiler.numero_factura:
         messages.error(request, "No se puede crear el contrato: el número de factura está vacío.")
-        return redirect('detalle_alquiler', id=alquiler.id)
+        return redirect('alquiler:detalle_alquiler', id=alquiler.id)
 
     contrato = Contrato.objects.create(alquiler=alquiler)
     messages.success(request, "Contrato creado correctamente. Ahora debe ser firmado.")
-    return redirect('firmar_contrato', id=alquiler.id)
+    return redirect('alquiler:firmar_contrato', id=alquiler.id)
 
 
 @login_required
@@ -815,7 +815,7 @@ def firmar_contrato(request, id):
             # Generar documento PDF con las firmas
             if contrato.generar_documento_contrato():
                 messages.success(request, "¡Contrato firmado y generado correctamente!")
-                return redirect('detalle_alquiler', id=alquiler.id)
+                return redirect('alquiler:detalle_alquiler', id=alquiler.id)
             else:
                 messages.error(request, "Error al generar el documento PDF del contrato")
                 return render(request, 'firmar_contrato.html', {'alquiler': alquiler, 'contrato': contrato})
@@ -838,11 +838,11 @@ def renovar_contrato(request, id):
     # Verificar contrato existente
     if not hasattr(alquiler_original, 'contrato'):
         messages.error(request, "El alquiler original no tiene contrato asociado.")
-        return redirect('detalle_alquiler', id=alquiler_original.id)
+        return redirect('alquiler:detalle_alquiler', id=alquiler_original.id)
 
     if alquiler_original.estado_alquiler not in ['activo', 'finalizado']:
         messages.error(request, "Solo se pueden renovar alquileres activos o finalizados.")
-        return redirect('detalle_alquiler', id=alquiler_original.id)
+        return redirect('alquiler:detalle_alquiler', id=alquiler_original.id)
 
     if request.method == 'POST':
         form = AlquilerForm(request.POST)
@@ -899,7 +899,7 @@ def renovar_contrato(request, id):
                         alquiler_original.save()
 
                     messages.success(request, "Contrato renovado correctamente. Ahora debe ser firmado.")
-                    return redirect('firmar_contrato', id=nuevo_alquiler.id)
+                    return redirect('alquiler:firmar_contrato', id=nuevo_alquiler.id)
 
             except Exception as e:
                 messages.error(request, f"Error al renovar el contrato: {str(e)}")
@@ -944,6 +944,6 @@ def eliminar_alquiler(request, id):
     if request.method == 'POST':
         alquiler.delete()
         messages.success(request, "Alquiler eliminado correctamente.")
-        return redirect('listar_alquileres')
+        return redirect('alquiler:listar_alquileres')
 
     return render(request, 'eliminar_alquiler.html', {'alquiler': alquiler})

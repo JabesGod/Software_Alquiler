@@ -13,7 +13,7 @@
     <form method="post">
         {% csrf_token %}
         <button type="submit">✅ Sí, eliminar</button>
-        <a href="{% url 'detalle_alquiler' alquiler.id %}">❌ Cancelar</a>
+        <a href="{% url 'alquiler:detalle_alquiler' alquiler.id %}">❌ Cancelar</a>
     </form>
 </body>
 </html>

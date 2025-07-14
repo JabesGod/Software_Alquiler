@@ -31,10 +31,10 @@
             </div>
             
             <div class="moroso-actions">
-                <a href="{% url 'detalle_cliente' cliente.id %}" class="btn btn-sm btn-primary">
+                <a href="{% url 'alquiler:detalle_cliente' cliente.id %}" class="btn btn-sm btn-primary">
                     <i class="fas fa-eye"></i> Ver detalles
                 </a>
-                <a href="{% url 'contactar_moroso' cliente.id %}" class="btn btn-sm btn-warning">
+                <a href="{% url 'alquiler:contactar_moroso' cliente.id %}" class="btn btn-sm btn-warning">
                     <i class="fas fa-phone"></i> Contactar
                 </a>
             </div>
@@ -47,7 +47,7 @@
     </ul>
 
     <div class="volver-link">
-        <a href="{% url 'listar_clientes' %}" class="btn btn-secondary">
+        <a href="{% url 'alquiler:listar_clientes' %}" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Volver 
         </a>
     </div>

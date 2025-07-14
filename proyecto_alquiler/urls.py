@@ -3,6 +3,8 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
+from django.views.generic import RedirectView
+
 
 from alquiler.views.equipo_views import (
     listar_equipos, crear_equipo, editar_equipo, detalle_equipo,
@@ -42,7 +44,8 @@ from alquiler.views.usuario_views import(
 from alquiler.views.base_views import(
     BusquedaGlobalView, sugerencias_busqueda
 )
-urlpatterns = [
+
+core_patterns = [
     path('admin/', admin.site.urls),
     path('api/', include('alquiler.api_urls')),
     #Buscador
@@ -133,7 +136,11 @@ urlpatterns = [
 
 ]
 
+urlpatterns = [
+    path('corozo/', include((core_patterns, 'alquiler'), namespace='alquiler')),
 
+
+]
     
 
 

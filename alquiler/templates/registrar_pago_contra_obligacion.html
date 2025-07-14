@@ -13,7 +13,7 @@
     <div class="pagos-header">
         <h2><i class="fas fa-money-bill-wave"></i> {{ titulo }}</h2>
         <div class="header-actions">
-            <a href="{% url 'detalle_pago' pago_obligacion.id %}" class="btn btn-outline-primary">
+            <a href="{% url 'alquiler:detalle_pago' pago_obligacion.id %}" class="btn btn-outline-primary">
                 <i class="fas fa-arrow-left"></i> Volver
             </a>
         </div>
@@ -104,7 +104,7 @@
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Registrar Pago
                 </button>
-                <a href="{% url 'detalle_pago' pago_obligacion.id %}" class="btn btn-outline-primary">
+                <a href="{% url 'alquiler:detalle_pago' pago_obligacion.id %}" class="btn btn-outline-primary">
                     <i class="fas fa-times"></i> Cancelar
                 </a>
             </div>

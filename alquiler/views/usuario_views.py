@@ -117,11 +117,11 @@ def activar_cuenta(request, uidb64, token):
     else:
         messages.error(request, 'El enlace de activación es inválido.')
 
-    return redirect('inicio_sesion')
+    return redirect('alquiler:inicio_sesion')
 
 def inicio_sesion(request):
     if request.user.is_authenticated:
-        return redirect('pagina_principal')
+        return redirect('alquiler:pagina_principal')
     
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -132,7 +132,7 @@ def inicio_sesion(request):
         if user is not None:
             login(request, user)
             messages.success(request, f'Bienvenido {user.nombre_usuario}')
-            return redirect('pagina_principal')
+            return redirect('alquiler:pagina_principal')
         else:
             messages.error(request, 'Usuario o contraseña incorrectos')
     
@@ -151,7 +151,7 @@ def pagina_principal(request):
 def salir_sesion(request):
     logout(request)
     messages.success(request, 'Has cerrado sesión correctamente.')
-    return redirect('inicio_sesion')
+    return redirect('alquiler:inicio_sesion')
 
 
 @login_required
@@ -174,7 +174,7 @@ def crear_rol(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Rol creado exitosamente')
-            return redirect('lista_roles')
+            return redirect('alquiler:lista_roles')
     else:
         form = RolForm()
     
@@ -192,7 +192,7 @@ def editar_rol(request, rol_id):
             rol.save()  # Esto ejecuta la lógica de sincronización con el grupo
             form.save_m2m()  # Guarda permisos (many-to-many)
             messages.success(request, 'Rol actualizado exitosamente')
-            return redirect('lista_roles')
+            return redirect('alquiler:lista_roles')
     else:
         form = RolForm(instance=rol)
 
@@ -214,7 +214,7 @@ def eliminar_rol(request, rol_id):
                     usuario.save()
         rol.delete()
         messages.success(request, 'Rol eliminado exitosamente')
-        return redirect('lista_roles')
+        return redirect('alquiler:lista_roles')
 
     return render(request, 'eliminar_rol.html', {
         'rol': rol,
@@ -241,7 +241,7 @@ def asignar_rol(request, usuario_id):
                 usuario.groups.add(rol.grupo)
             
             messages.success(request, f'Rol "{rol.nombre_rol}" asignado correctamente a {usuario.nombre_usuario}')
-            return redirect('editar_usuario', usuario_id=usuario.id)
+            return redirect('alquiler:editar_usuario', usuario_id=usuario.id)
     
     return render(request, 'asignar_rol.html', {
         'usuario': usuario,
@@ -311,7 +311,7 @@ def editar_usuario(request, usuario_id):
                 update_session_auth_hash(request, usuario)
                 messages.info(request, 'Tus datos de sesión han sido actualizados')
             
-            return redirect('detalle_usuario', usuario_id=usuario.id)
+            return redirect('alquiler:detalle_usuario', usuario_id=usuario.id)
     else:
         form = UsuarioEditForm(instance=usuario)
     
@@ -349,7 +349,7 @@ def cambiar_contrasena(request, usuario_id):
             else:
                 messages.success(request, 'Contraseña cambiada correctamente')
             
-            return redirect('detalle_usuario', usuario_id=usuario.id)
+            return redirect('alquiler:detalle_usuario', usuario_id=usuario.id)
     else:
         form = CambiarContrasenaForm()
     
@@ -367,14 +367,14 @@ def cambiar_estado_usuario(request, usuario_id):
     # No permitir desactivarse a sí mismo
     if usuario.id == request.user.id:
         messages.error(request, 'No puedes desactivar tu propia cuenta')
-        return redirect('lista_usuarios')
+        return redirect('alquiler:lista_usuarios')
     
     usuario.is_active = not usuario.is_active
     usuario.save()
     
     action = "activado" if usuario.is_active else "desactivado"
     messages.success(request, f'Usuario {usuario.nombre_usuario} {action} correctamente')
-    return redirect('lista_usuarios')
+    return redirect('alquiler:lista_usuarios')
 
 
 @login_required
@@ -385,7 +385,7 @@ def confirmar_eliminar_usuario(request, usuario_id):
     # No permitir eliminarse a sí mismo
     if usuario.id == request.user.id:
         messages.error(request, 'No puedes eliminar tu propia cuenta')
-        return redirect('lista_usuarios')
+        return redirect('alquiler:lista_usuarios')
     
     return render(request, 'confirmar_eliminar.html', {'usuario': usuario})
 
@@ -406,7 +406,7 @@ def eliminar_usuario(request, usuario_id):
                     'success': False, 
                     'message': 'No puedes eliminar tu propia cuenta'
                 })
-            return redirect('lista_usuarios')
+            return redirect('alquiler:lista_usuarios')
         
         # Validación: No puede eliminar superusuarios (opcional)
         if hasattr(usuario, 'is_superuser') and usuario.is_superuser and not request.user.is_superuser:
@@ -416,7 +416,7 @@ def eliminar_usuario(request, usuario_id):
                     'success': False, 
                     'message': 'No tienes permisos para eliminar este usuario'
                 })
-            return redirect('lista_usuarios')
+            return redirect('alquiler:lista_usuarios')
         
         # Guardar información antes de eliminar
         nombre_usuario = usuario.nombre_usuario
@@ -464,7 +464,7 @@ def eliminar_usuario(request, usuario_id):
                 'redirect': '/usuarios/'  # Ajusta la URL según tu configuración
             })
         
-        return redirect('lista_usuarios')
+        return redirect('alquiler:lista_usuarios')
         
     except Usuario.DoesNotExist:
         error_message = 'El usuario que intentas eliminar no existe'
@@ -476,7 +476,7 @@ def eliminar_usuario(request, usuario_id):
                 'message': error_message
             })
         
-        return redirect('lista_usuarios')
+        return redirect('alquiler:lista_usuarios')
         
     except Exception as e:
         error_message = f'Error al eliminar el usuario: {str(e)}'
@@ -509,7 +509,7 @@ def eliminar_usuario(request, usuario_id):
                 'message': 'Ocurrió un error al eliminar el usuario'
             })
         
-        return redirect('lista_usuarios')
+        return redirect('alquiler:lista_usuarios')
 
 
 @login_required

@@ -37,7 +37,7 @@
                 {% if user.is_authenticated %}
                 <!-- Menú principal -->
                 <li class="menu-item">
-                    <a href="{% url 'pagina_principal' %}" class="menu-link">
+                    <a href="{% url 'alquiler:pagina_principal' %}" class="menu-link">
                         <i class="fas fa-home"></i>
                         <span class="link-text">Inicio</span>
                     </a>
@@ -60,22 +60,22 @@
                         <i class="fas fa-chevron-down submenu-icon"></i>
                     </a>
                     <ul class="submenu">
-                        <li><a href="{% url 'listar_equipos' %}"><i class="fas fa-list"></i> Listado</a></li>
+                        <li><a href="{% url 'alquiler:listar_equipos' %}"><i class="fas fa-list"></i> Listado</a></li>
                         {% if user.is_staff %}
-                        <li><a href="{% url 'crear_equipo' %}"><i class="fas fa-plus"></i> Nuevo</a></li>
+                        <li><a href="{% url 'alquiler:crear_equipo' %}"><i class="fas fa-plus"></i> Nuevo</a></li>
                         {% endif %}
-                        <li><a href="{% url 'equipos_disponibles' %}"><i class="fas fa-check-circle"></i>
+                        <li><a href="{% url 'alquiler:equipos_disponibles' %}"><i class="fas fa-check-circle"></i>
                                 Disponibles</a></li>
                         {% if user.is_staff %}
-                        <li><a href="{% url 'equipos_mas_alquilados' %}"><i class="fas fa-chart-bar"></i>
+                        <li><a href="{% url 'alquiler:equipos_mas_alquilados' %}"><i class="fas fa-chart-bar"></i>
                                 Estadísticas</a></li>
                         {% endif %}
                         {% if user.is_staff %}
-                        <li><a href="{% url 'actualizar_estados_masivo' %}"><i class="fas fa-sync-alt"></i>
+                        <li><a href="{% url 'alquiler:actualizar_estados_masivo' %}"><i class="fas fa-sync-alt"></i>
                                 Actualización Masiva</a></li>
                         {% endif %}
                         {% if user.is_staff %}
-                        <li><a href="{% url 'exportar_equipos_csv' %}"><i class="fas fa-file-csv"></i> Exportar</a></li>
+                        <li><a href="{% url 'alquiler:exportar_equipos_csv' %}"><i class="fas fa-file-csv"></i> Exportar</a></li>
                         {% endif %}
                     </ul>
                 </li>
@@ -89,13 +89,13 @@
                     </a>
                     <ul class="submenu">
                         {% if user.is_staff %}
-                        <li><a href="{% url 'listar_clientes' %}"><i class="fas fa-list"></i> Listado</a></li>
+                        <li><a href="{% url 'alquiler:listar_clientes' %}"><i class="fas fa-list"></i> Listado</a></li>
                         {% endif %}
                         {% if user.is_staff %}
-                        <li><a href="{% url 'crear_cliente' %}"><i class="fas fa-user-plus"></i> Nuevo</a></li>
+                        <li><a href="{% url 'alquiler:crear_cliente' %}"><i class="fas fa-user-plus"></i> Nuevo</a></li>
                         {% endif %}
                         {% if user.is_staff %}
-                        <li><a href="{% url 'clientes_morosos' %}"><i class="fas fa-exclamation-triangle"></i>
+                        <li><a href="{% url 'alquiler:clientes_morosos' %}"><i class="fas fa-exclamation-triangle"></i>
                                 Morosos</a></li>
                         {% endif %}
                     </ul>
@@ -110,17 +110,17 @@
                     </a>
                     <ul class="submenu">
                         {% if user.is_staff %}
-                        <li><a href="{% url 'listar_alquileres' %}"><i class="fas fa-list"></i> Listado</a></li>
+                        <li><a href="{% url 'alquiler:listar_alquileres' %}"><i class="fas fa-list"></i> Listado</a></li>
                         {% endif %}
                         {% if user.is_staff %}
-                        <li><a href="{% url 'crear_alquiler' %}"><i class="fas fa-plus-circle"></i> Nuevo</a></li>
+                        <li><a href="{% url 'alquiler:crear_alquiler' %}"><i class="fas fa-plus-circle"></i> Nuevo</a></li>
                         {% endif %}
                         {% if user.is_staff %}
-                        <li><a href="{% url 'calendario_alquileres' %}"><i class="fas fa-calendar-alt"></i>
+                        <li><a href="{% url 'alquiler:calendario_alquileres' %}"><i class="fas fa-calendar-alt"></i>
                                 Calendario</a></li>
                         {% endif %}
                         {% if user.is_staff %}
-                        <li><a href="{% url 'reservar_alquiler' %}"><i class="fas fa-calendar-check"></i> Reservas</a>
+                        <li><a href="{% url 'alquiler:reservar_alquiler' %}"><i class="fas fa-calendar-check"></i> Reservas</a>
                         </li>
                         {% endif %}
                     </ul>
@@ -133,16 +133,16 @@
                     </a>
                     <ul class="submenu">
                         {% if user.is_staff %}
-                        <li><a href="{% url 'lista_pagos' %}"><i class="fas fa-list"></i> Ver Todos los Pagos</a></li>
-                        <li><a href="{% url 'registrar_pago' %}"><i class="fas fa-cash-register"></i> Registrar Pago</a>
+                        <li><a href="{% url 'alquiler:lista_pagos' %}"><i class="fas fa-list"></i> Ver Todos los Pagos</a></li>
+                        <li><a href="{% url 'alquiler:registrar_pago' %}"><i class="fas fa-cash-register"></i> Registrar Pago</a>
                         </li>
-                        <li><a href="{% url 'pagos_parciales' %}"><i class="fas fa-percentage"></i> Pagos Parciales</a>
+                        <li><a href="{% url 'alquiler:pagos_parciales' %}"><i class="fas fa-percentage"></i> Pagos Parciales</a>
                         </li>
-                        <li><a href="{% url 'pagos_vencidos' %}"><i class="fas fa-exclamation-circle"></i> Pagos
+                        <li><a href="{% url 'alquiler:pagos_vencidos' %}"><i class="fas fa-exclamation-circle"></i> Pagos
                                 Vencidos</a></li>
-                        <li><a href="{% url 'pagos_proximos' %}"><i class="fas fa-hourglass-half"></i> Próximos a
+                        <li><a href="{% url 'alquiler:pagos_proximos' %}"><i class="fas fa-hourglass-half"></i> Próximos a
                                 Vencer</a></li>
-                        <li><a href="{% url 'reportes_pagos' %}"><i class="fas fa-chart-line"></i> Reportes</a></li>
+                        <li><a href="{% url 'alquiler:reportes_pagos' %}"><i class="fas fa-chart-line"></i> Reportes</a></li>
                         {% endif %}
                     </ul>
                 </li>
@@ -150,7 +150,7 @@
                 {% if user.is_staff %}
                 <!-- Admin -->
                 <li class="menu-item">
-                    <a href="{% url 'dashboard_admin' %}" class="menu-link">
+                    <a href="{% url 'alquiler:dashboard_admin' %}" class="menu-link">
                         <i class="fas fa-cog"></i>
                         <span class="link-text">Admin</span>
                     </a>
@@ -158,7 +158,7 @@
 
                 <!-- Nuevo ítem para Gestión de Usuarios -->
                 <li class="menu-item">
-                    <a href="{% url 'lista_usuarios' %}" class="menu-link">
+                    <a href="{% url 'alquiler:lista_usuarios' %}" class="menu-link">
                         <i class="fas fa-users-cog"></i>
                         <span class="link-text">Gestión de Usuarios</span>
                     </a>
@@ -180,7 +180,7 @@
 
                 <!-- Cerrar sesión -->
                 <li class="menu-item">
-                    <a href="{% url 'salir' %}" class="menu-link logout">
+                    <a href="{% url 'alquiler:salir' %}" class="menu-link logout">
                         <i class="fas fa-sign-out-alt"></i>
                         <span class="link-text">Cerrar sesión</span>
                     </a>
@@ -188,7 +188,7 @@
                 {% else %}
                 <!-- Login -->
                 <li class="menu-item">
-                    <a href="{% url 'inicio_sesion' %}" class="menu-link">
+                    <a href="{% url 'alquiler:inicio_sesion' %}" class="menu-link">
                         <i class="fas fa-sign-in-alt"></i>
                         <span class="link-text">Iniciar sesión</span>
                     </a>
@@ -208,7 +208,7 @@
                 </button>
                 <h2>{% block page_title %}{% endblock %}</h2>
                 <div class="search-container">
-                    <form action="{% url 'busqueda_global' %}" method="get" class="search-form" id="globalSearchForm">
+                    <form action="{% url 'alquiler:busqueda_global' %}" method="get" class="search-form" id="globalSearchForm">
                         <input type="text" name="q" id="globalSearchInput" placeholder="Buscar equipos, clientes..."
                             value="{{ request.GET.q }}" autocomplete="off">
                         <button type="submit"><i class="fas fa-search"></i></button>

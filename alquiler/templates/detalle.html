@@ -22,7 +22,7 @@
             <div class="img-container-wrapper">
                 {% if user.is_staff %}
                 <div class="edit-btn-top-right">
-                    <a href="{% url 'editar_equipo' equipo.id %}" class="btn btn-warning">
+                    <a href="{% url 'alquiler:editar_equipo' equipo.id %}" class="btn btn-warning">
                         <i class="fas fa-edit me-2"></i>Editar Equipo
                     </a>
                 </div>
@@ -114,12 +114,12 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <a href="{% url 'detalle_alquiler' alquiler.id %}"
+                                    <a href="{% url 'alquiler:detalle_alquiler' alquiler.id %}"
                                         class="btn btn-sm btn-outline-primary" title="Ver detalle">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     {% if user.is_staff %}
-                                    <a href="{% url 'editar_equipo' alquiler.id %}"
+                                    <a href="{% url 'alquiler:editar_equipo' alquiler.id %}"
                                         class="btn btn-sm btn-outline-warning" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
@@ -148,7 +148,7 @@
                 <div class="similares-list-horizontal">
                     {% for similar in equipos_similares %}
                     <div class="equipo-similar-horizontal">
-                        <a href="{% url 'detalle_equipo' similar.id %}" class="text-decoration-none">
+                        <a href="{% url 'alquiler:detalle_equipo' similar.id %}" class="text-decoration-none">
                             <div class="similar-img-container">
                                 <img src="{{ similar.obtener_foto_principal }}"
                                     alt="{{ similar.marca }} {{ similar.modelo }}"

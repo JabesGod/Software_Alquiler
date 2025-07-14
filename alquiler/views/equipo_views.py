@@ -55,7 +55,7 @@ def listar_equipos(request):
 def crear_equipo(request):
     if not request.user.is_staff:
         messages.error(request, 'No tienes permiso para realizar esta acción.')
-        return redirect('listar_equipos')
+        return redirect('alquiler:listar_equipos')
 
     if request.method == 'POST':
         form = EquipoForm(request.POST, request.FILES)
@@ -71,7 +71,7 @@ def crear_equipo(request):
                         UnidadEquipo.objects.create(equipo=equipo, numero_serie=linea)
 
                 messages.success(request, f'Equipo {equipo.marca} {equipo.modelo} creado exitosamente!')
-                return redirect('detalle_equipo', id=equipo.pk)
+                return redirect('alquiler:detalle_equipo', id=equipo.pk)
 
             except Exception as e:
                 messages.error(request, f'Error al guardar el equipo: {str(e)}')
@@ -94,7 +94,7 @@ def editar_equipo(request, id):
     
     if not request.user.is_staff:
         messages.error(request, 'No tienes permiso para editar equipos.')
-        return redirect('detalle_equipo', pk=equipo.pk)
+        return redirect('alquiler:detalle_equipo', pk=equipo.pk)
 
     FotoEquipoFormSet = inlineformset_factory(
         Equipo,
@@ -136,7 +136,7 @@ def editar_equipo(request, id):
                     equipo.fotos.first().save()
                 
                 messages.success(request, f'Equipo {equipo} actualizado exitosamente!')
-                return redirect('detalle_equipo', id=equipo.id)
+                return redirect('alquiler:detalle_equipo', id=equipo.id)
                 
             except Exception as e:
                 messages.error(request, f'Error al guardar los cambios: {str(e)}')
@@ -168,7 +168,7 @@ def eliminar_equipo(request, pk):
     except Exception as e:
         messages.error(request, f'Error al eliminar el equipo: {str(e)}')
     
-    return redirect('listar_equipos')
+    return redirect('alquiler:listar_equipos')
 
 
 def detalle_equipo(request, id):
@@ -202,7 +202,7 @@ def cambiar_estado_equipo(request, id, nuevo_estado):
     equipo = get_object_or_404(Equipo, id=id)
     equipo.estado = nuevo_estado
     equipo.save()
-    return redirect('listar_equipos')
+    return redirect('alquiler:listar_equipos')
 
 
 def equipos_por_estado(request, estado):
@@ -320,17 +320,17 @@ def actualizar_estados_masivo(request):
         
         if not ids_equipos:
             messages.error(request, "Debes seleccionar al menos un equipo")
-            return redirect('actualizar_estados_masivo')
+            return redirect('alquiler:actualizar_estados_masivo')
         
         if not nuevo_estado:
             messages.error(request, "Debes seleccionar un estado válido")
-            return redirect('actualizar_estados_masivo')
+            return redirect('alquiler:actualizar_estados_masivo')
         
         # Validar estado
         estados_validos = [estado[0] for estado in Equipo.ESTADOS]
         if nuevo_estado not in estados_validos:
             messages.error(request, "Estado seleccionado no válido")
-            return redirect('actualizar_estados_masivo')
+            return redirect('alquiler:actualizar_estados_masivo')
         
         # Obtener equipos sin alquileres activos
         equipos_permitidos = Equipo.objects.filter(
@@ -353,7 +353,7 @@ def actualizar_estados_masivo(request):
         if equipos_con_alquiler > 0:
             messages.warning(request, f"{equipos_con_alquiler} equipos no se actualizaron porque tienen alquileres activos")
         
-        return redirect('listar_equipos')
+        return redirect('alquiler:listar_equipos')
     
     # Obtener todos los equipos con información de alquileres activos
     equipos = Equipo.objects.annotate(
@@ -578,7 +578,7 @@ def enviar_alertas_vencimiento():
 def ejecutar_alertas_vencimiento(request):
     enviar_alertas_vencimiento()
     messages.success(request, "Se han procesado las alertas de vencimiento (7 días antes).")
-    return redirect('dashboard_admin')  # cambia al nombre de tu vista de inicio
+    return redirect('alquiler:dashboard_admin')  # cambia al nombre de tu vista de inicio
 
 @login_required
 @permission_required('alquiler.view_equipo', raise_exception=True)

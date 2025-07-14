@@ -216,7 +216,7 @@
                         {% endif %}
 
                         {% if not alquiler.contrato.fecha_firma %}
-                        <a href="{% url alquiler:'firmar_contrato' alquiler.id %}" class="btn btn-sign">
+                        <a href="{% url 'alquiler:firmar_contrato' alquiler.id %}" class="btn btn-sign">
                             <i class="fas fa-pen-fancy"></i> Firmar Contrato
                         </a>
                         {% endif %}

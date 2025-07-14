@@ -40,10 +40,13 @@
                             <div class="invalid-feedback">{{ form.modelo.errors }}</div>
                         </div>
                         <div class="form-group">
-                            {{ form.numero_serie.label_tag }}
+                            <label for="{{ form.numero_serie.id_for_label }}">
+                                {{ form.numero_serie.label }} <small class="text-muted">(opcional)</small>
+                            </label>
                             {{ form.numero_serie }}
                             <div class="invalid-feedback">{{ form.numero_serie.errors }}</div>
                         </div>
+
                         <div class="form-group">
                             {{ form.estado.label_tag }}
                             {{ form.estado }}

@@ -161,7 +161,6 @@ def vista_inicio(request):
 
 @staff_member_required
 @permission_required('usuarios.view_rol', raise_exception=True)
-
 def lista_roles(request):
     roles = Rol.objects.all().order_by('nombre_rol')
     return render(request, 'lista_roles.html', {'roles': roles})

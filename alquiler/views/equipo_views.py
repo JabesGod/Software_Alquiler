@@ -389,9 +389,6 @@ def exportar_equipos_csv(request):
     return response
 
 
-def error_404_view(request, exception):
-    return render(request, '404.html', status=404)
-
 @login_required
 @permission_required('alquiler.view_equipo', raise_exception=True)
 def historial_equipo(request, id):

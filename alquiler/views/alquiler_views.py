@@ -24,6 +24,7 @@ from io import BytesIO
 from django.core.files.base import ContentFile
 from django.utils.timezone import now
 import base64
+import re
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db import transaction
@@ -38,6 +39,7 @@ from django.urls import reverse
 from alquiler.utils import crear_pago_inicial  # Asegúrate de importar
 from django.contrib.auth.decorators import login_required, permission_required
 from django.forms import inlineformset_factory
+from django.http import HttpResponseRedirect
 import logging
 logger = logging.getLogger(__name__)
 
@@ -372,7 +374,7 @@ def reservar_alquiler(request):
                         
                         detalle.cantidad = len(detalle.numeros_serie)
                         
-                        if not detalle.precio_unitario:
+                        if not detalle.precio_unitario or str(detalle.precio_unitario).strip() == '':
                             periodo = detalle.periodo_alquiler
                             equipo = detalle.equipo
                             detalle.precio_unitario = getattr(equipo, f'precio_{periodo}', 0) or 0
@@ -382,7 +384,8 @@ def reservar_alquiler(request):
                         detalle.equipo.save()
                     
                     messages.success(request, "Reserva creada exitosamente!")
-                    return redirect('alquiler:listar_alquileres') + f'?alquiler_id={alquiler.id}'
+                    return HttpResponseRedirect(f"{reverse('alquiler:listar_alquileres')}?alquiler_id={alquiler.id}")
+
 
 
             except Exception as e:
@@ -429,9 +432,15 @@ def aprobar_alquiler(request, id):
                 # Generar número de factura solo al aprobar reserva
                 if not alquiler.numero_factura:
                     last = Alquiler.objects.filter(es_reserva=False).order_by('-fecha_creacion').first()
-                    last_number = int(last.numero_factura.split('-')[1]) if last and last.numero_factura else 0
-                    alquiler.numero_factura = f"FACT-{last_number + 1:04d}"
-                
+                    last_number = 0
+
+                if last and last.numero_factura:
+        # Buscar número con regex: FACT-0042 o FACT0042
+                    match = re.search(r'FACT[-]?(\d+)', last.numero_factura)
+                    if match:
+                        last_number = int(match.group(1))
+
+                alquiler.numero_factura = f"FACT-{last_number + 1:04d}"
                 alquiler.save()
                 
                 # Actualizar estado de equipos y calcular precios...

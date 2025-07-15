@@ -189,7 +189,6 @@ def crear_alquiler(request):
 
 
 
-
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)
 def editar_alquiler(request, id):
@@ -214,21 +213,17 @@ def editar_alquiler(request, id):
         if form.is_valid() and formset.is_valid():
             try:
                 with transaction.atomic():
-                    # Guardar el alquiler principal
                     alquiler_actualizado = form.save(commit=False)
+
                     if not alquiler_actualizado.es_reserva and not alquiler_actualizado.numero_factura:
                         raise ValidationError("Debe ingresar un número de factura para alquileres activos")
                     alquiler_actualizado.save()
 
-                    # Obtener todos los detalles existentes antes de guardar
                     detalles_existentes = list(alquiler.detalles.all())
-                    
-                    # Procesar el formset - esto incluye las eliminaciones
                     detalles = formset.save(commit=False)
-                    
-                    # Primero procesar las eliminaciones
+
+                    # Procesar eliminaciones
                     for detalle in formset.deleted_objects:
-                        # Liberar los números de serie
                         if detalle.numeros_serie:
                             series = []
                             if isinstance(detalle.numeros_serie, str):
@@ -238,55 +233,67 @@ def editar_alquiler(request, id):
                                     series = [s.strip() for s in detalle.numeros_serie.split(',') if s.strip()]
                             elif isinstance(detalle.numeros_serie, list):
                                 series = detalle.numeros_serie
-                            
-                            # Actualizar disponibilidad del equipo
+
                             detalle.equipo.actualizar_disponibilidad()
-                        
-                        # Eliminar el detalle
                         detalle.delete()
 
-                    # Procesar detalles nuevos y modificados
+                    # Procesar detalles nuevos/modificados
                     for detalle in detalles:
                         detalle.alquiler = alquiler_actualizado
-                        
-                        # Procesar números de serie
+
                         if isinstance(detalle.numeros_serie, str):
                             try:
                                 detalle.numeros_serie = json.loads(detalle.numeros_serie)
                             except json.JSONDecodeError:
-                                detalle.numeros_serie = [
-                                    s.strip() for s in detalle.numeros_serie.split(',') if s.strip()
-                                ]
-                        
+                                detalle.numeros_serie = [s.strip() for s in detalle.numeros_serie.split(',') if s.strip()]
                         if not isinstance(detalle.numeros_serie, list):
                             detalle.numeros_serie = []
-                        
+
                         detalle.cantidad = len(detalle.numeros_serie)
-                        
+
                         if not detalle.precio_unitario:
                             periodo = detalle.periodo_alquiler
-                            equipo = detalle.equipo
-                            detalle.precio_unitario = getattr(equipo, f'precio_{periodo}', 0) or 0
-                        
+                            detalle.precio_unitario = getattr(detalle.equipo, f'precio_{periodo}', 0) or 0
+
                         detalle.save()
 
-                    # Actualizar disponibilidad para todos los equipos afectados
+                    # Actualizar disponibilidad
                     equipos_afectados = set(d.equipo for d in detalles)
                     equipos_afectados.update(d.equipo for d in formset.deleted_objects)
-                    
                     for equipo in equipos_afectados:
                         equipo.actualizar_disponibilidad()
 
-                    # Recalcular el precio total
                     alquiler_actualizado.calcular_precio_total()
+
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': True,
+                            'redirect_url': reverse('alquiler:listar_alquileres')
+                        })
 
                     messages.success(request, "Alquiler actualizado exitosamente!")
                     return redirect('alquiler:listar_alquileres')
 
             except Exception as e:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'errors': {'general': str(e)}
+                    }, status=400)
+
                 messages.error(request, f"Error al actualizar: {str(e)}")
                 logger.error(f"Error al editar alquiler: {str(e)}", exc_info=True)
+
         else:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                errors = {}
+                for field, error_list in form.errors.items():
+                    errors[field] = error_list
+                for f in formset:
+                    for field, error_list in f.errors.items():
+                        errors[f"{f.prefix}-{field}"] = error_list
+                return JsonResponse({'success': False, 'errors': errors}, status=400)
+
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f"Error en {field}: {error}")
@@ -319,6 +326,8 @@ def editar_alquiler(request, id):
         'equipos_disponibles': equipos_disponibles,
         'equipos_json': mark_safe(equipos_json)
     })
+
+
 
 
 @login_required

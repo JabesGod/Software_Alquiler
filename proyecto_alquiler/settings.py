@@ -202,10 +202,11 @@ EMAIL_REPLY_TO = os.getenv('EMAIL_REPLY_TO')
 
 # Internationalization
 LANGUAGE_CODE = 'es'
-TIME_ZONE = 'America/Bogota'
+TIME_ZONE = 'America/Bogota'  
+USE_TZ = True  
 USE_I18N = True
 USE_L10N = True
-USE_TZ = True
+
 
 # ===============================
 # CONFIGURACIÓN DE ARCHIVOS ESTÁTICOS Y MEDIA

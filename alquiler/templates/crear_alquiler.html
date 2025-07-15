@@ -219,6 +219,11 @@
     {% endfor %}
 </div>
 
+<!-- SCRIPT PARA PASAR LA URL AL JAVASCRIPT -->
+<script>
+    window.SERIES_DISPONIBLES_URL = "{% url 'alquiler:series_disponibles' equipo_id=0 %}".replace('0', '{equipoId}');
+</script>
+
 {% endblock %}
 
 {% block extra_css %}

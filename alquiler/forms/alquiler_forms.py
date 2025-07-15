@@ -5,10 +5,14 @@ from datetime import timedelta
 from django.forms import inlineformset_factory
 from django.core.exceptions import ValidationError
 import json
+import pytz
+
 
 def validate_fecha_fin(value):
-    if value < timezone.now().date():
-        raise ValidationError("La fecha de fin no puede ser en el pasado.")
+    bogota_tz = pytz.timezone('America/Bogota')
+    hoy_colombia = timezone.now().astimezone(bogota_tz).date()
+    if value < hoy_colombia:
+        raise ValidationError(f"La fecha de fin ({value}) no puede ser anterior a hoy ({hoy_colombia})")
 
 
 class AlquilerForm(forms.ModelForm):
@@ -47,35 +51,41 @@ class AlquilerForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['fecha_vencimiento'].initial = self.fields['fecha_fin'].initial
+        self.fields['renovacion'].initial = False
+        self.fields['renovacion'].widget.attrs.update({'class': 'form-check-input'})
         
-        # Ocultar campo de número de factura si es una reserva
         if getattr(self.instance, 'es_reserva', False):
             self.fields['numero_factura'].widget = forms.HiddenInput()
             self.fields['numero_factura'].required = False
 
     def clean(self):
         cleaned_data = super().clean()
-        es_reserva = getattr(self.instance, 'es_reserva', False)
-        
-        # Solo validar número de factura si no es reserva
-        if not es_reserva and not cleaned_data.get('numero_factura'):
-            raise ValidationError("Debe ingresar un número de factura para alquileres activos.")
-        
-        return cleaned_data
-    
-    def clean(self):
-        cleaned_data = super().clean()
         fecha_inicio = cleaned_data.get('fecha_inicio')
         fecha_fin = cleaned_data.get('fecha_fin')
-        
-        # Validación adicional para renovaciones
+        es_reserva = getattr(self.instance, 'es_reserva', False)
+        es_renovacion = cleaned_data.get('renovacion', False)
+
+        # Obtener la fecha actual en la zona horaria de Colombia
+        bogota_tz = pytz.timezone('America/Bogota')
+        hoy_colombia = timezone.now().astimezone(bogota_tz).date()
+
+        # Validación de número de factura
+        if not es_reserva and not cleaned_data.get('numero_factura'):
+            self.add_error('numero_factura', "Debe ingresar un número de factura para alquileres activos.")
+
+        # Validación de fechas
         if fecha_inicio and fecha_fin:
-            if fecha_inicio < timezone.now().date():
-                raise ValidationError("La fecha de inicio no puede ser en el pasado para renovaciones.")
+            # Validación específica para renovaciones
+            if es_renovacion and fecha_inicio < hoy_colombia:
+                self.add_error('fecha_inicio', "La fecha de inicio no puede ser en el pasado para renovaciones.")
+            
+            # Validación general para todos los casos excepto reservas
+            elif not es_reserva and fecha_inicio < hoy_colombia:
+                self.add_error('fecha_inicio', f"La fecha de inicio ({fecha_inicio}) no puede ser anterior a hoy ({hoy_colombia}) para nuevos alquileres.")
             
             if fecha_fin <= fecha_inicio:
-                raise ValidationError("La fecha de fin debe ser posterior a la fecha de inicio.")
-        
+                self.add_error('fecha_fin', "La fecha de fin debe ser posterior a la fecha de inicio.")
+
         return cleaned_data
 
 

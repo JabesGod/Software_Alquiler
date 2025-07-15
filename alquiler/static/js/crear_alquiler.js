@@ -45,8 +45,11 @@ $(document).ready(function () {
         const serieSelector = $('#serie-selector');
 
         if (equipoId) {
+            // Usar la URL generada por Django
+            const url = window.SERIES_DISPONIBLES_URL.replace('{equipoId}', equipoId);
+            
             $.ajax({
-                url: '/equipos/' + equipoId + '/series-disponibles/',
+                url: url,
                 success: function (data) {
                     serieSelector.empty();
                     $.each(data.series, function (index, value) {
@@ -70,6 +73,7 @@ $(document).ready(function () {
                 },
                 error: function (xhr, status, error) {
                     console.error("Error al cargar series:", error);
+                    console.error("URL intentada:", url);
                     serieSelector.empty().prop('disabled', true);
                 }
             });

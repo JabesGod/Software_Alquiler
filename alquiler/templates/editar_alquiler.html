@@ -247,6 +247,11 @@
     {{ equipos_json }}
 </script>
 
+
+<script>
+    window.SERIES_DISPONIBLES_URL = "{% url 'alquiler:series_disponibles' equipo_id=0 %}".replace('0', '{equipoId}');
+</script>
+
 {% endblock %}
 
 {% block extra_css %}
@@ -256,8 +261,14 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- jQuery primero -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<!-- Luego Popper.js (requerido por Bootstrap) -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+<!-- Luego Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{% static 'js/editar_alquiler.js' %}"></script>
+<!-- Luego Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<!-- Finalmente tu script, con defer para que espere al DOM -->
+<script src="{% static 'js/editar_alquiler.js' %}" defer></script>
 {% endblock %}

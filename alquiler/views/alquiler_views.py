@@ -416,7 +416,6 @@ def reservar_alquiler(request):
         'equipos_disponibles': equipos_disponibles
     })
 
-
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)
 def aprobar_alquiler(request, id):
@@ -434,16 +433,18 @@ def aprobar_alquiler(request, id):
                     last = Alquiler.objects.filter(es_reserva=False).order_by('-fecha_creacion').first()
                     last_number = 0
 
-                if last and last.numero_factura:
-        # Buscar número con regex: FACT-0042 o FACT0042
-                    match = re.search(r'FACT[-]?(\d+)', last.numero_factura)
-                    if match:
-                        last_number = int(match.group(1))
+                    if last and last.numero_factura:
+                        # Buscar número con regex: FACT-0042 o FACT0042
+                        match = re.search(r'FACT[-]?(\d+)', last.numero_factura)
+                        if match:
+                            last_number = int(match.group(1))
 
-                alquiler.numero_factura = f"FACT-{last_number + 1:04d}"
+                    alquiler.numero_factura = f"FACT-{last_number + 1:04d}"
+                
                 alquiler.save()
                 
-                # Actualizar estado de equipos y calcular precios...
+                # Recalcular el precio total después de aprobar
+                alquiler.calcular_precio_total()
                 
                 messages.success(request, "Reserva aprobada y convertida a alquiler activo exitosamente.")
         except Exception as e:

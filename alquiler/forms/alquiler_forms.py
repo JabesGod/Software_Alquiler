@@ -16,27 +16,16 @@ def validate_fecha_fin(value):
 
 
 class AlquilerForm(forms.ModelForm):
-    cliente = forms.ModelChoiceField(
-        queryset=Cliente.objects.all(),
-        widget=forms.Select(attrs={'class': 'select2'}),
-        required=True
+    cliente = forms.ModelChoiceField( queryset=Cliente.objects.all(),widget=forms.Select(attrs={'class': 'select2'}), required=True
     )
     
-    fecha_inicio = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-        initial=timezone.now().date()
+    fecha_inicio = forms.DateField( widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}), initial=timezone.now().date()
     )
     
-    fecha_fin = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-        initial=(timezone.now() + timedelta(days=7)).date(),
-        validators=[validate_fecha_fin]
+    fecha_fin = forms.DateField( widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}), initial=(timezone.now() + timedelta(days=7)).date(), validators=[validate_fecha_fin]
     )
     
-    numero_factura = forms.CharField(
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
-        help_text="Requerido para alquileres activos"
+    numero_factura = forms.CharField( required=False, widget=forms.TextInput(attrs={'class': 'form-control'}), help_text="Requerido para alquileres activos"
     )
     
     class Meta:
@@ -90,16 +79,9 @@ class AlquilerForm(forms.ModelForm):
 
 
 class DetalleAlquilerForm(forms.ModelForm):
-    numeros_serie = forms.CharField(
-        required=True,
-        widget=forms.HiddenInput(),
-        help_text="Números de serie en formato JSON"
+    numeros_serie = forms.CharField( required=True, widget=forms.HiddenInput(), help_text="Números de serie en formato JSON"
     )
-    precio_unitario = forms.DecimalField(
-        required=False,
-        widget=forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
-        decimal_places=2,
-        max_digits=10
+    precio_unitario = forms.DecimalField( required=False, widget=forms.NumberInput(attrs={'step': '0.01', 'min': '0'}), decimal_places=2, max_digits=10
     )
     class Meta:
         model = DetalleAlquiler

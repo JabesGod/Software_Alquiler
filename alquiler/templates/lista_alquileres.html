@@ -156,24 +156,24 @@
             
         {% endif %}
                             
-                            <!-- Acción de cancelar disponible para varios estados -->
+                       
                             {% if alquiler.estado_alquiler != 'finalizado' and alquiler.estado_alquiler != 'cancelado' %}
                                 <a href="{% url 'alquiler:cancelar_alquiler' alquiler.id %}" class="btn btn-sm btn-secondary" title="Cancelar">
                                     <i class="fas fa-times"></i>
                                 </a>
                             {% endif %}
                             
-                            <!-- Acciones para alquileres finalizados -->
+               
                             {% if alquiler.estado_alquiler == 'finalizado' %}
                                 <a href="{% url 'alquiler:generar_acta_devolucion' alquiler.id %}" class="btn btn-sm btn-info" title="Acta Devolución">
                                     <i class="fas fa-file-download"></i>
                                 </a>
                             {% endif %}
                             
-                            <!-- Acciones comunes -->
-                             <a href="{% url 'alquiler:detalle_alquiler' alquiler.id %}" class="btn btn-sm btn-primary" title="Detalles">
-            <i class="fas fa-eye"></i>
-        </a>
+
+                            <a href="{% url 'alquiler:detalle_alquiler' alquiler.id %}" class="btn btn-sm btn-primary" title="Detalles">
+                                <i class="fas fa-eye"></i>
+                            </a>
                             
                             {% if alquiler.contrato %}
                                 {% if not alquiler.contrato.fecha_firma %}

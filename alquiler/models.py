@@ -370,46 +370,20 @@ class Alquiler(models.Model):
         dias = (self.fecha_fin - self.fecha_inicio).days + 1
 
         for detalle in self.detalles.all():
-            cantidad = detalle.cantidad or 1
-            periodo = detalle.periodo_alquiler
-            equipo = detalle.equipo
-
-            def safe_decimal(val, fallback=Decimal('0.00')):
-                return Decimal(val) if val is not None else fallback
-
-            precio_dia = safe_decimal(equipo.precio_dia)
-            precio_semana = safe_decimal(equipo.precio_semana, precio_dia * 5)
-            precio_mes = safe_decimal(equipo.precio_mes, precio_semana * 4)
-            precio_trimestre = safe_decimal(equipo.precio_trimestre, precio_mes * 3)
-            precio_semestre = safe_decimal(equipo.precio_semestre, precio_mes * 6)
-            precio_anio = safe_decimal(equipo.precio_anio, precio_mes * 12)
-
-            if periodo == 'dia':
-                precio = precio_dia * cantidad * dias
-            elif periodo == 'semana':
-                semanas = max(1, ceil(dias / 7))
-                precio = precio_semana * cantidad * semanas
-            elif periodo == 'mes':
-                meses = max(1, ceil(dias / 30))
-                precio = precio_mes * cantidad * meses
-            elif periodo == 'trimestre':
-                trimestres = max(1, ceil(dias / 90))
-                precio = precio_trimestre * cantidad * trimestres
-            elif periodo == 'semestre':
-                semestres = max(1, ceil(dias / 180))
-                precio = precio_semestre * cantidad * semestres
-            elif periodo == 'anio':
-                anios = max(1, ceil(dias / 365))
-                precio = precio_anio * cantidad * anios
+        # Usar el precio unitario guardado si existe, de lo contrario calcularlo
+            if detalle.precio_unitario and detalle.precio_unitario > 0:
+                precio = detalle.precio_unitario * detalle.cantidad
             else:
-                precio = Decimal('0.00')
-
+            # Cálculo basado en periodo (tu código actual)
+                pass
+        
             precio_con_iva = (precio * Decimal('1.19')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
             total += precio_con_iva
 
         self.precio_total = total.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         self.save(update_fields=['precio_total'])
         return self.precio_total
+
 
     def total_pagado(self):
         return sum(pago.monto for pago in self.pagos.all())

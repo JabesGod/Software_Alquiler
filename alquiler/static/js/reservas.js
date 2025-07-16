@@ -225,55 +225,56 @@ $(document).ready(function () {
 
     // Actualizar los inputs ocultos para el formulario
     function actualizarInputsOcultos() {
-        const container = $('#equipos-container');
-        container.empty();
+    const container = $('#equipos-container');
+    container.empty();
 
-        equiposAgregados.forEach((equipo, index) => {
-            container.append($('<input>').attr({
-                type: 'hidden',
-                name: `detalles-${index}-equipo`,
-                value: equipo.equipoId
-            }));
+    equiposAgregados.forEach((equipo, index) => {
+        container.append($('<input>').attr({
+            type: 'hidden',
+            name: `detalles-${index}-equipo`,
+            value: equipo.equipoId
+        }));
 
-            container.append($('<input>').attr({
-                type: 'hidden',
-                name: `detalles-${index}-numeros_serie`,
-                value: JSON.stringify(equipo.series)
-            }));
+        container.append($('<input>').attr({
+            type: 'hidden',
+            name: `detalles-${index}-numeros_serie`,
+            value: JSON.stringify(equipo.series)
+        }));
 
-            container.append($('<input>').attr({
-                type: 'hidden',
-                name: `detalles-${index}-periodo_alquiler`,
-                value: equipo.periodo
-            }));
+        container.append($('<input>').attr({
+            type: 'hidden',
+            name: `detalles-${index}-periodo_alquiler`,
+            value: equipo.periodo
+        }));
 
-            container.append($('<input>').attr({
-                type: 'hidden',
-                name: `detalles-${index}-cantidad`,
-                value: equipo.series.length
-            }));
+        container.append($('<input>').attr({
+            type: 'hidden',
+            name: `detalles-${index}-cantidad`,
+            value: equipo.series.length
+        }));
 
-            container.append($('<input>').attr({
-                type: 'hidden',
-                name: `detalles-${index}-precio_unitario`,
-                value: equipo.precioUnitario  // ¡ESTO ES LO QUE FALTABA!
-            }));
+        // Asegurarse de que el precio unitario se envía correctamente
+        container.append($('<input>').attr({
+            type: 'hidden',
+            name: `detalles-${index}-precio_unitario`,
+            value: equipo.precioUnitario.toFixed(2)  // Formatear a 2 decimales
+        }));
 
-            container.append($('<input>').attr({
-                type: 'hidden',
-                name: `detalles-${index}-id`,
-                value: ''
-            }));
+        container.append($('<input>').attr({
+            type: 'hidden',
+            name: `detalles-${index}-id`,
+            value: ''
+        }));
 
-            container.append($('<input>').attr({
-                type: 'hidden',
-                name: `detalles-${index}-DELETE`,
-                value: 'false'
-            }));
-        });
+        container.append($('<input>').attr({
+            type: 'hidden',
+            name: `detalles-${index}-DELETE`,
+            value: 'false'
+        }));
+    });
 
-        $('#id_detalles-TOTAL_FORMS').val(equiposAgregados.length);
-    }
+    $('#id_detalles-TOTAL_FORMS').val(equiposAgregados.length);
+}
 
 
     // Validación del formulario

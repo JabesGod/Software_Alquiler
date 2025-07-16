@@ -176,10 +176,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert('Por favor seleccione un equipo');
                 return;
             }
-            if (series.length === 0) {
-                alert('Por favor seleccione al menos un número de serie');
-                return;
-            }
             if (!periodo) {
                 alert('Por favor seleccione un periodo de alquiler');
                 return;

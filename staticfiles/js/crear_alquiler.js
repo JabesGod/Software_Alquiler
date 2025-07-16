@@ -106,10 +106,16 @@ $(document).ready(function () {
             return;
         }
 
-        if (series.length === 0) {
-            alert('Por favor seleccione al menos un número de serie');
+        if ((equipo.totalSeriesDisponibles > 0) && (!equipo.series || equipo.series.length === 0)) {
+            Swal.fire({
+                title: "Atención",
+                text: "Por favor seleccione al menos un número de serie",
+                icon: "warning",
+                confirmButtonText: "Aceptar"
+            });
             return;
         }
+
 
         if (!periodo) {
             alert('Por favor seleccione un periodo de alquiler');
@@ -219,7 +225,7 @@ $(document).ready(function () {
         });
 
         // Agregar manejador de eventos para cambios en precios
-        $('.precio-unitario').change(function() {
+        $('.precio-unitario').change(function () {
             const id = $(this).data('id');
             const nuevoPrecio = parseFloat($(this).val()) || 0;
 

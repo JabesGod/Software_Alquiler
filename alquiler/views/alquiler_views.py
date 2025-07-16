@@ -5,6 +5,7 @@ from ..models import Alquiler, DetalleAlquiler, Acta
 from alquiler.forms.alquiler_forms import (
     AlquilerForm,
     DocumentosAlquilerForm,
+    RenovarAlquilerForm,
     FirmarContratoForm,
     DetalleAlquilerFormSet,
     DetalleAlquilerForm,
@@ -105,99 +106,190 @@ def generar_pdf_acta(alquiler, request):
 @permission_required('alquiler.add_alquiler', raise_exception=True)
 def crear_alquiler(request):
     equipos_disponibles = Equipo.objects.filter(cantidad_disponible__gt=0)
-
-    DetalleAlquilerFormSet = inlineformset_factory(
-        Alquiler,
-        DetalleAlquiler,
-        form=DetalleAlquilerForm,
-        extra=1,
-        can_delete=True,
-        fields=['equipo', 'numeros_serie', 'periodo_alquiler', 'cantidad', 'precio_unitario']
-    )
-
+    
     if request.method == 'POST':
-        alquiler = Alquiler(es_reserva=False)
-        form = AlquilerForm(request.POST, instance=alquiler)
+        form = AlquilerForm(request.POST, request=request)
         formset = DetalleAlquilerFormSet(request.POST, prefix='detalles')
-
+        
         if form.is_valid() and formset.is_valid():
             try:
                 with transaction.atomic():
                     alquiler = form.save(commit=False)
                     alquiler.estado_alquiler = 'activo'
                     alquiler.es_reserva = False
+                    alquiler.creado_por = request.user
+                    
+                    # Establecer aprobado_por si el usuario tiene permiso
+                    if request.user.has_perm('alquiler.approve_alquiler'):
+                        alquiler.aprobado_por = request.user.nombre_usuario
 
+                    
+                    # Generar número de factura si no se proporcionó
                     if not alquiler.numero_factura:
-                        raise ValidationError("Debe ingresar un número de factura para alquileres activos")
-
-                    alquiler.save()
-
-                    for detalle in formset.save(commit=False):
-                        detalle.alquiler = alquiler
-
-                        if isinstance(detalle.numeros_serie, str):
+                        ultimo_alquiler = Alquiler.objects.filter(
+                            es_reserva=False,
+                            numero_factura__isnull=False
+                        ).order_by('-fecha_creacion').first()
+                        
+                        if ultimo_alquiler:
                             try:
-                                detalle.numeros_serie = json.loads(detalle.numeros_serie)
-                            except json.JSONDecodeError:
-                                detalle.numeros_serie = [s.strip() for s in detalle.numeros_serie.split(',') if s.strip()]
-
-                        if not isinstance(detalle.numeros_serie, list):
+                                ultimo_numero = int(ultimo_alquiler.numero_factura.split('-')[-1])
+                                nuevo_numero = f"FACT-{ultimo_numero + 1:04d}"
+                            except (ValueError, IndexError):
+                                nuevo_numero = "FACT-0001"
+                        else:
+                            nuevo_numero = "FACT-0001"
+                        
+                        alquiler.numero_factura = nuevo_numero
+                    
+                    # Establecer fecha_vencimiento si no se especificó
+                    if not alquiler.fecha_vencimiento:
+                        alquiler.fecha_vencimiento = alquiler.fecha_fin
+                    
+                    alquiler.save()
+                    
+                    # Procesar detalles del alquiler
+                    for detalle_form in formset:
+                        detalle = detalle_form.save(commit=False)
+                        detalle.alquiler = alquiler
+                        
+                        # Procesar números de serie
+                        if detalle.numeros_serie:
+                            if isinstance(detalle.numeros_serie, str):
+                                try:
+                                    detalle.numeros_serie = json.loads(detalle.numeros_serie)
+                                except json.JSONDecodeError:
+                                    detalle.numeros_serie = [s.strip() for s in detalle.numeros_serie.split(',') if s.strip()]
+                        
+                        # Si no hay series, establecer cantidad = 1
+                        if not detalle.numeros_serie or len(detalle.numeros_serie) == 0:
+                            detalle.cantidad = 1
                             detalle.numeros_serie = []
-
-                        detalle.cantidad = len(detalle.numeros_serie)
-
-                        if not detalle.precio_unitario:
-                            periodo = detalle.periodo_alquiler
-                            equipo = detalle.equipo
-                            detalle.precio_unitario = getattr(equipo, f'precio_{periodo}', 0) or 0
-
+                        
                         detalle.save()
+                    
+                    # Actualizar disponibilidad de equipos
+                    for detalle in alquiler.detalles.all():
                         detalle.equipo.actualizar_disponibilidad()
-
+                    
+                    # Calcular precio total
                     alquiler.calcular_precio_total()
-
-                    # ✅ Crear el pago inicial automáticamente
-                    crear_pago_inicial(alquiler, aprobado_por=request.user if request.user.is_authenticated else None)
-
-                    messages.success(request, "Alquiler creado exitosamente.")
-                    return redirect(f"{reverse('alquiler:listar_alquileres')}?alquiler_id={alquiler.id}")
-
+                    
+                    messages.success(request, "Alquiler creado exitosamente!")
+                    return redirect('alquiler:listar_alquileres')
+            
+            except ValidationError as e:
+                messages.error(request, f"Error de validación: {str(e)}")
             except Exception as e:
-                messages.error(request, f"Error al guardar: {str(e)}")
-        else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"Error en {field}: {error}")
-            for f in formset:
-                for field, errors in f.errors.items():
-                    for error in errors:
-                        messages.error(request, f"Error en equipo ({field}): {error}")
+                messages.error(request, f"Error al guardar el alquiler: {str(e)}")
+                logger.error(f"Error al crear alquiler: {str(e)}", exc_info=True)
     else:
-        alquiler = Alquiler(es_reserva=False)
-        form = AlquilerForm(
-            initial={
-                'fecha_inicio': timezone.now().date(),
-                'fecha_fin': (timezone.now() + timezone.timedelta(days=7)).date()
-            },
-            instance=alquiler
-        )
+        form = AlquilerForm(request=request)
         formset = DetalleAlquilerFormSet(prefix='detalles')
-
+    
     return render(request, 'crear_alquiler.html', {
         'form': form,
         'formset': formset,
-        'equipos_disponibles': equipos_disponibles
+        'equipos_disponibles': equipos_disponibles,
+        'titulo': 'Crear Nuevo Alquiler'
     })
 
 
+@login_required
+@permission_required('alquiler.change_alquiler', raise_exception=True)
+def reservar_alquiler(request, id):
+    alquiler_original = get_object_or_404(Alquiler, id=id)
+    
+    if not alquiler_original.renovacion_automatica and not request.user.has_perm('alquiler.force_renew'):
+        messages.warning(request, "Este alquiler no tiene renovación automática habilitada")
+        return redirect('alquiler:detalle_alquiler', id=id)
+    
+    if request.method == 'POST':
+        form = RenovarAlquilerForm(request.POST)
+        
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    # Calcular nueva duración
+                    duracion = alquiler_original.fecha_fin - alquiler_original.fecha_inicio
+                    hoy = timezone.now().date()
+                    nuevo_fin = hoy + duracion
+                    
+                    # Crear nuevo alquiler
+                    nuevo_alquiler = Alquiler.objects.create(
+                        cliente=alquiler_original.cliente,
+                        fecha_inicio=hoy,
+                        fecha_fin=nuevo_fin,
+                        fecha_vencimiento=nuevo_fin,
+                        con_iva=alquiler_original.con_iva,
+                        observaciones=f"Renovación del alquiler #{alquiler_original.id}",
+                        renovacion_automatica=alquiler_original.renovacion_automatica,
+                        estado_alquiler='activo',
+                        aprobado_por=request.user.get_username(),
+                        creado_por=request.user,
+                        numero_factura=form.cleaned_data['numero_factura']
+                    )
+                    
+                    # Copiar detalles del alquiler original
+                    for detalle_original in alquiler_original.detalles.all():
+                        nuevo_alquiler.detalles.create(
+                            equipo=detalle_original.equipo,
+                            numeros_serie=detalle_original.numeros_serie,
+                            periodo_alquiler=detalle_original.periodo_alquiler,
+                            cantidad=detalle_original.cantidad,
+                            precio_unitario=detalle_original.precio_unitario
+                        )
+                    
+                    # Actualizar disponibilidad de equipos
+                    for detalle in nuevo_alquiler.detalles.all():
+                        detalle.equipo.actualizar_disponibilidad()
+                    
+                    # Calcular precio total
+                    nuevo_alquiler.calcular_precio_total()
+                    
+                    # Marcar alquiler original como completado
+                    alquiler_original.estado_alquiler = 'completado'
+                    alquiler_original.save()
+                    
+                    messages.success(
+                        request, 
+                        f"Alquiler renovado exitosamente! Nuevo alquiler #{nuevo_alquiler.id}"
+                    )
+                    return redirect('alquiler:detalle_alquiler', id=nuevo_alquiler.id)
+            
+            except Exception as e:
+                messages.error(request, f"Error al renovar el alquiler: {str(e)}")
+                logger.error(f"Error renovando alquiler {id}: {str(e)}", exc_info=True)
+    else:
+        # Generar sugerencia para el número de factura
+        ultima_factura = Alquiler.objects.filter(
+            numero_factura__isnull=False
+        ).exclude(id=alquiler_original.id).order_by('-fecha_creacion').first()
+        
+        if ultima_factura:
+            try:
+                ultimo_numero = int(ultima_factura.numero_factura.split('-')[-1])
+                sugerencia_factura = f"FACT-{ultimo_numero + 1:04d}"
+            except (ValueError, IndexError):
+                sugerencia_factura = "FACT-0001"
+        else:
+            sugerencia_factura = "FACT-0001"
+        
+        form = RenovarAlquilerForm(initial={'numero_factura': sugerencia_factura})
+    
+    return render(request, 'renovar_alquiler.html', {
+        'form': form,
+        'alquiler': alquiler_original,
+        'titulo': f'Renovar Alquiler #{alquiler_original.id}'
+    })
 
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)
 def editar_alquiler(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
     equipos_disponibles = Equipo.objects.filter(cantidad_disponible__gt=0)
-    equipos_en_alquiler = Equipo.objects.filter(detallealquiler__alquiler=alquiler).distinct()
-    equipos_disponibles = equipos_disponibles.union(equipos_en_alquiler)
+    equipos_en_alquiler = alquiler.detalles.values_list('equipo', flat=True)
+    equipos_disponibles = equipos_disponibles | Equipo.objects.filter(id__in=equipos_en_alquiler)
 
     DetalleAlquilerFormSet = inlineformset_factory(
         Alquiler,
@@ -209,106 +301,73 @@ def editar_alquiler(request, id):
     )
 
     if request.method == 'POST':
-        form = AlquilerForm(request.POST, instance=alquiler)
+        form = AlquilerForm(request.POST, instance=alquiler, request=request)
         formset = DetalleAlquilerFormSet(request.POST, instance=alquiler, prefix='detalles')
 
         if form.is_valid() and formset.is_valid():
             try:
                 with transaction.atomic():
                     alquiler_actualizado = form.save(commit=False)
-
+                    
+                    # Validar número de factura para alquileres no reserva
                     if not alquiler_actualizado.es_reserva and not alquiler_actualizado.numero_factura:
                         raise ValidationError("Debe ingresar un número de factura para alquileres activos")
+                    
+                    # Actualizar aprobado_por si es necesario
+                    if request.user.has_perm('alquiler.approve_alquiler') and not alquiler_actualizado.aprobado_por:
+                        alquiler_actualizado.aprobado_por = request.user.get_username()
+                    
                     alquiler_actualizado.save()
 
-                    detalles_existentes = list(alquiler.detalles.all())
-                    detalles = formset.save(commit=False)
-
-                    # Procesar eliminaciones
+                    # Procesar detalles eliminados
                     for detalle in formset.deleted_objects:
                         if detalle.numeros_serie:
-                            series = []
-                            if isinstance(detalle.numeros_serie, str):
-                                try:
-                                    series = json.loads(detalle.numeros_serie)
-                                except json.JSONDecodeError:
-                                    series = [s.strip() for s in detalle.numeros_serie.split(',') if s.strip()]
-                            elif isinstance(detalle.numeros_serie, list):
-                                series = detalle.numeros_serie
-
-                            detalle.equipo.actualizar_disponibilidad()
+                            # Liberar series si es necesario
+                            pass
                         detalle.delete()
 
                     # Procesar detalles nuevos/modificados
-                    for detalle in detalles:
+                    for detalle_form in formset:
+                        detalle = detalle_form.save(commit=False)
                         detalle.alquiler = alquiler_actualizado
 
+                        # Procesar números de serie
                         if isinstance(detalle.numeros_serie, str):
                             try:
                                 detalle.numeros_serie = json.loads(detalle.numeros_serie)
                             except json.JSONDecodeError:
                                 detalle.numeros_serie = [s.strip() for s in detalle.numeros_serie.split(',') if s.strip()]
+                        
                         if not isinstance(detalle.numeros_serie, list):
                             detalle.numeros_serie = []
 
-                        detalle.cantidad = len(detalle.numeros_serie)
-
-                        if not detalle.precio_unitario:
-                            periodo = detalle.periodo_alquiler
-                            detalle.precio_unitario = getattr(detalle.equipo, f'precio_{periodo}', 0) or 0
-
+                        detalle.cantidad = len(detalle.numeros_serie) if detalle.numeros_serie else 1
                         detalle.save()
 
-                    # Actualizar disponibilidad
-                    equipos_afectados = set(d.equipo for d in detalles)
-                    equipos_afectados.update(d.equipo for d in formset.deleted_objects)
+                    # Actualizar disponibilidad de equipos
+                    equipos_afectados = set(detalle.equipo for detalle in alquiler_actualizado.detalles.all())
                     for equipo in equipos_afectados:
                         equipo.actualizar_disponibilidad()
 
+                    # Recalcular precio total
                     alquiler_actualizado.calcular_precio_total()
-
-                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                        return JsonResponse({
-                            'success': True,
-                            'redirect_url': reverse('alquiler:listar_alquileres')
-                        })
 
                     messages.success(request, "Alquiler actualizado exitosamente!")
                     return redirect('alquiler:listar_alquileres')
 
+            except ValidationError as e:
+                messages.error(request, f"Error de validación: {str(e)}")
             except Exception as e:
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    return JsonResponse({
-                        'success': False,
-                        'errors': {'general': str(e)}
-                    }, status=400)
-
-                messages.error(request, f"Error al actualizar: {str(e)}")
-                logger.error(f"Error al editar alquiler: {str(e)}", exc_info=True)
-
-        else:
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                errors = {}
-                for field, error_list in form.errors.items():
-                    errors[field] = error_list
-                for f in formset:
-                    for field, error_list in f.errors.items():
-                        errors[f"{f.prefix}-{field}"] = error_list
-                return JsonResponse({'success': False, 'errors': errors}, status=400)
-
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"Error en {field}: {error}")
-            for f in formset:
-                for field, errors in f.errors.items():
-                    for error in errors:
-                        messages.error(request, f"Error en equipo ({field}): {error}")
+                messages.error(request, f"Error al actualizar el alquiler: {str(e)}")
+                logger.error(f"Error al editar alquiler {id}: {str(e)}", exc_info=True)
     else:
-        form = AlquilerForm(instance=alquiler)
+        form = AlquilerForm(instance=alquiler, request=request)
         formset = DetalleAlquilerFormSet(instance=alquiler, prefix='detalles')
 
-    equipos_json = json.dumps([
-        {
+    # Preparar datos de equipos existentes para JavaScript
+    detalles_data = []
+    for detalle in alquiler.detalles.all():
+        detalles_data.append({
             "id": detalle.id,
             "equipoId": detalle.equipo.id,
             "equipoTexto": f"{detalle.equipo.marca} {detalle.equipo.modelo}",
@@ -316,105 +375,18 @@ def editar_alquiler(request, id):
             "periodo": detalle.periodo_alquiler,
             "periodoTexto": detalle.get_periodo_alquiler_display(),
             "precioUnitario": float(detalle.precio_unitario),
-            "formIndex": i
-        }
-        for i, detalle in enumerate(alquiler.detalles.all())
-    ])
+        })
 
     return render(request, 'editar_alquiler.html', {
         'form': form,
         'formset': formset,
         'alquiler': alquiler,
         'equipos_disponibles': equipos_disponibles,
-        'equipos_json': mark_safe(equipos_json)
+        'equipos_json': mark_safe(json.dumps(detalles_data)),
+        'titulo': f'Editar Alquiler #{alquiler.id}'
     })
 
 
-
-
-@login_required
-@permission_required('alquiler.add_alquiler', raise_exception=True)
-def reservar_alquiler(request):
-    equipos_disponibles = Equipo.objects.filter(cantidad_disponible__gt=0)
-    DetalleAlquilerFormSet = inlineformset_factory(
-        Alquiler, 
-        DetalleAlquiler, 
-        form=DetalleAlquilerForm,
-        extra=1,
-        can_delete=True,
-        fields=['equipo', 'numeros_serie', 'periodo_alquiler', 'cantidad', 'precio_unitario']
-    )
-
-    if request.method == 'POST':
-        form = AlquilerForm(request.POST)
-        form.instance.es_reserva = True
-        formset = DetalleAlquilerFormSet(request.POST, prefix='detalles')
-
-        if form.is_valid() and formset.is_valid():
-            try:
-                with transaction.atomic():
-                    alquiler = form.save(commit=False)
-                    alquiler.estado_alquiler = 'reservado'
-                    alquiler.es_reserva = True
-                    alquiler.numero_factura = None  # Forzar a None para reservas
-                    alquiler.save()
-                    
-                    # Procesar detalles
-                    for detalle in formset.save(commit=False):
-                        detalle.alquiler = alquiler
-                        
-                        if isinstance(detalle.numeros_serie, str):
-                            try:
-                                detalle.numeros_serie = json.loads(detalle.numeros_serie)
-                            except json.JSONDecodeError:
-                                detalle.numeros_serie = [s.strip() for s in detalle.numeros_serie.split(',') if s.strip()]
-                        
-                        if not isinstance(detalle.numeros_serie, list):
-                            detalle.numeros_serie = []
-                        
-                        detalle.cantidad = len(detalle.numeros_serie)
-                        
-                        if not detalle.precio_unitario or str(detalle.precio_unitario).strip() == '':
-                            periodo = detalle.periodo_alquiler
-                            equipo = detalle.equipo
-                            detalle.precio_unitario = getattr(equipo, f'precio_{periodo}', 0) or 0
-                        
-                        detalle.save()
-                        detalle.equipo.estado = 'reservado'
-                        detalle.equipo.save()
-                    
-                    messages.success(request, "Reserva creada exitosamente!")
-                    return HttpResponseRedirect(f"{reverse('alquiler:listar_alquileres')}?alquiler_id={alquiler.id}")
-
-
-
-            except Exception as e:
-                messages.error(request, f"Error al guardar: {str(e)}")
-        else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"Error en {field}: {error}")
-            
-            for form in formset:
-                for field, errors in form.errors.items():
-                    for error in errors:
-                        messages.error(request, f"Error en equipo ({field}): {error}")
-    else:
-        form = AlquilerForm(initial={
-            'fecha_inicio': timezone.now().date(),
-            'fecha_fin': (timezone.now() + timezone.timedelta(days=7)).date()
-        })
-        # Ocultar campo de número de factura para reservas
-        form.fields['numero_factura'].widget = forms.HiddenInput()
-        form.initial['numero_factura'] = None
-        
-        formset = DetalleAlquilerFormSet(prefix='detalles')
-
-    return render(request, 'reservar_alquiler.html', {
-        'form': form,
-        'formset': formset,
-        'equipos_disponibles': equipos_disponibles
-    })
 
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)
@@ -433,18 +405,16 @@ def aprobar_alquiler(request, id):
                     last = Alquiler.objects.filter(es_reserva=False).order_by('-fecha_creacion').first()
                     last_number = 0
 
-                    if last and last.numero_factura:
-                        # Buscar número con regex: FACT-0042 o FACT0042
-                        match = re.search(r'FACT[-]?(\d+)', last.numero_factura)
-                        if match:
-                            last_number = int(match.group(1))
+                if last and last.numero_factura:
+        # Buscar número con regex: FACT-0042 o FACT0042
+                    match = re.search(r'FACT[-]?(\d+)', last.numero_factura)
+                    if match:
+                        last_number = int(match.group(1))
 
-                    alquiler.numero_factura = f"FACT-{last_number + 1:04d}"
-                
+                alquiler.numero_factura = f"FACT-{last_number + 1:04d}"
                 alquiler.save()
                 
-                # Recalcular el precio total después de aprobar
-                alquiler.calcular_precio_total()
+                # Actualizar estado de equipos y calcular precios...
                 
                 messages.success(request, "Reserva aprobada y convertida a alquiler activo exitosamente.")
         except Exception as e:

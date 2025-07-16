@@ -6,6 +6,7 @@ from django.forms import inlineformset_factory
 from django.core.exceptions import ValidationError
 import json
 import pytz
+from decimal import Decimal
 
 
 def validate_fecha_fin(value):
@@ -14,81 +15,97 @@ def validate_fecha_fin(value):
     if value < hoy_colombia:
         raise ValidationError(f"La fecha de fin ({value}) no puede ser anterior a hoy ({hoy_colombia})")
 
-
 class AlquilerForm(forms.ModelForm):
-    cliente = forms.ModelChoiceField( queryset=Cliente.objects.all(),widget=forms.Select(attrs={'class': 'select2'}), required=True
+    iva = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        widget=forms.HiddenInput(),
+        required=False,
+        initial=Decimal('0.00')
     )
-    
-    fecha_inicio = forms.DateField( widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}), initial=timezone.now().date()
-    )
-    
-    fecha_fin = forms.DateField( widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}), initial=(timezone.now() + timedelta(days=7)).date(), validators=[validate_fecha_fin]
-    )
-    
-    numero_factura = forms.CharField( required=False, widget=forms.TextInput(attrs={'class': 'form-control'}), help_text="Requerido para alquileres activos"
+    precio_total = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        widget=forms.HiddenInput(),
+        required=False,
+        initial=Decimal('0.00')
     )
     
     class Meta:
         model = Alquiler
         fields = [
-            'cliente', 'fecha_inicio', 'fecha_fin', 'numero_factura',
-            'observaciones', 'aprobado_por', 'contrato_firmado', 'renovacion',
-            'fecha_vencimiento'
+            'cliente', 'fecha_inicio', 'fecha_fin', 'fecha_vencimiento',
+            'numero_factura', 'con_iva', 'observaciones',
+            'renovacion_automatica', 'contrato_firmado',
+            'iva', 'precio_total'
         ]
-    
-    
+        widgets = {
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'fecha_fin': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'fecha_vencimiento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'numero_factura': forms.TextInput(attrs={'class': 'form-control'}),
+            'con_iva': forms.CheckboxInput(attrs={'class': 'form-check-input', 'id': 'id_con_iva'}),
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'renovacion_automatica': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'contrato_firmado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-        self.fields['fecha_vencimiento'].initial = self.fields['fecha_fin'].initial
-        self.fields['renovacion'].initial = False
-        self.fields['renovacion'].widget.attrs.update({'class': 'form-check-input'})
         
-        if getattr(self.instance, 'es_reserva', False):
-            self.fields['numero_factura'].widget = forms.HiddenInput()
-            self.fields['numero_factura'].required = False
+        if self.instance and self.instance.pk:
+            self.fields['aprobado_por'] = forms.CharField(
+                initial=self.instance.aprobado_por or (self.request.user.username if self.request else ''),
+                widget=forms.TextInput(attrs={'readonly': 'readonly', 'class': 'form-control'}),
+                required=False
+            )
+            
+        if not self.instance.pk:
+            self.fields['con_iva'].initial = True
+            hoy = timezone.now().date()
+            self.fields['fecha_inicio'].initial = hoy
+            self.fields['fecha_fin'].initial = hoy + timedelta(days=7)
+            self.fields['fecha_vencimiento'].initial = hoy + timedelta(days=7)
+            
+            if self.request and self.request.user.has_perm('alquiler.approve_alquiler'):
+                self.fields['aprobado_por'] = forms.CharField(
+                    initial=self.request.user.nombre_usuario,
+                    widget=forms.TextInput(attrs={'readonly': 'readonly', 'class': 'form-control'}),
+                    required=False
+                )
 
     def clean(self):
         cleaned_data = super().clean()
         fecha_inicio = cleaned_data.get('fecha_inicio')
         fecha_fin = cleaned_data.get('fecha_fin')
-        es_reserva = getattr(self.instance, 'es_reserva', False)
-        es_renovacion = cleaned_data.get('renovacion', False)
-
-        # Obtener la fecha actual en la zona horaria de Colombia
-        bogota_tz = pytz.timezone('America/Bogota')
-        hoy_colombia = timezone.now().astimezone(bogota_tz).date()
-
-        # Validación de número de factura
-        if not es_reserva and not cleaned_data.get('numero_factura'):
-            self.add_error('numero_factura', "Debe ingresar un número de factura para alquileres activos.")
-
-        # Validación de fechas
-        if fecha_inicio and fecha_fin:
-            # Validación específica para renovaciones
-            if es_renovacion and fecha_inicio < hoy_colombia:
-                self.add_error('fecha_inicio', "La fecha de inicio no puede ser en el pasado para renovaciones.")
-            
-            # Validación general para todos los casos excepto reservas
-            elif not es_reserva and fecha_inicio < hoy_colombia:
-                self.add_error('fecha_inicio', f"La fecha de inicio ({fecha_inicio}) no puede ser anterior a hoy ({hoy_colombia}) para nuevos alquileres.")
-            
-            if fecha_fin <= fecha_inicio:
-                self.add_error('fecha_fin', "La fecha de fin debe ser posterior a la fecha de inicio.")
-
+        
+        if fecha_inicio and fecha_fin and fecha_fin <= fecha_inicio:
+            self.add_error('fecha_fin', "La fecha de fin debe ser posterior a la fecha de inicio")
+        
         return cleaned_data
+
+    def clean_iva(self):
+        iva = self.cleaned_data.get('iva', '0') or '0'
+        return Decimal(iva).quantize(Decimal('0.00'))
+
+    def clean_precio_total(self):
+        precio_total = self.cleaned_data.get('precio_total', '0') or '0'
+        return Decimal(precio_total).quantize(Decimal('0.00'))
 
 class DetalleAlquilerForm(forms.ModelForm):
     numeros_serie = forms.CharField(
-        required=True,
+        required=False,
         widget=forms.HiddenInput(),
-        help_text="Números de serie en formato JSON"
+        help_text="Números de serie en formato JSON",
+        initial='[]'
     )
+    
     precio_unitario = forms.DecimalField(
-        required=True,  # Cambiado a True para forzar su envío
-        widget=forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
-        decimal_places=2,
         max_digits=10,
-        initial=0.00  # Valor por defecto
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+        initial=Decimal('0.00')
     )
     
     class Meta:
@@ -100,19 +117,16 @@ class DetalleAlquilerForm(forms.ModelForm):
             'cantidad': forms.HiddenInput(),
         }
 
-    def clean(self):
-        cleaned_data = super().clean()
-        # No sobrescribas el precio si ya fue proporcionado
-        if 'precio_unitario' in cleaned_data and cleaned_data['precio_unitario'] is not None:
-            return cleaned_data
-            
-        # Solo calcula el precio si no fue proporcionado
-        periodo = cleaned_data.get('periodo_alquiler')
-        equipo = cleaned_data.get('equipo')
-        if equipo and periodo:
-            cleaned_data['precio_unitario'] = getattr(equipo, f'precio_{periodo}', 0)
-        
-        return cleaned_data
+    def clean_numeros_serie(self):
+        numeros_serie = self.cleaned_data.get('numeros_serie', '[]') or '[]'
+        try:
+            return json.loads(numeros_serie)
+        except json.JSONDecodeError:
+            return []
+
+    def clean_precio_unitario(self):
+        precio = self.cleaned_data.get('precio_unitario', '0') or '0'
+        return Decimal(precio).quantize(Decimal('0.00'))
 
 DetalleAlquilerFormSet = inlineformset_factory(
     Alquiler,
@@ -122,6 +136,7 @@ DetalleAlquilerFormSet = inlineformset_factory(
     can_delete=True,
     can_delete_extra=True
 )
+
 
 class ConvertirReservaForm(forms.ModelForm):
     class Meta:
@@ -147,6 +162,23 @@ class ConvertirReservaForm(forms.ModelForm):
                 raise ValidationError("La fecha de fin debe ser posterior a la fecha de inicio.")
 
         return cleaned_data
+
+
+class RenovarAlquilerForm(forms.Form):
+    numero_factura = forms.CharField(
+        label="Número de Factura",
+        max_length=20,
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+
+    def clean_numero_factura(self):
+        numero_factura = self.cleaned_data['numero_factura']
+        if Alquiler.objects.filter(numero_factura=numero_factura).exists():
+            raise ValidationError("Este número de factura ya está en uso")
+        return numero_factura
+
+
 
 
 class DocumentosAlquilerForm(forms.ModelForm):

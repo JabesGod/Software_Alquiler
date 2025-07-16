@@ -9,8 +9,10 @@
 
     <form method="post" id="alquiler-form" class="needs-validation" novalidate>
         {% csrf_token %}
+        <input type="hidden" id="id_iva" name="iva" value="0.00">
+        <input type="hidden" id="id_precio_total" name="precio_total" value="0.00">
 
-        <!-- CAMPOS OCULTOS DEL FORMSET - IMPORTANTE -->
+        <!-- CAMPOS OCULTOS DEL FORMSET -->
         {{ formset.management_form }}
 
         <div class="card mb-4">
@@ -27,7 +29,6 @@
                             Por favor seleccione un cliente.
                         </div>
                     </div>
-                    <!-- En la sección de información principal -->
                     <div class="col-md-6 mb-3">
                         <label for="{{ form.numero_factura.id_for_label }}" class="form-label">
                             <i class="fas fa-file-invoice"></i> Número de Factura
@@ -60,6 +61,33 @@
                         <label class="form-label"><i class="fas fa-clock"></i> Duración</label>
                         <input type="text" class="form-control" id="duracion-alquiler" readonly>
                     </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch pt-4">
+                            {{ form.con_iva }}
+                            <label for="{{ form.con_iva.id_for_label }}" class="form-check-label">
+                                <i class="fas fa-percentage"></i> Incluir IVA (19%)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch pt-4">
+                            {{ form.renovacion_automatica }}
+                            <label for="{{ form.renovacion_automatica.id_for_label }}" class="form-check-label">
+                                <i class="fas fa-sync-alt"></i> Renovación automática
+                            </label>
+                        </div>
+                    </div>
+                    {% if form.aprobado_por %}
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.aprobado_por.id_for_label }}" class="form-label">
+                            <i class="fas fa-user-check"></i> Aprobado por
+                        </label>
+                        {{ form.aprobado_por }}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -98,7 +126,7 @@
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label"><i class="fas fa-barcode"></i> Números de Serie</label>
+                        <label class="form-label"><i class="fas fa-barcode"></i> Números de Serie (Opcional)</label>
                         <select class="form-control select2" id="serie-selector" multiple>
                             <!-- Se llenará dinámicamente -->
                         </select>
@@ -118,16 +146,17 @@
                                 <th><i class="fas fa-barcode"></i> Seriales</th>
                                 <th><i class="fas fa-calendar-week"></i> Periodo</th>
                                 <th><i class="fas fa-dollar-sign"></i> Precio Unitario</th>
+                                <th><i class="fas fa-dollar-sign"></i> Total</th>
                                 <th><i class="fas fa-times"></i> Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Se llenará dinámicamente -->
+                            <!-- Filas se agregarán dinámicamente -->
                         </tbody>
                     </table>
                 </div>
 
-                <!-- Campos ocultos para el formset - CORREGIDO -->
+                <!-- Campos ocultos para el formset -->
                 <div id="equipos-container">
                     <!-- Los campos del formset se generarán aquí dinámicamente -->
                 </div>
@@ -148,22 +177,11 @@
                 </div>
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label for="{{ form.aprobado_por.id_for_label }}" class="form-label"><i
-                                class="fas fa-user-check"></i> Aprobado por</label>
-                        {{ form.aprobado_por }}
-                    </div>
-                    <div class="col-md-4 mb-3">
                         <div class="form-check form-switch pt-4">
                             {{ form.contrato_firmado }}
-                            <label for="{{ form.contrato_firmado.id_for_label }}" class="form-check-label"><i
-                                    class="fas fa-file-signature"></i> Contrato Firmado</label>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="form-check form-switch pt-4">
-                            {{ form.renovacion }}
-                            <label for="{{ form.renovacion.id_for_label }}" class="form-check-label"><i
-                                    class="fas fa-sync-alt"></i> Renovación</label>
+                            <label for="{{ form.contrato_firmado.id_for_label }}" class="form-check-label">
+                                <i class="fas fa-file-signature"></i> Contrato Firmado
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -187,7 +205,7 @@
                             <span class="fw-bold">Subtotal:</span>
                             <span id="subtotal">$0.00</span>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div id="iva-container" class="d-flex justify-content-between align-items-center mb-2">
                             <span class="fw-bold">Impuestos (19%):</span>
                             <span id="impuestos">$0.00</span>
                         </div>

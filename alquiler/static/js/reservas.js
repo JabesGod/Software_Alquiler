@@ -119,11 +119,6 @@ $(document).ready(function () {
             return;
         }
 
-        if (series.length === 0) {
-            alert('Por favor seleccione al menos un número de serie');
-            return;
-        }
-
         if (!periodo) {
             alert('Por favor seleccione un periodo de reserva');
             return;
@@ -203,7 +198,7 @@ $(document).ready(function () {
             row.append($('<td>').text(equipo.series.join(', ')));
             row.append($('<td>').text(equipo.periodoTexto));
 
-        
+
             const precioCell = $('<td>').addClass('text-end');
             const precioInput = $('<input>').attr({
                 type: 'number',
@@ -257,8 +252,9 @@ $(document).ready(function () {
             container.append($('<input>').attr({
                 type: 'hidden',
                 name: `detalles-${index}-numeros_serie`,
-                value: JSON.stringify(equipo.series)
+                value: JSON.stringify(equipo.series || [])
             }));
+
 
             container.append($('<input>').attr({
                 type: 'hidden',
@@ -269,8 +265,10 @@ $(document).ready(function () {
             container.append($('<input>').attr({
                 type: 'hidden',
                 name: `detalles-${index}-cantidad`,
-                value: equipo.series.length
+                value: equipo.series.length > 0 ? equipo.series.length : 1
             }));
+
+
 
             // CORREGIDO: Asegurar que el precio_unitario se envíe correctamente
             container.append($('<input>').attr({

@@ -39,7 +39,6 @@ $(document).ready(function () {
     calcularDuracion();
 
     // Manejar cambio de equipo para cargar números de serie
-    // Manejar cambio de equipo para cargar números de serie
     $('#equipo-selector').change(function () {
         const equipoId = $(this).val();
         const serieSelector = $('#serie-selector');
@@ -49,34 +48,45 @@ $(document).ready(function () {
             return;
         }
 
-        // Usar la URL definida globalmente
+        // Mostrar carga mientras se obtienen los datos
+        serieSelector.empty().prop('disabled', true);
+        serieSelector.append($('<option>', {
+            value: '',
+            text: 'Cargando series...'
+        }));
+
+        // Hacer la petición AJAX
         $.ajax({
             url: window.SERIES_DISPONIBLES_URL.replace('{equipoId}', equipoId),
             method: 'GET',
             dataType: 'json',
             success: function (data) {
                 serieSelector.empty();
-                data.series.forEach(value => {
+
+                if (data.series && data.series.length > 0) {
+                    data.series.forEach(value => {
+                        serieSelector.append($('<option>', {
+                            value: value,
+                            text: value
+                        }));
+                    });
+                    serieSelector.prop('disabled', false);
+                } else {
                     serieSelector.append($('<option>', {
-                        value: value,
-                        text: value
+                        value: '',
+                        text: 'No hay series disponibles'
                     }));
-                });
-
-                // Filtrar series ya seleccionadas para este equipo
-                const yaSeleccionadas = equiposAgregados
-                    .filter(e => e.equipoId == equipoId)
-                    .flatMap(e => e.series);
-
-                if (yaSeleccionadas.length > 0) {
-                    serieSelector.val(yaSeleccionadas).trigger('change');
+                    serieSelector.prop('disabled', true);
                 }
-
-                serieSelector.prop('disabled', false);
             },
             error: function (xhr, status, error) {
                 console.error("Error al cargar series:", error);
-                serieSelector.empty().prop('disabled', true);
+                serieSelector.empty();
+                serieSelector.append($('<option>', {
+                    value: '',
+                    text: 'Error al cargar series'
+                }));
+                serieSelector.prop('disabled', true);
             }
         });
     });
@@ -219,65 +229,52 @@ $(document).ready(function () {
         container.empty();
 
         equiposAgregados.forEach((equipo, index) => {
-            // Input para el equipo
-            container.append(
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: `detalles-${index}-equipo`,
-                    value: equipo.equipoId
-                })
-            );
+            container.append($('<input>').attr({
+                type: 'hidden',
+                name: `detalles-${index}-equipo`,
+                value: equipo.equipoId
+            }));
 
-            // Input para los números de serie (como lista JSON)
-            container.append(
-                $('<input>', {
-                    type: 'hidden',
-                    name: `detalles-${index}-numeros_serie`,
-                    value: JSON.stringify(equipo.series)  // ✅ esto sí debe funcionar si el campo es JSONField
-                })
-            );
+            container.append($('<input>').attr({
+                type: 'hidden',
+                name: `detalles-${index}-numeros_serie`,
+                value: JSON.stringify(equipo.series)
+            }));
 
+            container.append($('<input>').attr({
+                type: 'hidden',
+                name: `detalles-${index}-periodo_alquiler`,
+                value: equipo.periodo
+            }));
 
-            // Input para el periodo
-            container.append(
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: `detalles-${index}-periodo_alquiler`,
-                    value: equipo.periodo
-                })
-            );
+            container.append($('<input>').attr({
+                type: 'hidden',
+                name: `detalles-${index}-cantidad`,
+                value: equipo.series.length
+            }));
 
-            // Input para la cantidad
-            container.append(
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: `detalles-${index}-cantidad`,
-                    value: equipo.series.length
-                })
-            );
+            container.append($('<input>').attr({
+                type: 'hidden',
+                name: `detalles-${index}-precio_unitario`,
+                value: equipo.precioUnitario  // ¡ESTO ES LO QUE FALTABA!
+            }));
 
-            // Input para el ID (si es una edición)
-            container.append(
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: `detalles-${index}-id`,
-                    value: ''
-                })
-            );
+            container.append($('<input>').attr({
+                type: 'hidden',
+                name: `detalles-${index}-id`,
+                value: ''
+            }));
 
-            // Input para DELETE si es necesario
-            container.append(
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: `detalles-${index}-DELETE`,
-                    value: 'false'
-                })
-            );
+            container.append($('<input>').attr({
+                type: 'hidden',
+                name: `detalles-${index}-DELETE`,
+                value: 'false'
+            }));
         });
 
-        // Actualizar el TOTAL_FORMS
         $('#id_detalles-TOTAL_FORMS').val(equiposAgregados.length);
     }
+
 
     // Validación del formulario
     (function () {

@@ -110,17 +110,18 @@
                             <tr>
                                 <th><i class="fas fa-desktop"></i> Equipo</th>
                                 <th><i class="fas fa-barcode"></i> Seriales</th>
+                                <th><i class="fas fa-calendar-week"></i> Periodo</th>
                                 <th><i class="fas fa-dollar-sign"></i> Precio Unitario</th>
-                                <th><i class="fas fa-dollar-sign"></i> Precio Total</th>
                                 <th><i class="fas fa-times"></i> Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-
+                            <!-- Filas se agregarán dinámicamente -->
                         </tbody>
                     </table>
                 </div>
                 <div id="equipos-container">
+                    <!-- Inputs ocultos para el formulario -->
                 </div>
             </div>
         </div>
@@ -157,7 +158,8 @@
     <input type="hidden" name="{{ field.html_name }}" id="{{ field.id_for_label }}" value="">
     {% endfor %}
 </div>
-<!-- SCRIPT PARA PASAR LA URL AL JAVASCRIPT -->
+
+<!-- Script para definir la URL de series disponibles -->
 <script>
     window.SERIES_DISPONIBLES_URL = "{% url 'alquiler:series_disponibles' equipo_id=0 %}".replace('0', '{equipoId}');
 </script>

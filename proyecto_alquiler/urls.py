@@ -144,8 +144,8 @@ core_patterns = [
 
 # Configuración principal de URLs
 urlpatterns = [
-    path('', RedirectView.as_view(url='/corozo/')),  # Redirección raíz
-    path('corozo/', include((core_patterns, 'alquiler'), namespace='alquiler')),
+    path('', RedirectView.as_view(url='/guanabanazo/')),  # Redirección raíz
+    path('guanabanazo/', include((core_patterns, 'alquiler'), namespace='alquiler')),
 ]
 
 # Configuración para archivos multimedia en desarrollo

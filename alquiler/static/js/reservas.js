@@ -202,7 +202,23 @@ $(document).ready(function () {
             row.append($('<td>').text(equipo.equipoTexto));
             row.append($('<td>').text(equipo.series.join(', ')));
             row.append($('<td>').text(equipo.periodoTexto));
-            row.append($('<td>').addClass('text-end').text('$' + equipo.precioUnitario.toFixed(2)));
+
+        
+            const precioCell = $('<td>').addClass('text-end');
+            const precioInput = $('<input>').attr({
+                type: 'number',
+                step: '0.01',
+                min: '0',
+                class: 'form-control form-control-sm',
+                value: equipo.precioUnitario,
+                style: 'width: 100px; display: inline-block;'
+            }).on('change', function () {
+                equipo.precioUnitario = parseFloat($(this).val()) || 0;
+                actualizarInputsOcultos();
+            });
+            precioCell.append('$').append(precioInput);
+            row.append(precioCell);
+
 
             const deleteBtn = $('<button>').addClass('btn btn-danger btn-sm')
                 .html('<i class="fas fa-trash"></i>')
@@ -225,57 +241,63 @@ $(document).ready(function () {
 
     // Actualizar los inputs ocultos para el formulario
     function actualizarInputsOcultos() {
-    const container = $('#equipos-container');
-    container.empty();
+        const container = $('#equipos-container');
+        container.empty();
 
-    equiposAgregados.forEach((equipo, index) => {
-        container.append($('<input>').attr({
-            type: 'hidden',
-            name: `detalles-${index}-equipo`,
-            value: equipo.equipoId
-        }));
+        equiposAgregados.forEach((equipo, index) => {
+            // Asegurar que el precio_unitario esté definido
+            const precioUnitario = equipo.precioUnitario || 0;
 
-        container.append($('<input>').attr({
-            type: 'hidden',
-            name: `detalles-${index}-numeros_serie`,
-            value: JSON.stringify(equipo.series)
-        }));
+            container.append($('<input>').attr({
+                type: 'hidden',
+                name: `detalles-${index}-equipo`,
+                value: equipo.equipoId
+            }));
 
-        container.append($('<input>').attr({
-            type: 'hidden',
-            name: `detalles-${index}-periodo_alquiler`,
-            value: equipo.periodo
-        }));
+            container.append($('<input>').attr({
+                type: 'hidden',
+                name: `detalles-${index}-numeros_serie`,
+                value: JSON.stringify(equipo.series)
+            }));
 
-        container.append($('<input>').attr({
-            type: 'hidden',
-            name: `detalles-${index}-cantidad`,
-            value: equipo.series.length
-        }));
+            container.append($('<input>').attr({
+                type: 'hidden',
+                name: `detalles-${index}-periodo_alquiler`,
+                value: equipo.periodo
+            }));
 
-        // Asegurarse de que el precio unitario se envía correctamente
-        container.append($('<input>').attr({
-            type: 'hidden',
-            name: `detalles-${index}-precio_unitario`,
-            value: equipo.precioUnitario.toFixed(2)  // Formatear a 2 decimales
-        }));
+            container.append($('<input>').attr({
+                type: 'hidden',
+                name: `detalles-${index}-cantidad`,
+                value: equipo.series.length
+            }));
 
-        container.append($('<input>').attr({
-            type: 'hidden',
-            name: `detalles-${index}-id`,
-            value: ''
-        }));
+            // CORREGIDO: Asegurar que el precio_unitario se envíe correctamente
+            container.append($('<input>').attr({
+                type: 'hidden',
+                name: `detalles-${index}-precio_unitario`,
+                value: precioUnitario
+            }));
 
-        container.append($('<input>').attr({
-            type: 'hidden',
-            name: `detalles-${index}-DELETE`,
-            value: 'false'
-        }));
-    });
+            container.append($('<input>').attr({
+                type: 'hidden',
+                name: `detalles-${index}-id`,
+                value: ''
+            }));
 
-    $('#id_detalles-TOTAL_FORMS').val(equiposAgregados.length);
-}
+            container.append($('<input>').attr({
+                type: 'hidden',
+                name: `detalles-${index}-DELETE`,
+                value: 'false'
+            }));
+        });
 
+        // CORREGIDO: Actualizar el total de formularios
+        const totalForms = $('#id_detalles-TOTAL_FORMS');
+        if (totalForms.length) {
+            totalForms.val(equiposAgregados.length);
+        }
+    }
 
     // Validación del formulario
     (function () {
@@ -294,6 +316,9 @@ $(document).ready(function () {
                         alert('Debe agregar al menos un equipo a la reserva');
                         return;
                     }
+
+                    // Actualizar inputs ocultos antes de enviar
+                    actualizarInputsOcultos();
 
                     if (!form.checkValidity()) {
                         event.preventDefault();

@@ -77,41 +77,41 @@ class AlquilerForm(forms.ModelForm):
 
         return cleaned_data
 
-
 class DetalleAlquilerForm(forms.ModelForm):
-    numeros_serie = forms.CharField( required=True, widget=forms.HiddenInput(), help_text="Números de serie en formato JSON"
+    numeros_serie = forms.CharField(
+        required=True,
+        widget=forms.HiddenInput(),
+        help_text="Números de serie en formato JSON"
     )
-    precio_unitario = forms.DecimalField( required=False, widget=forms.NumberInput(attrs={'step': '0.01', 'min': '0'}), decimal_places=2, max_digits=10
+    precio_unitario = forms.DecimalField(
+        required=True,  # Cambiado a True para forzar su envío
+        widget=forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+        decimal_places=2,
+        max_digits=10,
+        initial=0.00  # Valor por defecto
     )
+    
     class Meta:
         model = DetalleAlquiler
-        fields = ['equipo', 'numeros_serie', 'periodo_alquiler', 'cantidad']
+        fields = ['equipo', 'numeros_serie', 'periodo_alquiler', 'cantidad', 'precio_unitario']
         widgets = {
             'equipo': forms.HiddenInput(),
             'periodo_alquiler': forms.HiddenInput(),
             'cantidad': forms.HiddenInput(),
         }
 
-    def clean_numeros_serie(self):
-        numeros_serie = self.cleaned_data.get('numeros_serie', '[]')
-        
-        try:
-            # Convertir de JSON string a lista Python
-            if isinstance(numeros_serie, str):
-                return json.loads(numeros_serie)
-            return numeros_serie
-        except json.JSONDecodeError:
-            raise forms.ValidationError("Formato inválido para números de serie")
-
-    
     def clean(self):
         cleaned_data = super().clean()
-        if not cleaned_data.get('precio_unitario'):
-            periodo = cleaned_data.get('periodo_alquiler')
-            equipo = cleaned_data.get('equipo')
-            if equipo and periodo:
-                # Establecer precio basado en periodo
-                cleaned_data['precio_unitario'] = getattr(equipo, f'precio_{periodo}', 0)
+        # No sobrescribas el precio si ya fue proporcionado
+        if 'precio_unitario' in cleaned_data and cleaned_data['precio_unitario'] is not None:
+            return cleaned_data
+            
+        # Solo calcula el precio si no fue proporcionado
+        periodo = cleaned_data.get('periodo_alquiler')
+        equipo = cleaned_data.get('equipo')
+        if equipo and periodo:
+            cleaned_data['precio_unitario'] = getattr(equipo, f'precio_{periodo}', 0)
+        
         return cleaned_data
 
 DetalleAlquilerFormSet = inlineformset_factory(

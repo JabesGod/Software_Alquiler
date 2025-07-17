@@ -67,6 +67,25 @@
             <h3 class="form-section-title">
                 <i class="fas fa-file-alt"></i> Documentación
             </h3>
+            <div class="form-group">
+                <label>Estudio de Crédito</label>
+                <div class="file-upload">
+                    <label for="id_estudio_credito" class="file-upload-label">
+                        <div class="file-upload-icon">
+                            <i class="fas fa-file-contract"></i>
+                        </div>
+                        <div class="file-upload-text">Subir estudio de crédito</div>
+                        <div class="file-upload-hint">Formatos: PDF, DOC, XLS. Máx. 10MB</div>
+                        {{ form.estudio_credito }}
+                    </label>
+                    {% if form.estudio_credito.value %}
+                    <div class="current-file">
+                        <i class="fas fa-check-circle"></i> Archivo actual: {{ form.estudio_credito.value }}
+                    </div>
+                    {% endif %}
+                    {{ form.estudio_credito.errors }}
+                </div>
+            </div>
             <div class="form-grid">
                 <div class="form-group">
                     {{ form.tipo_cliente.label_tag }}

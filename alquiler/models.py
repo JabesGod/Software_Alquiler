@@ -312,7 +312,13 @@ class Cliente(models.Model):
     documento_rut = models.FileField(upload_to='documentos/', blank=True, null=True)
     documento_cedula = models.FileField(upload_to='documentos/', blank=True, null=True)
     contrato_firmado = models.FileField(upload_to='contratos/', blank=True, null=True)
-
+    estudio_credito = models.FileField(
+        upload_to='estudios_credito/',
+        blank=True,
+        null=True,
+        verbose_name="Estudio de crédito",
+        help_text="Documento del estudio de crédito del cliente"
+    )
     # Tiempos
     fecha_creacion = models.DateTimeField(auto_now_add=True, null=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)

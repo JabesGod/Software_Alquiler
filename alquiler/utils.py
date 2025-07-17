@@ -13,6 +13,46 @@ from functools import wraps
 
 logger = logging.getLogger(__name__)
 
+
+def actualizar_morosidad_clientes():
+    # 1. Obtener pagos vencidos (más de 15 días de retraso)
+    fecha_limite = timezone.now().date() - timedelta(days=1)
+    pagos_vencidos = Pago.objects.filter(
+        estado_pago='pendiente',
+        fecha_vencimiento__lte=fecha_limite
+    ).select_related('alquiler__cliente')
+
+    # 2. Procesar cada cliente con pagos vencidos
+    for pago in pagos_vencidos:
+        cliente = pago.alquiler.cliente
+        dias_mora = (timezone.now().date() - pago.fecha_vencimiento).days
+        deuda_total = sum(
+            p.monto for p in Pago.objects.filter(
+                alquiler__cliente=cliente,
+                estado_pago='pendiente'
+            )
+        )
+
+        # Actualizar datos del cliente moroso
+        cliente.moroso = True
+        cliente.dias_mora = dias_mora
+        cliente.deuda_total = deuda_total
+        cliente.fecha_marcado_moroso = timezone.now().date()
+        cliente.save()
+
+    # 3. Limpiar clientes que ya pagaron (quitar estado moroso)
+    Cliente.objects.filter(
+        moroso=True
+    ).exclude(
+        id__in=[p.alquiler.cliente.id for p in pagos_vencidos]
+    ).update(
+        moroso=False,
+        dias_mora=0,
+        deuda_total=0,
+        fecha_marcado_moroso=None
+    )
+
+
 def enviar_notificacion_pago(pago, usuario):
     """
     Envía notificaciones por correo electrónico sobre el pago

@@ -237,7 +237,7 @@
 
     <form method="post" enctype="multipart/form-data" class="client-form">
         {% csrf_token %}
-        
+
         <!-- Información Básica -->
         <div class="form-section">
             <h3 class="form-section-title">
@@ -249,13 +249,13 @@
                     {{ form.nombre }}
                     {{ form.nombre.errors }}
                 </div>
-                
+
                 <div class="form-group">
                     <label for="id_email">Email</label>
                     {{ form.email }}
                     {{ form.email.errors }}
                 </div>
-                
+
                 <div class="form-group">
                     <label for="id_telefono">Teléfono</label>
                     {{ form.telefono }}
@@ -263,7 +263,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Documentación -->
         <div class="form-section">
             <h3 class="form-section-title">
@@ -275,13 +275,13 @@
                     {{ form.tipo_cliente }}
                     {{ form.tipo_cliente.errors }}
                 </div>
-                
+
                 <div class="form-group">
                     <label for="id_tipo_documento">Tipo de Documento</label>
                     {{ form.tipo_documento }}
                     {{ form.tipo_documento.errors }}
                 </div>
-                
+
                 <div class="form-group">
                     <label for="id_numero_documento">Número de Documento</label>
                     {{ form.numero_documento }}
@@ -289,9 +289,10 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Información de Empresa (condicional) -->
-        <div class="form-section" id="empresa-section" style="display: {% if form.tipo_cliente.value == 'juridica' %}block{% else %}none{% endif %};">
+        <div class="form-section" id="empresa-section"
+            style="display: {% if form.tipo_cliente.value == 'juridica' %}block{% else %}none{% endif %};">
             <h3 class="form-section-title">
                 <i class="fas fa-building"></i> Información Empresarial
             </h3>
@@ -301,7 +302,7 @@
                     {{ form.nombre_empresa }}
                     {{ form.nombre_empresa.errors }}
                 </div>
-                
+
                 <div class="form-group">
                     <label for="id_nit">NIT</label>
                     {{ form.nit }}
@@ -309,7 +310,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Ubicación -->
         <div class="form-section">
             <h3 class="form-section-title">
@@ -321,13 +322,13 @@
                     {{ form.direccion }}
                     {{ form.direccion.errors }}
                 </div>
-                
+
                 <div class="form-group">
                     <label for="id_ciudad">Ciudad</label>
                     {{ form.ciudad }}
                     {{ form.ciudad.errors }}
                 </div>
-                
+
                 <div class="form-group">
                     <label for="id_barrio">Barrio</label>
                     {{ form.barrio }}
@@ -335,7 +336,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Documentos y Foto -->
         <div class="form-section">
             <h3 class="form-section-title">
@@ -354,14 +355,32 @@
                             {{ form.foto }}
                         </label>
                         {% if form.foto.value %}
-                            <div class="current-file">
-                                <i class="fas fa-check-circle"></i> Archivo actual: {{ form.foto.value }}
-                            </div>
+                        <div class="current-file">
+                            <i class="fas fa-check-circle"></i> Archivo actual: {{ form.foto.value }}
+                        </div>
                         {% endif %}
                         {{ form.foto.errors }}
                     </div>
                 </div>
-                
+                <div class="form-group">
+                    <label>Estudio de Crédito</label>
+                    <div class="file-upload">
+                        <label for="id_estudio_credito" class="file-upload-label">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-file-contract"></i>
+                            </div>
+                            <div class="file-upload-text">Subir estudio de crédito</div>
+                            <div class="file-upload-hint">Formatos: PDF, DOC, XLS. Máx. 10MB</div>
+                            {{ form.estudio_credito }}
+                        </label>
+                        {% if form.estudio_credito.value %}
+                        <div class="current-file">
+                            <i class="fas fa-check-circle"></i> Archivo actual: {{ form.estudio_credito.value }}
+                        </div>
+                        {% endif %}
+                        {{ form.estudio_credito.errors }}
+                    </div>
+                </div>
                 <div class="form-group">
                     <label>Documento de Identidad</label>
                     <div class="file-upload">
@@ -374,14 +393,14 @@
                             {{ form.documento_cedula }}
                         </label>
                         {% if form.documento_cedula.value %}
-                            <div class="current-file">
-                                <i class="fas fa-check-circle"></i> Archivo actual: {{ form.documento_cedula.value }}
-                            </div>
+                        <div class="current-file">
+                            <i class="fas fa-check-circle"></i> Archivo actual: {{ form.documento_cedula.value }}
+                        </div>
                         {% endif %}
                         {{ form.documento_cedula.errors }}
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label>Documento RUT (para empresas)</label>
                     <div class="file-upload">
@@ -394,14 +413,14 @@
                             {{ form.documento_rut }}
                         </label>
                         {% if form.documento_rut.value %}
-                            <div class="current-file">
-                                <i class="fas fa-check-circle"></i> Archivo actual: {{ form.documento_rut.value }}
-                            </div>
+                        <div class="current-file">
+                            <i class="fas fa-check-circle"></i> Archivo actual: {{ form.documento_rut.value }}
+                        </div>
                         {% endif %}
                         {{ form.documento_rut.errors }}
                     </div>
                 </div>
-                   <div class="form-group">
+                <div class="form-group">
                     <label>{{ form.contrato_firmado.label }}</label>
                     <div class="file-upload-wrapper">
                         <label for="{{ form.documento_cedula.id_for_label }}" class="file-upload-label">
@@ -424,7 +443,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Preferencias -->
         <div class="form-section">
             <h3 class="form-section-title">
@@ -436,7 +455,7 @@
                     {{ form.metodo_pago_preferido }}
                     {{ form.metodo_pago_preferido.errors }}
                 </div>
-                
+
                 <div class="form-group">
                     <label for="id_informacion_facturacion">Información de Facturación</label>
                     {{ form.informacion_facturacion }}
@@ -444,7 +463,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="form-actions">
             <a href="{% url 'alquiler:listar_clientes' %}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Cancelar
@@ -458,7 +477,7 @@
 
 <script>
     // Mostrar/ocultar sección de empresa según tipo de cliente
-    document.getElementById('id_tipo_cliente').addEventListener('change', function() {
+    document.getElementById('id_tipo_cliente').addEventListener('change', function () {
         const empresaSection = document.getElementById('empresa-section');
         if (this.value === 'juridica') {
             empresaSection.style.display = 'block';
@@ -468,7 +487,7 @@
     });
 
     // Añadir clases de Bootstrap a los campos del formulario generados automáticamente
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const inputs = document.querySelectorAll('input, select, textarea');
         inputs.forEach(input => {
             input.classList.add('form-control');
@@ -477,12 +496,12 @@
         // Manejar campos de archivo para mostrar el nombre del archivo seleccionado
         const fileInputs = document.querySelectorAll('input[type="file"]');
         fileInputs.forEach(input => {
-            input.addEventListener('change', function() {
+            input.addEventListener('change', function () {
                 if (this.files.length > 0) {
                     const fileName = this.files[0].name;
                     const parentDiv = this.closest('.file-upload');
                     const currentFileDiv = parentDiv.querySelector('.current-file');
-                    
+
                     if (!currentFileDiv) {
                         const newDiv = document.createElement('div');
                         newDiv.className = 'current-file';

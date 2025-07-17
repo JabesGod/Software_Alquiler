@@ -112,6 +112,11 @@
                         <i class="fas fa-file-signature"></i> Contrato
                     </a>
                     {% endif %}
+                    {% if cliente.estudio_credito %}
+                    <a href="{{ cliente.estudio_credito.url }}" class="document-link" target="_blank">
+                        <i class="fas fa-file-contract"></i> Estudio de Crédito
+                    </a><br>
+                    {% endif %}
                     {% if not cliente.documento_cedula and not cliente.documento_rut and not cliente.contrato_firmado %}
                     Ningún documento subido
                     {% endif %}
@@ -124,7 +129,8 @@
         </div>
     </div>
     <div class="action-buttons">
-        <a href="{% url 'alquiler:cambiar_estado_verificacion' cliente.id 'verificado' %}" class="btn-action btn-verify">
+        <a href="{% url 'alquiler:cambiar_estado_verificacion' cliente.id 'verificado' %}"
+            class="btn-action btn-verify">
             <i class="fas fa-check-circle"></i> Verificar
         </a>
         <a href="{% url 'alquiler:bloquear_cliente' cliente.id %}" class="btn-action btn-block">

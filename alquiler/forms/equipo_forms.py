@@ -53,20 +53,23 @@ class EquipoBaseForm(forms.ModelForm):
     class Meta:
         model = Equipo
         fields = [
-            'marca', 'modelo', 'numero_serie', 'especificaciones',
+            'sku', 'marca', 'modelo', 'numero_serie', 'requiere_serie', 'especificaciones',
             'estado', 'ubicacion', 'cantidad_total', 'cantidad_disponible',
             'precio_dia', 'precio_semana', 'precio_mes', 'precio_trimestre',
-            'precio_semestre', 'precio_anio', 'descripcion_larga', 'es_html','requiere_serie'
+            'precio_semestre', 'precio_anio', 'descripcion_larga', 'es_html'
         ]
         widgets = {
             'numero_serie': forms.Textarea(attrs={
                 'rows': 3,
                 'placeholder': 'Ingrese números de serie separados por comas\nEj: SN123, SN456, SN789'
             }),
-
+            'sku': forms.TextInput(attrs={
+                'placeholder': 'Ej: SKU-001'
+            })
         }
         help_texts = {
             'numero_serie': 'Ingrese todos los números de serie separados por comas',
+            'sku': 'Código único de identificación del equipo'
         }
 
     def clean_numero_serie(self):

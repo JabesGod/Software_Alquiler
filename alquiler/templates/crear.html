@@ -30,6 +30,11 @@
                     <h4 class="section-title"><i class="fas fa-info-circle me-2"></i>Información Básica</h4>
                     <div class="form-grid">
                         <div class="form-group">
+                            {{ form.sku.label_tag }}
+                            {{ form.sku }}
+                            <div class="invalid-feedback">{{ form.sku.errors }}</div>
+                        </div>
+                        <div class="form-group">
                             {{ form.marca.label_tag }}
                             {{ form.marca }}
                             <div class="invalid-feedback">{{ form.marca.errors }}</div>

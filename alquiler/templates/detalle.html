@@ -53,11 +53,16 @@
                             {{ equipo.get_estado_display }}
                         </span>
                     </div>
-
+                    <div class="info-item">
+                        <span class="info-label">SKU:</span>
+                        <span class="info-value">{{ equipo.sku }}</span>
+                    </div>
+                    {% if equipo.requiere_serie and equipo.numero_serie %}
                     <div class="info-item">
                         <span class="info-label">Número de Serie:</span>
                         <span class="info-value">{{ equipo.numero_serie }}</span>
                     </div>
+                    {% endif %}
 
                     <div class="info-item">
                         <span class="info-label">Ubicación:</span>

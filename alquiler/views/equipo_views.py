@@ -224,6 +224,7 @@ def detalle_equipo(request, id):
         'equipos_similares': equipos_similares
     })
 
+
 def equipos_disponibles(request):
     equipos = Equipo.objects.filter(estado='disponible')
     return render(request, 'lista.html', {'equipos': equipos})

@@ -45,7 +45,14 @@ class Equipo(models.Model):
         ('mantenimiento', 'En mantenimiento'),
     ]
 
-    # Campos básicos
+    sku = models.CharField(
+        max_length=50,
+        unique=True,
+        blank=True, 
+        null=True,
+        verbose_name="SKU",
+        help_text="Código único de identificación del equipo"
+    )
     marca = models.CharField(max_length=50)
     modelo = models.CharField(max_length=50)
     numero_serie = models.TextField(
@@ -405,6 +412,7 @@ class Alquiler(models.Model):
 
 class DetalleAlquiler(models.Model):
     PERIODO_CHOICES = [
+
         ('dia', 'Por día'),
         ('semana', 'Por semana'),
         ('mes', 'Por mes'),
@@ -456,16 +464,13 @@ class DetalleAlquiler(models.Model):
             anios = max(1, ceil(dias / 365))
             self.precio_total = self.precio_unitario * self.cantidad * anios
 
-        # Aplicar IVA si corresponde
         if self.con_iva:
             self.precio_total = self.precio_total * Decimal('1.19')
 
         super().save(*args, **kwargs)
 
-        # Actualizar la disponibilidad del equipo
-        self.actualizar_disponibilidad_equipo()
 
-        # Actualizar total del alquiler
+        self.actualizar_disponibilidad_equipo()
         self.alquiler.calcular_precio_total()
 
     def actualizar_disponibilidad_equipo(self):

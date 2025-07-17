@@ -56,7 +56,7 @@ class EquipoBaseForm(forms.ModelForm):
             'marca', 'modelo', 'numero_serie', 'especificaciones',
             'estado', 'ubicacion', 'cantidad_total', 'cantidad_disponible',
             'precio_dia', 'precio_semana', 'precio_mes', 'precio_trimestre',
-            'precio_semestre', 'precio_anio', 'descripcion_larga', 'es_html'
+            'precio_semestre', 'precio_anio', 'descripcion_larga', 'es_html','requiere_serie'
         ]
         widgets = {
             'numero_serie': forms.Textarea(attrs={

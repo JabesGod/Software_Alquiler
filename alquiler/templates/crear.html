@@ -39,6 +39,15 @@
                             {{ form.modelo }}
                             <div class="invalid-feedback">{{ form.modelo.errors }}</div>
                         </div>
+                        <div class="form-check form-switch">
+                            {{ form.requiere_serie }}
+                            <label class="form-check-label" for="{{ form.requiere_serie.id_for_label }}">
+                                {{ form.requiere_serie.label }}
+                            </label>
+                            <small class="form-text text-muted">¿Este equipo requiere número de serie para su
+                                control?</small>
+                            <div class="invalid-feedback">{{ form.requiere_serie.errors }}</div>
+                        </div>
                         <div class="form-group">
                             <label for="{{ form.numero_serie.id_for_label }}">
                                 {{ form.numero_serie.label }} <small class="text-muted">(opcional)</small>
@@ -58,6 +67,7 @@
                             <div class="invalid-feedback">{{ form.cantidad_total.errors }}</div>
                         </div>
                         
+
                         <div class="form-group">
                             {{ form.cantidad_disponible.label_tag }}
                             {{ form.cantidad_disponible }}
@@ -209,16 +219,16 @@
             <div class="upload-area">
                 <div class="file-upload-card">
                     <label class="file-upload-label">
-    <input type="file" name="fotos" multiple>
-    <div class="upload-content">
-        <i class="fas fa-cloud-upload-alt"></i>
-        <p>Arrastra fotos aquí o haz clic para seleccionar</p>
-        <small class="text-muted">
-            Formatos: JPG, PNG. Máx. 5MB por imagen.<br>
-            <strong>Este campo es opcional.</strong>
-        </small>
-    </div>
-</label>
+                        <input type="file" name="fotos" multiple>
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Arrastra fotos aquí o haz clic para seleccionar</p>
+                            <small class="text-muted">
+                                Formatos: JPG, PNG. Máx. 5MB por imagen.<br>
+                                <strong>Este campo es opcional.</strong>
+                            </small>
+                        </div>
+                    </label>
 
                     <div class="invalid-feedback">{{ form.fotos.errors }}</div>
                 </div>
@@ -242,4 +252,3 @@
 {% block extra_js %}
 <script src="{% static 'js/crear_equipo.js' %}"></script>
 {% endblock %}
-

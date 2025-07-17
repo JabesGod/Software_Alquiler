@@ -21,11 +21,11 @@ from django.core.files.base import ContentFile
 import tempfile
 from django.contrib.auth.models import Permission, Group
 from django.db.models import F
-import re
-
 from django.core.validators import FileExtensionValidator
 from django.contrib.auth import get_user_model
 import json
+from django.db.models import F
+
 from django.core.serializers.json import DjangoJSONEncoder
 
 
@@ -54,6 +54,7 @@ class Equipo(models.Model):
         verbose_name="Números de serie",
         help_text="Ingrese múltiples números de serie separados por comas"
     )
+    requiere_serie = models.BooleanField(default=True, verbose_name="Requiere número de serie")
     especificaciones = models.TextField(blank=True, null=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='disponible')
     fecha_registro = models.DateField(auto_now_add=True)
@@ -330,39 +331,19 @@ class Alquiler(models.Model):
     cliente = models.ForeignKey('Cliente', on_delete=models.CASCADE, related_name='alquileres')
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
-    precio_sin_iva = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        default=Decimal('0.00')
-    )
-    iva = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal('0.00'),
-        verbose_name="IVA"
-    )
-    precio_total = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=Decimal('0.00'),
-        verbose_name="Precio Total"
-    )
+    precio_subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    iva = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    precio_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     fecha_vencimiento = models.DateField(blank=True, null=True)
     estado_alquiler = models.CharField(max_length=20, choices=ESTADO_ALQUILER, default='pendiente_aprobacion')
     renovacion = models.BooleanField(default=False)
-    contrato_firmado = models.BooleanField(default=False)
-    numero_factura = models.CharField(max_length=20, unique=True, blank=True, null=True)
-    es_reserva = models.BooleanField(default=False)
-    con_iva = models.BooleanField(default=True, verbose_name="Incluye IVA")
     aprobado_por = models.CharField(max_length=100, blank=True, null=True)
-    renovacion_automatica = models.BooleanField(default=False, verbose_name="Renovación automática")
-    creado_por = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='alquileres_creados'
-    )
+    contrato_firmado = models.BooleanField(default=False)
+    con_iva = models.BooleanField(default=False)
+    renovacion_automatica = models.BooleanField(default=False)
+    numero_factura = models.CharField(max_length=20, unique=True, blank=True, null=True,
+        help_text="Dejar en blanco para reservas")
+    es_reserva = models.BooleanField(default=False)
     fecha_creacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     observaciones = models.TextField(blank=True, null=True)
 
@@ -372,81 +353,55 @@ class Alquiler(models.Model):
     def clean(self):
         if not self.es_reserva and not self.numero_factura:
             raise ValidationError("Debe ingresar un número de factura para alquileres activos.")
-        
-        if self.fecha_fin and self.fecha_inicio and self.fecha_fin <= self.fecha_inicio:
-            raise ValidationError("La fecha de fin debe ser posterior a la fecha de inicio.")
-        
-        if not self.fecha_vencimiento:
-            self.fecha_vencimiento = self.fecha_fin
+        if self.es_reserva:
+            self.numero_factura = None
 
     def save(self, *args, **kwargs):
-        # Solo generar número de factura si no se especificó uno
         if not self.es_reserva and not self.numero_factura and not self.renovacion:
             last = Alquiler.objects.filter(es_reserva=False).order_by('-fecha_creacion').first()
-            last_number = 0
-            if last and last.numero_factura:
-                match = re.search(r'FACT[-]?(\d+)', last.numero_factura)
-                if match:
-                    last_number = int(match.group(1))
+            last_number = int(last.numero_factura.split('-')[1]) if last and last.numero_factura else 0
             self.numero_factura = f"FACT-{last_number + 1:04d}"
-        
-        # Establecer fecha_vencimiento = fecha_fin si no está definida
-        if not self.fecha_vencimiento:
-            self.fecha_vencimiento = self.fecha_fin
         
         self.full_clean()
         super().save(*args, **kwargs)
 
     def calcular_precio_total(self):
+        if self.es_reserva or self.estado_alquiler == 'pendiente_aprobacion':
+            self.precio_total = Decimal('0.00')
+            self.save(update_fields=['precio_total'])
+            return self.precio_total
+
         total = Decimal('0.00')
-        if not self.fecha_inicio or not self.fecha_fin:
-            return total
-            
         dias = (self.fecha_fin - self.fecha_inicio).days + 1
 
         for detalle in self.detalles.all():
-            cantidad = Decimal(str(detalle.cantidad)) if detalle.cantidad else Decimal('1')
-            precio_unitario = Decimal(str(detalle.precio_unitario)) if detalle.precio_unitario else Decimal('0.00')
-            periodo = detalle.periodo_alquiler
-            
-            precio = precio_unitario * cantidad
+        # ✅ Usa el precio_total directamente si ya fue calculado
+            if detalle.precio_total:
+                total += detalle.precio_total
+            elif detalle.precio_unitario and detalle.precio_unitario > 0:
+                precio = detalle.precio_unitario * detalle.cantidad
+                precio_con_iva = (precio * Decimal('1.19')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                total += precio_con_iva
+            else:
+            # fallback (puede dejarse como 0 o hacer log)
+                continue
 
-            if periodo == 'dia':
-                precio *= Decimal(str(dias))
-            elif periodo == 'semana':
-                semanas = Decimal(str(max(1, ceil(dias / 7))))
-                precio *= semanas
-            elif periodo == 'mes':
-                meses = Decimal(str(max(1, ceil(dias / 30))))
-                precio *= meses
-            elif periodo == 'trimestre':
-                trimestres = Decimal(str(max(1, ceil(dias / 90))))
-                precio *= trimestres
-            elif periodo == 'semestre':
-                semestres = Decimal(str(max(1, ceil(dias / 180))))
-                precio *= semestres
-            elif periodo == 'anio':
-                anios = Decimal(str(max(1, ceil(dias / 365))))
-                precio *= anios
-
-            total += precio
-
-        self.precio_sin_iva = total.quantize(Decimal('0.00'))
-        self.iva = (total * Decimal('0.19')).quantize(Decimal('0.00')) if self.con_iva else Decimal('0.00')
-        self.precio_total = (total + self.iva).quantize(Decimal('0.00'))
-        
-        self.save(update_fields=['precio_sin_iva', 'iva', 'precio_total'])
+        self.precio_total = total.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        self.save(update_fields=['precio_total'])
         return self.precio_total
 
-    @property
     def total_pagado(self):
-        total = self.pagos.aggregate(total=Sum('monto'))['total']
-        return Decimal(str(total)).quantize(Decimal('0.00')) if total else Decimal('0.00')
+        return sum(pago.monto for pago in self.pagos.all())
     
     @property
+    def total_pagos_vencidos(self):
+        return self.pagos.filter(
+            estado_pago__in=['pendiente', 'parcial'],
+            fecha_vencimiento__lt=timezone.now().date()
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+    @property
     def saldo_pendiente(self):
-        return (self.precio_total - self.total_pagado).quantize(Decimal('0.00'))
-
+        return Decimal(self.precio_total) - Decimal(self.total_pagado())
 
 class DetalleAlquiler(models.Model):
     PERIODO_CHOICES = [
@@ -458,28 +413,73 @@ class DetalleAlquiler(models.Model):
         ('anio', 'Por año')
     ]
     
-    alquiler = models.ForeignKey(Alquiler, on_delete=models.CASCADE, related_name='detalles')
+    alquiler = models.ForeignKey('Alquiler', on_delete=models.CASCADE, related_name='detalles')
     equipo = models.ForeignKey('Equipo', on_delete=models.PROTECT)
-    numeros_serie = models.JSONField(default=list, blank=True)
+    numeros_serie = models.JSONField(default=list, blank=True, null=True)  # Opcional
     cantidad = models.PositiveIntegerField(default=1)
     periodo_alquiler = models.CharField(max_length=20, choices=PERIODO_CHOICES, default='dia')
-    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
-    
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+    precio_total = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    con_iva = models.BooleanField(default=True, verbose_name="Aplica IVA")
+
     def __str__(self):
-        return f"{self.cantidad} x {self.equipo} (Alquiler #{self.alquiler.id})"
-    
+        return f"{self.equipo} - {self.get_periodo_alquiler_display()}"
+
     def save(self, *args, **kwargs):
-        # Si no hay series especificadas, establecer cantidad = 1
-        if not self.numeros_serie or len(self.numeros_serie) == 0:
-            self.cantidad = 1
+        # Forzar lista vacía si no hay números de serie
+        if not self.numeros_serie:
             self.numeros_serie = []
+    
+    # Si no hay series y el equipo no las requiere, usar cantidad=1
+        if len(self.numeros_serie) == 0 and not self.equipo.requiere_serie:
+            self.cantidad = 1
         
-        # Asegurar que el precio_unitario tenga valor
-        if not self.precio_unitario:
-            self.precio_unitario = Decimal('0.00')
+        # Calcular duración
+        dias = (self.alquiler.fecha_fin - self.alquiler.fecha_inicio).days + 1
         
+        # Calcular precio total por período
+        if self.periodo_alquiler == 'dia':
+            self.precio_total = self.precio_unitario * self.cantidad * dias
+        elif self.periodo_alquiler == 'semana':
+            semanas = max(1, ceil(dias / 7))
+            self.precio_total = self.precio_unitario * self.cantidad * semanas
+        elif self.periodo_alquiler == 'mes':
+            meses = max(1, ceil(dias / 30))
+            self.precio_total = self.precio_unitario * self.cantidad * meses
+        elif self.periodo_alquiler == 'trimestre':
+            trimestres = max(1, ceil(dias / 90))
+            self.precio_total = self.precio_unitario * self.cantidad * trimestres
+        elif self.periodo_alquiler == 'semestre':
+            semestres = max(1, ceil(dias / 180))
+            self.precio_total = self.precio_unitario * self.cantidad * semestres
+        elif self.periodo_alquiler == 'anio':
+            anios = max(1, ceil(dias / 365))
+            self.precio_total = self.precio_unitario * self.cantidad * anios
+
+        # Aplicar IVA si corresponde
+        if self.con_iva:
+            self.precio_total = self.precio_total * Decimal('1.19')
+
         super().save(*args, **kwargs)
+
+        # Actualizar la disponibilidad del equipo
+        self.actualizar_disponibilidad_equipo()
+
+        # Actualizar total del alquiler
         self.alquiler.calcular_precio_total()
+
+    def actualizar_disponibilidad_equipo(self):
+        equipo = self.equipo
+        if self.numeros_serie and len(self.numeros_serie) > 0:
+            # Aquí puedes implementar la lógica para marcar los seriales como no disponibles si usas un modelo separado de Serie
+            pass
+        else:
+            equipo.cantidad_disponible = F('cantidad_disponible') - self.cantidad
+            equipo.save(update_fields=['cantidad_disponible'])
+
+        # Si tienes método para actualizar disponibilidad general
+        equipo.actualizar_disponibilidad()
+
 
 class Acta(models.Model):
     TIPO_ACTA = [
@@ -838,14 +838,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.nombre_usuario
-    def get_full_name(self):
-        """
-        Retorna el nombre completo del usuario.
-        Si no tiene nombre definido, retorna el nombre de usuario.
-        """
-        if hasattr(self, 'nombre') and hasattr(self, 'apellido'):
-            return f"{self.nombre} {self.apellido}".strip()
-        return self.nombre_usuario  # o el campo que uses como username
+
     def save(self, *args, **kwargs):
         """Asigna automáticamente el rol de cliente si no tiene rol asignado"""
         if not self.rol_id:

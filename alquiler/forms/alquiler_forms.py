@@ -100,33 +100,31 @@ class DetalleAlquilerForm(forms.ModelForm):
         help_text="Números de serie en formato JSON",
         initial='[]'
     )
-    
-    precio_unitario = forms.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        widget=forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
-        initial=Decimal('0.00')
-    )
-    
+
     class Meta:
         model = DetalleAlquiler
-        fields = ['equipo', 'numeros_serie', 'periodo_alquiler', 'cantidad', 'precio_unitario']
+        fields = ['equipo', 'numeros_serie', 'periodo_alquiler', 'cantidad', 'precio_unitario', 'con_iva']
         widgets = {
             'equipo': forms.HiddenInput(),
             'periodo_alquiler': forms.HiddenInput(),
             'cantidad': forms.HiddenInput(),
         }
 
-    def clean_numeros_serie(self):
-        numeros_serie = self.cleaned_data.get('numeros_serie', '[]') or '[]'
-        try:
-            return json.loads(numeros_serie)
-        except json.JSONDecodeError:
-            return []
+    def clean(self):
+        cleaned_data = super().clean()
+        equipo = cleaned_data.get('equipo')
+        numeros_serie = cleaned_data.get('numeros_serie')
 
-    def clean_precio_unitario(self):
-        precio = self.cleaned_data.get('precio_unitario', '0') or '0'
-        return Decimal(precio).quantize(Decimal('0.00'))
+        if equipo and equipo.requiere_serie:
+            # Intenta parsear si es string
+            if isinstance(numeros_serie, str):
+                try:
+                    numeros_serie = json.loads(numeros_serie)
+                except json.JSONDecodeError:
+                    raise forms.ValidationError("Formato inválido para los números de serie.")
+            if not numeros_serie:
+                raise forms.ValidationError("Este equipo requiere al menos un número de serie.")
+        return cleaned_data
 
 DetalleAlquilerFormSet = inlineformset_factory(
     Alquiler,

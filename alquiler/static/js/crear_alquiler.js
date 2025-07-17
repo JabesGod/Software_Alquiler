@@ -1,15 +1,16 @@
 $(document).ready(function () {
-    // Inicializar Select2
+    // Inicializar Select2 para los selects
     $('.select2').select2({
         placeholder: "Seleccione...",
         allowClear: true,
         width: '100%'
     });
 
+    // Variables globales
     let equiposAgregados = [];
     let contadorEquipos = 0;
 
-    // Calcular duración
+    // Calcular duración del alquiler
     function calcularDuracion() {
         const inicio = new Date($('#id_fecha_inicio').val());
         const fin = new Date($('#id_fecha_fin').val());
@@ -35,173 +36,248 @@ $(document).ready(function () {
         actualizarResumenCostos();
     }
 
-    $('#id_fecha_inicio, #id_fecha_fin').change(function () {
-        if ($('#id_fecha_fin').val() && !$('#id_fecha_vencimiento').val()) {
-            $('#id_fecha_vencimiento').val($('#id_fecha_fin').val());
-        }
-        calcularDuracion();
-    });
+    $('#id_fecha_inicio, #id_fecha_fin').change(calcularDuracion);
+    calcularDuracion();
 
-    // Manejar cambio de equipo
+    // Manejar cambio de equipo para cargar números de serie
     $('#equipo-selector').change(function () {
         const equipoId = $(this).val();
         const serieSelector = $('#serie-selector');
+        const equipoOption = $('#equipo-selector option:selected');
+        const requiereSerie = equipoOption.data('requiere-serie') === 'True';
 
-        if (!equipoId) {
-            serieSelector.empty().prop('disabled', true);
+        serieSelector.empty().prop('disabled', true);
+        $('#sinSerieHelp').hide();
+
+        if (!equipoId) return;
+
+        // Mostrar mensaje especial para equipos sin serie
+        if (!requiereSerie) {
+            $('#sinSerieHelp').show();
+            serieSelector.append($('<option>', {
+                value: '',
+                text: 'Este equipo no requiere número de serie',
+                selected: true,
+                disabled: true
+            }));
             return;
         }
 
-        serieSelector.empty().prop('disabled', true);
-        serieSelector.append($('<option>', { value: '', text: 'Cargando series...' }));
+        // Cargar series disponibles para equipos que las requieren
+        const url = window.SERIES_DISPONIBLES_URL.replace('{equipoId}', equipoId);
 
         $.ajax({
-            url: window.SERIES_DISPONIBLES_URL.replace('{equipoId}', equipoId),
+            url: url,
             success: function (data) {
                 serieSelector.empty();
-                serieSelector.append($('<option>', { value: 'no_serie', text: 'No especificar serie' }));
 
-                if (data.series && data.series.length > 0) {
-                    data.series.forEach(value => {
-                        serieSelector.append($('<option>', { value: value, text: value }));
-                    });
+                if (data.series.length === 0) {
+                    serieSelector.append($('<option>', {
+                        value: '',
+                        text: 'No hay series disponibles para este equipo',
+                        disabled: true
+                    }));
+                    return;
                 }
+
+                $.each(data.series, function (index, value) {
+                    serieSelector.append($('<option>', {
+                        value: value,
+                        text: value
+                    }));
+                });
 
                 serieSelector.prop('disabled', false);
             },
-            error: function () {
+            error: function (xhr, status, error) {
+                console.error("Error al cargar series:", error);
                 serieSelector.empty().append($('<option>', {
-                    value: 'no_serie',
-                    text: 'No especificar serie'
-                })).prop('disabled', false);
+                    value: '',
+                    text: 'Error al cargar series',
+                    disabled: true
+                }));
             }
         });
     });
 
-    // Configurar Select2 para series
+    // Inicializar Select2 para el selector de series
     $('#serie-selector').select2({
-        placeholder: "Seleccione series o 'No especificar serie'...",
+        placeholder: "Seleccione series...",
         allowClear: true,
         width: '100%',
-        closeOnSelect: false
+        closeOnSelect: false,
+        language: {
+            noResults: function () {
+                return "Este equipo no requiere número de serie";
+            }
+        }
     }).prop('disabled', true);
 
-    // Agregar equipo
+    // Inicializar Select2 para el selector de periodo
+    $('#periodo-selector').select2({
+        placeholder: "Seleccione periodo...",
+        allowClear: false,
+        width: '100%'
+    });
+
+    // Agregar equipo a la tabla
+    // Agregar equipo a la tabla
     $('#agregar-equipo').click(function () {
         const equipoId = $('#equipo-selector').val();
-        const equipoTexto = $('#equipo-selector option:selected').text().split('(')[0].trim();
-        let series = $('#serie-selector').val() || [];
+        const equipoOption = $('#equipo-selector option:selected');
+        const equipoTexto = equipoOption.text().split('(')[0].trim();
+        const series = $('#serie-selector').val() || [];
         const periodo = $('#periodo-selector').val();
         const periodoTexto = $('#periodo-selector option:selected').text();
-        const match = $('#equipo-selector option:selected').text().match(/Disponibles: (\d+)/);
-        const disponible = match ? parseInt(match[1]) : 0;
+        const requiereSerie = equipoOption.data('requiere-serie') === 'True';
 
         // Validaciones básicas
-        if (!equipoId) return alert('Seleccione un equipo');
-        if (!periodo) return alert('Seleccione un periodo');
-
-        // Filtrar opción vacía si existe
-        series = series.filter(serie => serie !== '');
-
-        // Manejar caso sin serie específica
-        if (series.length === 0 || (series.length === 1 && series[0] === 'no_serie')) {
-            if (disponible <= 0) return alert('No hay unidades disponibles');
-            series = ['no_serie'];
+        if (!equipoId) {
+            alert('Por favor seleccione un equipo');
+            return;
         }
 
-        // Obtener precios
-        const selectedOption = $('#equipo-selector option:selected');
+        // Solo validar series si el equipo las requiere
+        if (requiereSerie && series.length === 0) {
+            alert('Por favor seleccione al menos un número de serie');
+            return; // Aquí se mantiene la validación si el equipo requiere serie
+        }
+
+        // Obtener precios del equipo
         const precios = {
-            dia: parseFloat(selectedOption.data('precio-dia')) || 0,
-            semana: parseFloat(selectedOption.data('precio-semana')) || 0,
-            mes: parseFloat(selectedOption.data('precio-mes')) || 0,
-            trimestre: parseFloat(selectedOption.data('precio-trimestre')) || 0,
-            semestre: parseFloat(selectedOption.data('precio-semestre')) || 0,
-            anio: parseFloat(selectedOption.data('precio-anio')) || 0
+            dia: parseFloat(equipoOption.data('precio-dia')) || 0,
+            semana: parseFloat(equipoOption.data('precio-semana')) || 0,
+            mes: parseFloat(equipoOption.data('precio-mes')) || 0,
+            trimestre: parseFloat(equipoOption.data('precio-trimestre')) || 0,
+            semestre: parseFloat(equipoOption.data('precio-semestre')) || 0,
+            anio: parseFloat(equipoOption.data('precio-anio')) || 0
         };
 
         const precioUnitario = precios[periodo] || 0;
 
-        // Verificar si ya existe este equipo
-        const indexExistente = equiposAgregados.findIndex(e =>
-            e.equipoId == equipoId && e.periodo == periodo
-        );
-
-        if (indexExistente >= 0) {
-            const seriesDuplicadas = series.filter(serie =>
-                serie !== 'no_serie' && equiposAgregados[indexExistente].series.includes(serie)
-            );
-            if (seriesDuplicadas.length > 0) {
-                return alert(`Series ya agregadas: ${seriesDuplicadas.join(', ')}`);
-            }
-            equiposAgregados[indexExistente].series = [...new Set([...equiposAgregados[indexExistente].series, ...series])];
-        } else {
-            equiposAgregados.push({
-                id: contadorEquipos++,
-                equipoId: equipoId,
-                equipoTexto: equipoTexto,
-                series: series,
-                periodo: periodo,
-                periodoTexto: periodoTexto,
-                precioUnitario: precioUnitario
-            });
-        }
+        // Agregar nuevo equipo (sin verificar duplicados para equipos sin serie)
+        equiposAgregados.push({
+            id: contadorEquipos++,
+            equipoId: equipoId,
+            equipoTexto: equipoTexto,
+            series: series,
+            periodo: periodo,
+            periodoTexto: periodoTexto,
+            precioUnitario: precioUnitario,
+            conIva: true,
+            requiereSerie: requiereSerie
+        });
 
         actualizarTablaEquipos();
         actualizarInputsOcultos();
         actualizarResumenCostos();
+
+        // Limpiar selección
+        $('#equipo-selector').val('').trigger('change');
         $('#serie-selector').val(null).trigger('change');
     });
 
-    // Actualizar tabla de equipos
+
+    // Actualizar la tabla de equipos
     function actualizarTablaEquipos() {
-        const tbody = $('#tabla-equipos tbody').empty();
+        const tbody = $('#tabla-equipos tbody');
+        tbody.empty();
 
         if (equiposAgregados.length === 0) {
-            tbody.append($('<tr>').append($('<td>').attr('colspan', 6).text('No hay equipos')));
+            tbody.append(
+                $('<tr>').append(
+                    $('<td>').attr('colspan', 7).text('No hay equipos agregados')
+                )
+            );
             return;
         }
 
         equiposAgregados.forEach(equipo => {
             const row = $('<tr>').attr('data-id', equipo.id);
+
             row.append($('<td>').text(equipo.equipoTexto));
-            row.append($('<td>').text(equipo.series[0] === 'no_serie' ? 'No especificado' : equipo.series.join(', ')));
+
+            // Celda de series (mostrar solo si hay o si el equipo las requiere)
+            const seriesText = equipo.requiereSerie ?
+                (equipo.series.length > 0 ? equipo.series.join(', ') : 'Sin serie') :
+                'No aplica';
+            row.append($('<td>').text(seriesText));
+
             row.append($('<td>').text(equipo.periodoTexto));
 
+            // Celda de precio unitario editable
             const precioInput = $('<input>').attr({
                 type: 'number',
                 class: 'form-control precio-unitario',
                 value: equipo.precioUnitario.toFixed(2),
                 'data-id': equipo.id,
                 step: '0.01',
-                min: '0'
-            }).on('change', function () {
-                const id = $(this).data('id');
-                const nuevoPrecio = parseFloat($(this).val()) || 0;
-                const index = equiposAgregados.findIndex(e => e.id == id);
-                if (index >= 0) {
-                    equiposAgregados[index].precioUnitario = nuevoPrecio;
-                    actualizarResumenCostos();
-                    actualizarInputsOcultos();
-                }
+                min: '0',
+                style: 'width: 100px;'
             });
-
             row.append($('<td>').addClass('text-end').append(precioInput));
 
-            const cantidad = equipo.series[0] === 'no_serie' ? 1 : equipo.series.length;
-            row.append($('<td>').addClass('text-end').text('$' + (equipo.precioUnitario * cantidad).toFixed(2)));
+            // Celda de precio total (calculado)
+            const cantidad = equipo.requiereSerie ? equipo.series.length : 1;
+            row.append($('<td>').addClass('text-end precio-total').attr('data-id', equipo.id)
+                .text('$' + (equipo.precioUnitario * cantidad).toFixed(2)));
 
-            row.append($('<td>').addClass('text-center').append(
-                $('<button>').addClass('btn btn-danger btn-sm').html('<i class="fas fa-trash"></i>').click(function () {
+            // Celda de switch para IVA
+            const ivaSwitch = $('<div>').addClass('form-check form-switch').append(
+                $('<input>').attr({
+                    type: 'checkbox',
+                    class: 'form-check-input iva-checkbox',
+                    id: `iva-${equipo.id}`,
+                    'data-id': equipo.id,
+                    checked: equipo.conIva !== false
+                }),
+                $('<label>').attr('for', `iva-${equipo.id}`).addClass('form-check-label').text('IVA')
+            );
+            row.append($('<td>').addClass('text-center').append(ivaSwitch));
+
+            // Botón de eliminar
+            const deleteBtn = $('<button>').addClass('btn btn-danger btn-sm')
+                .html('<i class="fas fa-trash"></i>')
+                .click(function () {
                     eliminarEquipo(equipo.id);
-                })
-            ));
+                });
+
+            row.append($('<td>').addClass('text-center').append(deleteBtn));
 
             tbody.append(row);
         });
+
+        // Agregar manejador de eventos para cambios en precios
+        $('.precio-unitario').change(function () {
+            const id = $(this).data('id');
+            const nuevoPrecio = parseFloat($(this).val()) || 0;
+
+            const equipoIndex = equiposAgregados.findIndex(e => e.id == id);
+            if (equipoIndex >= 0) {
+                equiposAgregados[equipoIndex].precioUnitario = nuevoPrecio;
+                const cantidad = equiposAgregados[equipoIndex].requiereSerie ?
+                    equiposAgregados[equipoIndex].series.length : 1;
+                $(`.precio-total[data-id="${id}"]`).text('$' + (nuevoPrecio * cantidad).toFixed(2));
+                actualizarResumenCostos();
+                actualizarInputsOcultos();
+            }
+        });
+
+        // Agregar manejador de eventos para cambios en IVA
+        $('.iva-checkbox').change(function () {
+            const id = $(this).data('id');
+            const conIva = $(this).is(':checked');
+
+            const equipoIndex = equiposAgregados.findIndex(e => e.id == id);
+            if (equipoIndex >= 0) {
+                equiposAgregados[equipoIndex].conIva = conIva;
+                actualizarResumenCostos();
+                actualizarInputsOcultos();
+            }
+        });
     }
 
-    // Eliminar equipo
+    // Eliminar equipo de la lista
     function eliminarEquipo(id) {
         equiposAgregados = equiposAgregados.filter(e => e.id !== id);
         actualizarTablaEquipos();
@@ -209,135 +285,185 @@ $(document).ready(function () {
         actualizarResumenCostos();
     }
 
-    // Actualizar inputs ocultos
+    // Actualizar los inputs ocultos para el formulario
     function actualizarInputsOcultos() {
-        const container = $('#equipos-container').empty();
+        const container = $('#equipos-container');
+        container.empty();
 
         equiposAgregados.forEach((equipo, index) => {
-            const seriesValue = equipo.series[0] === 'no_serie' ? '[]' : JSON.stringify(equipo.series);
-            const cantidad = equipo.series[0] === 'no_serie' ? 1 : equipo.series.length;
+            // Input para el equipo
+            container.append(
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: `detalles-${index}-equipo`,
+                    value: equipo.equipoId
+                })
+            );
 
-            container.append($('<input>').attr({
-                type: 'hidden',
-                name: `detalles-${index}-equipo`,
-                value: equipo.equipoId
-            }));
+            // Input para los números de serie (como lista JSON)
+            container.append(
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: `detalles-${index}-numeros_serie`,
+                    value: JSON.stringify(equipo.series)
+                })
+            );
 
-            container.append($('<input>').attr({
-                type: 'hidden',
-                name: `detalles-${index}-numeros_serie`,
-                value: seriesValue
-            }));
+            // Input para el periodo
+            container.append(
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: `detalles-${index}-periodo_alquiler`,
+                    value: equipo.periodo
+                })
+            );
 
-            container.append($('<input>').attr({
-                type: 'hidden',
-                name: `detalles-${index}-periodo_alquiler`,
-                value: equipo.periodo
-            }));
+            // Input para la cantidad (1 si no requiere serie)
+            const cantidad = equipo.requiereSerie ? equipo.series.length : 1;
+            container.append(
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: `detalles-${index}-cantidad`,
+                    value: cantidad
+                })
+            );
 
-            container.append($('<input>').attr({
-                type: 'hidden',
-                name: `detalles-${index}-cantidad`,
-                value: cantidad
-            }));
+            // Input para el precio unitario
+            container.append(
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: `detalles-${index}-precio_unitario`,
+                    value: equipo.precioUnitario
+                })
+            );
 
-            container.append($('<input>').attr({
-                type: 'hidden',
-                name: `detalles-${index}-precio_unitario`,
-                value: equipo.precioUnitario.toFixed(2)
-            }));
+            // Input para con_iva
+            container.append(
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: `detalles-${index}-con_iva`,
+                    value: equipo.conIva ? 'on' : ''
+                })
+            );
 
-            container.append($('<input>').attr({
-                type: 'hidden',
-                name: `detalles-${index}-id`,
-                value: ''
-            }));
+            // Input para el ID (si es una edición)
+            container.append(
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: `detalles-${index}-id`,
+                    value: ''
+                })
+            );
 
-            container.append($('<input>').attr({
-                type: 'hidden',
-                name: `detalles-${index}-DELETE`,
-                value: 'false'
-            }));
+            // Input para DELETE si es necesario
+            container.append(
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: `detalles-${index}-DELETE`,
+                    value: 'false'
+                })
+            );
         });
 
+        // Actualizar el TOTAL_FORMS
         $('#id_detalles-TOTAL_FORMS').val(equiposAgregados.length);
     }
 
-    // Actualizar resumen de costos
-    // Actualizar resumen de costos
+    // Actualizar el resumen de costos
     function actualizarResumenCostos() {
-        const conIva = $('#id_con_iva').is(':checked');
-        const duracion = ($('#id_fecha_fin').val() && $('#id_fecha_inicio').val()) ?
-            Math.ceil((new Date($('#id_fecha_fin').val()) - new Date($('#id_fecha_inicio').val())) / (1000 * 60 * 60 * 24)) + 1 : 1;
+        const duracionText = $('#duracion-alquiler').val();
+        const duracionMatch = duracionText.match(/\d+/);
+        const duracion = duracionMatch ? parseInt(duracionMatch[0]) : 1;
 
         let subtotal = 0;
+        let impuestos = 0;
         $('#resumen-costos').empty();
 
+        if (equiposAgregados.length === 0) {
+            $('#resumen-costos').append(
+                $('<li>').addClass('list-group-item').text('No hay equipos agregados')
+            );
+        }
+
         equiposAgregados.forEach(equipo => {
-            const cantidad = equipo.series[0] === 'no_serie' ? 1 : equipo.series.length;
             let precioTotal = 0;
+            let descripcionPeriodo = '';
+            const cantidad = equipo.requiereSerie ? equipo.series.length : 1;
 
             if (equipo.periodo === 'dia') {
                 precioTotal = equipo.precioUnitario * cantidad * duracion;
+                descripcionPeriodo = `${duracion} día${duracion !== 1 ? 's' : ''}`;
             } else if (equipo.periodo === 'semana') {
                 const semanas = Math.ceil(duracion / 7);
                 precioTotal = equipo.precioUnitario * cantidad * semanas;
+                descripcionPeriodo = `${semanas} semana${semanas !== 1 ? 's' : ''}`;
             } else if (equipo.periodo === 'mes') {
                 const meses = Math.ceil(duracion / 30);
                 precioTotal = equipo.precioUnitario * cantidad * meses;
+                descripcionPeriodo = `${meses} mes${meses !== 1 ? 'es' : ''}`;
             } else if (equipo.periodo === 'trimestre') {
                 const trimestres = Math.ceil(duracion / 90);
                 precioTotal = equipo.precioUnitario * cantidad * trimestres;
+                descripcionPeriodo = `${trimestres} trimestre${trimestres !== 1 ? 's' : ''}`;
             } else if (equipo.periodo === 'semestre') {
                 const semestres = Math.ceil(duracion / 180);
                 precioTotal = equipo.precioUnitario * cantidad * semestres;
+                descripcionPeriodo = `${semestres} semestre${semestres !== 1 ? 's' : ''}`;
             } else if (equipo.periodo === 'anio') {
                 const anios = Math.ceil(duracion / 365);
                 precioTotal = equipo.precioUnitario * cantidad * anios;
+                descripcionPeriodo = `${anios} año${anios !== 1 ? 's' : ''}`;
             }
 
             subtotal += precioTotal;
 
+            // Calcular impuestos solo si el producto tiene IVA
+            if (equipo.conIva !== false) {
+                impuestos += precioTotal * 0.19;
+            }
+
             $('#resumen-costos').append(`
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                ${cantidad} x ${equipo.equipoTexto} (${equipo.periodoTexto})
-                <span class="badge bg-primary rounded-pill">$${precioTotal.toFixed(2)}</span>
-            </li>
-        `);
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${cantidad} x ${equipo.equipoTexto} (${descripcionPeriodo})
+                    <span class="badge bg-primary rounded-pill">$${precioTotal.toFixed(2)}</span>
+                </li>
+            `);
         });
 
-        const iva = parseFloat((conIva ? subtotal * 0.19 : 0).toFixed(2));
-        const total = parseFloat((subtotal + iva).toFixed(2));
+        const total = subtotal + impuestos;
 
         $('#subtotal').text('$' + subtotal.toFixed(2));
-        $('#impuestos').text('$' + iva.toFixed(2));
+        $('#impuestos').text('$' + impuestos.toFixed(2));
         $('#total').text('$' + total.toFixed(2));
-
-        // Actualizar campos ocultos con valores por defecto si son null/undefined
-        $('#id_iva').val(iva.toFixed(2));
-        $('#id_precio_total').val(total.toFixed(2));
-        $('#id_precio_sin_iva').val(subtotal.toFixed(2));
     }
-    // Escuchar cambios en el checkbox de IVA
-    $('#id_con_iva').change(actualizarResumenCostos);
 
     // Validación del formulario
-    $('.needs-validation').on('submit', function (event) {
-        if (equiposAgregados.length === 0) {
-            event.preventDefault();
-            alert('Debe agregar al menos un equipo');
-            return;
-        }
+    (function () {
+        'use strict';
 
-        if (!this.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
+        var forms = document.querySelectorAll('.needs-validation');
 
-        $(this).addClass('was-validated');
-    });
+        Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (equiposAgregados.length === 0) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        alert('Debe agregar al menos un equipo al alquiler');
+                        return;
+                    }
 
-    // Inicializar
-    calcularDuracion();
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+
+                    form.classList.add('was-validated');
+                }, false);
+            });
+    })();
+
+    // Inicializar la tabla de equipos
+    actualizarTablaEquipos();
     actualizarResumenCostos();
 });

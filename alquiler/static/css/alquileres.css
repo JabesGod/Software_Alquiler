@@ -31,6 +31,25 @@
     color: var(--primary-color);
 }
 
+
+nav[aria-label="Paginación"] {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+  background-color: var(--card-background);
+  border-top: 1px solid var(--border-color);
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+  margin-bottom: 2rem;
+  z-index: 1;
+}
+
+.page-item.active .page-link {
+  background-color: var(--accent-color);
+  color: var(--text-color);
+  font-weight: bold;
+  border-color: var(--accent-color);
+}
+
 /* Encabezado con mejor espaciado y jerarquía */
 .alquileres-header {
     display: flex;

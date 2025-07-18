@@ -206,20 +206,23 @@
         </table>
     </div>
     
-    {% if is_paginated %}
+{% if is_paginated %}
 <nav aria-label="Paginación">
     <ul class="pagination justify-content-center mt-4">
+        {% with request.GET.urlencode as query_string %}
+        {% with query_string|cut:'page='|cut:'&page=' as clean_query %}
+
         {% if page_obj.has_previous %}
-        <li class="page-item">
-            <a class="page-link" href="?page=1{{ request.GET.urlencode|safe|cut:'page='|cut:'&page=' }}">
-                &laquo; Primera
-            </a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ request.GET.urlencode|safe|cut:'page='|cut:'&page=' }}">
-                Anterior
-            </a>
-        </li>
+            <li class="page-item">
+                <a class="page-link" href="?{{ clean_query }}&page=1">
+                    &laquo; Primera
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?{{ clean_query }}&page={{ page_obj.previous_page_number }}">
+                    Anterior
+                </a>
+            </li>
         {% endif %}
 
         {% for num in page_obj.paginator.page_range %}
@@ -229,26 +232,30 @@
                 </li>
             {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}{{ request.GET.urlencode|safe|cut:'page='|cut:'&page=' }}">{{ num }}</a>
+                    <a class="page-link" href="?{{ clean_query }}&page={{ num }}">{{ num }}</a>
                 </li>
             {% endif %}
         {% endfor %}
 
         {% if page_obj.has_next %}
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ request.GET.urlencode|safe|cut:'page='|cut:'&page=' }}">
-                Siguiente
-            </a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{{ request.GET.urlencode|safe|cut:'page='|cut:'&page=' }}">
-                Última &raquo;
-            </a>
-        </li>
+            <li class="page-item">
+                <a class="page-link" href="?{{ clean_query }}&page={{ page_obj.next_page_number }}">
+                    Siguiente
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?{{ clean_query }}&page={{ page_obj.paginator.num_pages }}">
+                    Última &raquo;
+                </a>
+            </li>
         {% endif %}
+
+        {% endwith %}
+        {% endwith %}
     </ul>
 </nav>
+{% endif %}
 
-    {% endif %}
+
 </div>
 {% endblock %}

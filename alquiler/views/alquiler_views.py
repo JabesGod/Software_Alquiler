@@ -72,7 +72,9 @@ def listar_alquileres(request):
         'estados_alquiler': Alquiler.ESTADO_ALQUILER,
         'estado_seleccionado': estado,  # 👈 Don't forget to add this for the template fix
         'is_paginated': page_obj.has_other_pages(),
-        'buscador_factura': buscador_factura
+        'buscador_factura': buscador_factura,
+        'page_obj': page_obj,  # 👈 Agrega esta línea
+
     }
     
     return render(request, 'lista_alquileres.html', context)

@@ -1,0 +1,179 @@
+/* roles.css - Estilo Corporativo Vibrante */
+:root {
+    --primary-color: #4361ee; /* Azul corporativo vibrante */
+    --secondary-color: #3a0ca3; /* Azul más profundo */
+    --accent-color: #f72585; /* Rosa brillante para acentos */
+    --success-color: #4cc9f0; /* Turquesa para acciones positivas */
+    --warning-color: #f8961e; /* Naranja para advertencias */
+    --danger-color: #ef233c; /* Rojo para acciones peligrosas */
+    --light-color: #f8f9fa; /* Color claro casi blanco */
+    --dark-color: #212529; /* Negro suave para texto */
+    --border-radius: 8px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Estructura principal */
+.roles-management-container {
+    padding: 2rem;
+    background-color: var(--light-color);
+}
+
+.corporate-card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    overflow: hidden;
+    background-color: white;
+}
+
+.card-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1.5rem;
+    border-bottom: none;
+}
+
+.card-title {
+    margin: 0;
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* Botones y acciones */
+.btn-primary {
+
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.header-actions {
+    float: right;
+}
+
+/* Tabla de roles */
+.roles-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.roles-table th {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 500;
+}
+
+.roles-table td {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    vertical-align: middle;
+}
+
+.roles-table tr:hover {
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+/* Badges de permisos */
+.badge {
+    padding: 0.35em 0.65em;
+    border-radius: 50px;
+    font-size: 0.75em;
+    font-weight: 500;
+    margin-right: 0.5em;
+    display: inline-block;
+}
+
+.badge-secondary {
+    background-color: var(--success-color);
+    color: var(--dark-color);
+}
+
+.badge-info {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Botones de acción */
+.action-buttons {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.action-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.action-button.edit {
+    background-color: var(--success-color);
+}
+
+.action-button.delete {
+    background-color: var(--danger-color);
+}
+
+.action-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Estado vacío */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--secondary-color);
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.no-results {
+    text-align: center;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .card-header {
+        text-align: center;
+    }
+    
+    .header-actions {
+        float: none;
+        margin-top: 1rem;
+        text-align: center;
+    }
+    
+    .roles-table {
+        display: block;
+        overflow-x: auto;
+    }
+}
+
+/* Efectos y transiciones */
+.permissions-preview {
+    transition: all 0.3s ease;
+}
+
+.permissions-preview:hover {
+    transform: translateY(-2px);
+}

@@ -16,35 +16,350 @@ from ..serializers import PagoSerializer, PagoDetalleSerializer
 from ..utils import enviar_notificacion_pago
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required, permission_required
-from django.http import HttpResponse
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 from io import BytesIO
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Max
+from django.shortcuts import render
+from django.http import HttpResponse, JsonResponse
+from django.db.models import  Avg, Q
+from django.utils import timezone
+from datetime import timedelta, datetime
+import csv
+import json
+from calendar import monthrange
+from django.db.models.functions import TruncMonth, TruncDay, TruncWeek
+from django.core.serializers.json import DjangoJSONEncoder
+
+@login_required
+@permission_required('alquiler.view_pago', raise_exception=True)
+def reportes_pagos(request):
+    """Vista principal de reportes de pagos con gráficas y análisis avanzado"""
+
+    # Configurar fechas por defecto (últimos 30 días)
+    fecha_fin_default = timezone.now().date()
+    fecha_inicio_default = fecha_fin_default - timedelta(days=30)
+
+    # Procesar filtros del formulario
+    fecha_inicio_str = request.GET.get('fecha_inicio', '')
+    fecha_fin_str = request.GET.get('fecha_fin', '')
+    estado = request.GET.get('estado', '')
+    metodo_pago = request.GET.get('metodo_pago', '')
+    periodo = request.GET.get('periodo', 'mensual')  # diario, semanal, mensual
+
+    # Convertir fechas de string a date objects
+    if fecha_inicio_str:
+        fecha_inicio = datetime.strptime(fecha_inicio_str, '%Y-%m-%d').date()
+    else:
+        fecha_inicio = fecha_inicio_default
+
+    if fecha_fin_str:
+        fecha_fin = datetime.strptime(fecha_fin_str, '%Y-%m-%d').date()
+    else:
+        fecha_fin = fecha_fin_default
+
+    # Obtener todos los pagos con filtros de fecha
+    pagos = Pago.objects.select_related('alquiler', 'alquiler__cliente').filter(
+        fecha_pago__gte=fecha_inicio,
+        fecha_pago__lte=fecha_fin
+    )
+
+    # Aplicar otros filtros
+    if estado:
+        pagos = pagos.filter(estado_pago=estado)
+    if metodo_pago:
+        pagos = pagos.filter(metodo_pago=metodo_pago)
+
+    # --- DEBUGGING: Puedes descomentar estas líneas para ver en la consola del servidor ---
+    print(f"DEBUG: Fecha Inicio: {fecha_inicio}, Fecha Fin: {fecha_fin}, Periodo: {periodo}")
+    print(f"DEBUG: Total pagos filtrados antes de métricas/gráficas: {pagos.count()}")
+    # --- FIN DEBUGGING ---
+
+    # Exportar a CSV si se solicita (esta función ya la tienes)
+    if request.GET.get('export') == 'csv':
+        return exportar_csv_pagos(pagos, fecha_inicio, fecha_fin)
+
+    # Calcular métricas principales
+    metricas = calcular_metricas_pagos(pagos)
+
+    # Obtener datos para gráficas
+    datos_graficas = obtener_datos_graficas(pagos, periodo, fecha_inicio, fecha_fin)
+
+    # Análisis de tendencias
+    tendencias = analizar_tendencias(pagos, fecha_inicio, fecha_fin)
+
+    # Top clientes
+    top_clientes = obtener_top_clientes(pagos)
+
+    # Obtener opciones para filtros (asume que Pago.ESTADO_PAGO y Pago.METODOS están definidos en tu modelo)
+    estados = Pago.ESTADO_PAGO
+    metodos_pago = Pago.METODOS
+
+    context = {
+        'pagos': pagos.order_by('-fecha_pago')[:50],  # Últimos 50 para vista previa
+        'metricas': metricas,
+        'datos_graficas': json.dumps(datos_graficas, default=str), # default=str es crucial para fechas
+        'tendencias': tendencias,
+        'top_clientes': top_clientes,
+        'estados': estados,
+        'metodos_pago': metodos_pago,
+        'fecha_inicio': fecha_inicio.strftime('%Y-%m-%d'),
+        'fecha_fin': fecha_fin.strftime('%Y-%m-%d'),
+        'periodo_actual': periodo,
+        'total_registros': pagos.count(),
+    }
+
+    return render(request, 'reportes_pagos.html', context)
+
+def calcular_metricas_pagos(pagos):
+    """Calcula métricas principales de los pagos"""
+    total_pagado = pagos.filter(estado_pago='pagado').aggregate(total=Sum('monto'))['total'] or 0
+    total_pendiente = pagos.filter(estado_pago='pendiente').aggregate(total=Sum('monto'))['total'] or 0
+    total_parcial = pagos.filter(estado_pago='parcial').aggregate(total=Sum('monto'))['total'] or 0
+
+    total_pagos = pagos.count()
+    pagos_completados = pagos.filter(estado_pago='pagado').count()
+    pagos_pendientes = pagos.filter(estado_pago='pendiente').count()
+    pagos_vencidos = pagos.filter(
+        estado_pago__in=['pendiente', 'parcial'],
+        fecha_vencimiento__lt=timezone.now().date()
+    ).count()
+
+    # Evitar ZeroDivisionError
+    promedio_pago = total_pagado / pagos_completados if pagos_completados > 0 else 0
+    tasa_cumplimiento = (pagos_completados / total_pagos * 100) if total_pagos > 0 else 0
+
+    return {
+        'total_pagado': total_pagado,
+        'total_pendiente': total_pendiente,
+        'total_parcial': total_parcial,
+        'total_pagos': total_pagos,
+        'pagos_completados': pagos_completados,
+        'pagos_pendientes': pagos_pendientes,
+        'pagos_vencidos': pagos_vencidos,
+        'promedio_pago': round(promedio_pago, 2),
+        'tasa_cumplimiento': round(tasa_cumplimiento, 2),
+    }
+
+def obtener_datos_graficas(pagos, periodo, fecha_inicio, fecha_fin):
+    """Obtiene datos para las gráficas según el período seleccionado"""
+
+    # Configurar el truncado según el período
+    if periodo == 'diario':
+        trunc_func = TruncDay
+        format_key = lambda x: x.strftime('%Y-%m-%d')
+    elif periodo == 'semanal':
+        trunc_func = TruncWeek
+        # Para semanas, aseguramos que la fecha_pago caiga en el rango correcto
+        format_key = lambda x: f"Semana {x.strftime('%U')}/{x.year}"
+    else:  # mensual
+        trunc_func = TruncMonth
+        format_key = lambda x: x.strftime('%Y-%m')
+
+    # Evolución de pagos por período
+    # Aseguramos que los pagos estén dentro del rango de fechas seleccionado antes de truncar
+    evolucion_pagos_queryset = pagos.annotate(
+        periodo=trunc_func('fecha_pago')
+    ).values('periodo').annotate(
+        total_monto=Sum('monto'),
+        cantidad_pagos=Count('id'),
+        pagos_completados=Count('id', filter=Q(estado_pago='pagado')),
+        pagos_pendientes=Count('id', filter=Q(estado_pago='pendiente'))
+    ).order_by('periodo')
+
+    evolucion_pagos = list(evolucion_pagos_queryset)
+
+    # Si no hay datos, inicializar con arrays vacíos
+    labels = [format_key(item['periodo']) for item in evolucion_pagos if item['periodo']]
+    montos = [float(item['total_monto']) for item in evolucion_pagos]
+    cantidades = [item['cantidad_pagos'] for item in evolucion_pagos]
+    completados = [item['pagos_completados'] for item in evolucion_pagos]
+    pendientes = [item['pagos_pendientes'] for item in evolucion_pagos]
+
+    # Distribución por estado
+    distribucion_estados = list(pagos.values('estado_pago').annotate(
+        total=Sum('monto'),
+        cantidad=Count('id')
+    ).order_by('-total'))
+
+    # Distribución por método de pago
+    distribucion_metodos = list(pagos.values('metodo_pago').annotate(
+        total=Sum('monto'),
+        cantidad=Count('id')
+    ).order_by('-total'))
+
+    # --- DEBUGGING: Puedes descomentar estas líneas para ver los datos de las gráficas en la consola del servidor ---
+    print(f"DEBUG: Datos para evolucionChart - Labels: {labels}, Montos: {montos}")
+    print(f"DEBUG: Datos para estadosChart: {distribucion_estados}")
+    print(f"DEBUG: Datos para metodosChart: {distribucion_metodos}")
+    # --- FIN DEBUGGING ---
+
+    return {
+        'evolucion': {
+            'labels': labels,
+            'montos': montos,
+            'cantidades': cantidades,
+            'completados': completados,
+            'pendientes': pendientes
+        },
+        'estados': {
+            'labels': [dict(Pago.ESTADO_PAGO).get(item['estado_pago'], item['estado_pago']) for item in distribucion_estados],
+            'data': [float(item['total']) for item in distribucion_estados],
+            'cantidades': [item['cantidad'] for item in distribucion_estados]
+        },
+        'metodos': {
+            'labels': [dict(Pago.METODOS).get(item['metodo_pago'], item['metodo_pago']) for item in distribucion_metodos],
+            'data': [float(item['total']) for item in distribucion_metodos],
+            'cantidades': [item['cantidad'] for item in distribucion_metodos]
+        }
+    }
+
+def analizar_tendencias(pagos, fecha_inicio, fecha_fin):
+    """Analiza tendencias de pagos comparando con períodos anteriores"""
+
+    # Calcular período anterior
+    dias_periodo = (fecha_fin - fecha_inicio).days + 1 # +1 para incluir ambos días
+    fecha_inicio_anterior = fecha_inicio - timedelta(days=dias_periodo)
+    fecha_fin_anterior = fecha_fin - timedelta(days=dias_periodo)
+
+    # Pagos período actual
+    pagos_actuales = pagos.filter(
+        fecha_pago__gte=fecha_inicio,
+        fecha_pago__lte=fecha_fin
+    )
+
+    # Pagos período anterior (solo del modelo Pago, sin aplicar filtros del request)
+    pagos_anteriores = Pago.objects.filter(
+        fecha_pago__gte=fecha_inicio_anterior,
+        fecha_pago__lte=fecha_fin_anterior
+    )
+
+    # Métricas actuales
+    total_actual = pagos_actuales.aggregate(total=Sum('monto'))['total'] or 0
+    cantidad_actual = pagos_actuales.count()
+
+    # Métricas anteriores
+    total_anterior = pagos_anteriores.aggregate(total=Sum('monto'))['total'] or 0
+    cantidad_anterior = pagos_anteriores.count()
+
+    # Calcular variaciones, evitando ZeroDivisionError
+    variacion_monto = ((total_actual - total_anterior) / total_anterior * 100) if total_anterior > 0 else (100 if total_actual > 0 else 0)
+    variacion_cantidad = ((cantidad_actual - cantidad_anterior) / cantidad_anterior * 100) if cantidad_anterior > 0 else (100 if cantidad_actual > 0 else 0)
+
+    return {
+        'total_actual': total_actual,
+        'total_anterior': total_anterior,
+        'cantidad_actual': cantidad_actual,
+        'cantidad_anterior': cantidad_anterior,
+        'variacion_monto': round(variacion_monto, 2),
+        'variacion_cantidad': round(variacion_cantidad, 2),
+    }
+
+def obtener_top_clientes(pagos):
+    """Obtiene los clientes con más pagos/montos"""
+    # Se agrega .distinct() si un cliente puede tener múltiples alquileres y quieres sumarlos una vez
+    # Pero si quieres por cliente individual en cada pago, esto está bien
+    top_clientes_list = list(pagos.values(
+        'alquiler__cliente__nombre',
+        'alquiler__cliente__email'
+    ).annotate(
+        total_pagado=Sum('monto'),
+        cantidad_pagos=Count('id'),
+        ultimo_pago=Max('fecha_pago')
+    ).order_by('-total_pagado')[:10])
+
+    return top_clientes_list
+
+def exportar_csv_pagos(pagos, fecha_inicio, fecha_fin):
+    """Exporta los pagos filtrados a CSV"""
+    response = HttpResponse(content_type='text/csv')
+    filename = f'reporte_pagos_{fecha_inicio}_{fecha_fin}.csv'
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    writer = csv.writer(response)
+    writer.writerow([
+        'ID', 'Número Factura', 'Fecha', 'Cliente', 'Email', 'Alquiler', 
+        'Monto', 'Método de Pago', 'Estado', 'Fecha Vencimiento', 'Referencia'
+    ])
+    
+    for pago in pagos:
+        writer.writerow([
+            pago.id,
+            pago.numero_factura or '',
+            pago.fecha_pago.strftime('%d/%m/%Y'),
+            pago.alquiler.cliente.nombre,
+            pago.alquiler.cliente.email,
+            pago.alquiler.id,
+            pago.monto,
+            pago.get_metodo_pago_display(),
+            pago.get_estado_pago_display(),
+            pago.fecha_vencimiento.strftime('%d/%m/%Y') if pago.fecha_vencimiento else '',
+            pago.referencia_transaccion or ''
+        ])
+    
+    return response
 
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)
 def listar_pagos(request):
+    """Vista mejorada para listar pagos con búsqueda por número de factura"""
     pagos = Pago.objects.select_related('alquiler', 'alquiler__cliente')
     
     # Filtros mejorados
-    alquiler_id = request.GET.get('alquiler_id')
+    numero_factura = request.GET.get('numero_factura', '').strip()
+    cliente = request.GET.get('cliente', '').strip()
     estado = request.GET.get('estado')
+    metodo_pago = request.GET.get('metodo_pago')
     fecha_inicio = request.GET.get('fecha_inicio')
     fecha_fin = request.GET.get('fecha_fin')
+    monto_min = request.GET.get('monto_min')
+    monto_max = request.GET.get('monto_max')
     
-    if alquiler_id and alquiler_id.isdigit():
-        pagos = pagos.filter(alquiler_id=int(alquiler_id))
+    # Aplicar filtros
+    if numero_factura:
+        pagos = pagos.filter(numero_factura__icontains=numero_factura)
+    
+    if cliente:
+        pagos = pagos.filter(
+            Q(alquiler__cliente__nombre__icontains=cliente) |
+            Q(alquiler__cliente__email__icontains=cliente)
+        )
+    
     if estado:
         pagos = pagos.filter(estado_pago=estado)
+    
+    if metodo_pago:
+        pagos = pagos.filter(metodo_pago=metodo_pago)
+    
     if fecha_inicio:
         pagos = pagos.filter(fecha_pago__gte=fecha_inicio)
+    
     if fecha_fin:
         pagos = pagos.filter(fecha_pago__lte=fecha_fin)
     
-    # Calcular totales
+    if monto_min:
+        try:
+            pagos = pagos.filter(monto__gte=float(monto_min))
+        except ValueError:
+            pass
+    
+    if monto_max:
+        try:
+            pagos = pagos.filter(monto__lte=float(monto_max))
+        except ValueError:
+            pass
+    
+    # Ordenar por fecha más reciente
+    pagos = pagos.order_by('-fecha_pago')
+    
+    # Calcular totales con filtros aplicados
     total_pagado = pagos.filter(estado_pago='pagado').aggregate(
         Sum('monto'))['monto__sum'] or 0
+    total_pendiente = pagos.filter(estado_pago='pendiente').aggregate(
+        Sum('monto'))['monto__sum'] or 0
+    total_parcial = pagos.filter(estado_pago='parcial').aggregate(
+        Sum('monto'))['monto__sum'] or 0
+    
     pagos_pendientes = pagos.filter(estado_pago='pendiente').count()
     pagos_vencidos = pagos.filter(
         estado_pago__in=['pendiente', 'parcial'],
@@ -52,14 +367,67 @@ def listar_pagos(request):
     ).count()
     pagos_parciales = pagos.filter(estado_pago='parcial').count()
     
-    return render(request, 'lista_pagos.html', {
-        'pagos': pagos,
+    # Paginación
+    from django.core.paginator import Paginator
+    paginator = Paginator(pagos, 25)  # 25 pagos por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'pagos': page_obj,
         'total_pagado': total_pagado,
+        'total_pendiente': total_pendiente,
+        'total_parcial': total_parcial,
         'pagos_pendientes': pagos_pendientes,
         'pagos_vencidos': pagos_vencidos,
         'pagos_parciales': pagos_parciales,
-        'estados_pago': Pago.ESTADO_PAGO
-    })
+        'estados_pago': Pago.ESTADO_PAGO,
+        'metodos_pago': Pago.METODOS,
+        'total_registros': pagos.count(),
+        'filtros_activos': any([
+            numero_factura, cliente, estado, metodo_pago, 
+            fecha_inicio, fecha_fin, monto_min, monto_max
+        ])
+    }
+    
+    return render(request, 'lista_pagos.html', context)
+
+@login_required
+@permission_required('alquiler.view_pago', raise_exception=True)
+def api_datos_graficas(request):
+    """API para obtener datos de gráficas de forma dinámica"""
+    tipo_grafica = request.GET.get('tipo', 'evolucion')
+    periodo = request.GET.get('periodo', 'mensual')
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    
+    # Aplicar filtros base
+    pagos = Pago.objects.all()
+    
+    if fecha_inicio:
+        pagos = pagos.filter(fecha_pago__gte=fecha_inicio)
+    if fecha_fin:
+        pagos = pagos.filter(fecha_pago__lte=fecha_fin)
+    
+    if tipo_grafica == 'evolucion':
+        datos = obtener_datos_graficas(pagos, periodo, 
+                                     datetime.strptime(fecha_inicio, '%Y-%m-%d').date(),
+                                     datetime.strptime(fecha_fin, '%Y-%m-%d').date())
+        return JsonResponse(datos['evolucion'])
+    
+    elif tipo_grafica == 'estados':
+        datos = obtener_datos_graficas(pagos, periodo, 
+                                     datetime.strptime(fecha_inicio, '%Y-%m-%d').date(),
+                                     datetime.strptime(fecha_fin, '%Y-%m-%d').date())
+        return JsonResponse(datos['estados'])
+    
+    elif tipo_grafica == 'metodos':
+        datos = obtener_datos_graficas(pagos, periodo, 
+                                     datetime.strptime(fecha_inicio, '%Y-%m-%d').date(),
+                                     datetime.strptime(fecha_fin, '%Y-%m-%d').date())
+        return JsonResponse(datos['metodos'])
+    
+    return JsonResponse({'error': 'Tipo de gráfica no válido'}, status=400)
 
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)
@@ -340,99 +708,7 @@ def registrar_pago_parcial(request):
     return render(request, 'registrar_pago_parcial.html', context)
 
 
-@login_required
-@permission_required('alquiler.view_pago', raise_exception=True)
-def reportes_pagos(request):
-    # Obtener todos los pagos inicialmente
-    pagos = Pago.objects.all().order_by('-fecha_pago')
-    
-    # Configurar fechas por defecto (últimos 30 días)
-    fecha_inicio_default = timezone.now().date() - timedelta(days=30)
-    fecha_fin_default = timezone.now().date()
-    
-    # Procesar filtros del formulario
-    fecha_inicio = request.GET.get('fecha_inicio', '')
-    fecha_fin = request.GET.get('fecha_fin', '')
-    estado = request.GET.get('estado', '')
-    metodo_pago = request.GET.get('metodo_pago', '')
-    
-    # Aplicar filtros
-    if fecha_inicio:
-        pagos = pagos.filter(fecha_pago__gte=fecha_inicio)
-    else:
-        fecha_inicio = fecha_inicio_default
-        
-    if fecha_fin:
-        pagos = pagos.filter(fecha_pago__lte=fecha_fin)
-    else:
-        fecha_fin = fecha_fin_default
-        
-    if estado:
-        pagos = pagos.filter(estado_pago=estado)
-        
-    if metodo_pago:
-        pagos = pagos.filter(metodo_pago=metodo_pago)
-    
-    # Exportar a CSV si se solicita
-    if request.GET.get('export') == 'csv':
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="reporte_pagos.csv"'
-        
-        writer = csv.writer(response)
-        writer.writerow([
-            'ID', 'Fecha', 'Cliente', 'Alquiler', 'Monto', 
-            'Método de Pago', 'Estado', 'Referencia'
-        ])
-        
-        for pago in pagos:
-            writer.writerow([
-                pago.id,
-                pago.fecha_pago.strftime('%d/%m/%Y'),
-                pago.alquiler.cliente.nombre,
-                pago.alquiler.id,
-                pago.monto,
-                pago.get_metodo_pago_display(),
-                pago.get_estado_pago_display(),
-                pago.referencia_transaccion or ''
-            ])
-        
-        return response
-    
-    # Calcular totales y resúmenes
-    total_pagado = pagos.aggregate(total=Sum('monto'))['total'] or 0
-    total_pagos = pagos.count()
-    promedio_pago = total_pagado / total_pagos if total_pagos > 0 else 0
-    
-    # Resumen por estado
-    resumen_estados = pagos.values('estado_pago').annotate(
-        total=Sum('monto'),
-        cantidad=Count('id')
-    ).order_by('-total')
-    
-    # Resumen por método de pago
-    resumen_metodos = pagos.values('metodo_pago').annotate(
-        total=Sum('monto'),
-        cantidad=Count('id')
-    ).order_by('-total')
-    
-    # Obtener opciones para filtros
-    estados = Pago.ESTADO_PAGO
-    metodos_pago = Pago.METODOS
-    
-    context = {
-        'pagos': pagos[:100],  # Limitar para la vista previa
-        'total_pagado': total_pagado,
-        'total_pagos': total_pagos,
-        'promedio_pago': round(promedio_pago, 2),
-        'resumen_estados': resumen_estados,
-        'resumen_metodos': resumen_metodos,
-        'estados': estados,
-        'metodos_pago': metodos_pago,
-        'fecha_inicio_default': fecha_inicio_default.strftime('%Y-%m-%d'),
-        'fecha_fin_default': fecha_fin_default.strftime('%Y-%m-%d'),
-    }
-    
-    return render(request, 'reportes_pagos.html', context)
+
 
 def verificar_estado_pago_alquiler(alquiler):
     total_pagado = alquiler.pagos.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')

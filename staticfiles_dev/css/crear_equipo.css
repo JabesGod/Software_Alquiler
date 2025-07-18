@@ -1,0 +1,610 @@
+/* Variables de diseño mejoradas */
+:root {
+    --primary-color: #4361ee;
+    --primary-light: #eef1ff;
+    --secondary-color: #3f37c9;
+    --accent-color: #4cc9f0;
+    --success-color: #4ad66d;
+    --danger-color: #f72585;
+    --warning-color: #f8961e;
+    --light-bg: #f8f9fa;
+    --dark-text: #212529;
+    --muted-text: #6c757d;
+    --border-radius: 10px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --box-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --input-focus-glow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+}
+
+
+/* Reset y estilos base */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #f5faf5;
+    color: var(--dark-text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+}
+
+h2 {
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+h2:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    border-radius: 3px;
+}
+/* Contenedor principal */
+.container {
+    max-width: 1400px;
+    padding: 0 20px;
+    margin: 0 auto;
+}
+
+/* Encabezado del formulario */
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.form-header h2 {
+    color: var(--primary-color);
+    font-weight: 700;
+    margin: 0;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.form-header h2 i {
+    font-size: 1.5rem;
+}
+
+/* Estructura del formulario */
+.horizontal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.form-row {
+    display: flex;
+    gap: 2rem;
+}
+
+.form-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    min-width: 0; /* Previene problemas de desbordamiento */
+}
+
+/* Secciones del formulario */
+.form-section {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+}
+
+.form-section:hover {
+    box-shadow: var(--box-shadow-hover);
+}
+
+.section-title {
+    font-size: 1.35rem;
+    margin-bottom: 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.section-title i {
+    font-size: 1.25rem;
+}
+
+.subsection-title {
+    font-size: 1.1rem;
+    color: var(--muted-text);
+    margin-bottom: 1.25rem;
+    font-weight: 500;
+}
+
+/* Grid de campos del formulario */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Grupos de campos */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: var(--dark-text);
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+/* Inputs mejorados */
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    border: 1px solid #d1d5db;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    background-color: #fff;
+    width: 100%;
+    font-family: inherit;
+}
+
+.form-group input:not([type="checkbox"]),
+.form-group select,
+.form-group textarea {
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: var(--input-focus-glow);
+}
+
+/* Placeholders mejorados */
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: #9ca3af;
+    opacity: 1;
+}
+
+/* Select personalizado */
+.form-group select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 16px 12px;
+    padding-right: 2.5rem;
+}
+
+/* Textarea mejorado */
+.form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+/* Checkbox personalizado */
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-check-input {
+    width: 1.25em;
+    height: 1.25em;
+    margin-top: 0;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    transition: var(--transition);
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.form-check-label {
+    font-weight: 500;
+    color: var(--dark-text);
+    user-select: none;
+    cursor: pointer;
+}
+
+/* Grupo de inputs con prefijo (para precios) */
+.input-group {
+    display: flex;
+    align-items: center;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.input-group-text {
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    border: 1px solid #d1d5db;
+    border-right: none;
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+}
+
+.input-group input {
+    border-radius: 0 var(--border-radius) var(--border-radius) 0 !important;
+}
+
+/* Sección de precios */
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+.price-card {
+    background: var(--primary-light);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    border: 1px solid rgba(67, 97, 238, 0.15);
+    transition: var(--transition);
+}
+
+.price-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--box-shadow);
+}
+
+.price-card h5 {
+    font-size: 1rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+/* Sección de fotos */
+.photos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.photo-card {
+    border: 1px solid #e5e7eb;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: var(--transition);
+    background: white;
+}
+
+.photo-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--box-shadow);
+}
+
+.photo-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.photo-placeholder {
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f9fafb;
+    color: #9ca3af;
+    font-size: 3rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.photo-actions {
+    padding: 1.25rem;
+    background: white;
+}
+
+/* Área de subida de archivos */
+.upload-area {
+    margin-top: 2rem;
+}
+
+.file-upload-card {
+    border: 2px dashed #d1d5db;
+    border-radius: var(--border-radius);
+    padding: 2.5rem;
+    text-align: center;
+    transition: var(--transition);
+    background: #f9fafb;
+    cursor: pointer;
+}
+
+.file-upload-card:hover {
+    border-color: var(--primary-color);
+    background: rgba(67, 97, 238, 0.03);
+}
+
+.file-upload-label {
+    display: block;
+    cursor: pointer;
+}
+
+.upload-content i {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.upload-content p {
+    margin-bottom: 0.5rem;
+    color: var(--dark-text);
+    font-weight: 500;
+}
+
+.upload-content small {
+    color: var(--muted-text);
+}
+
+/* Pie del formulario */
+.form-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Botones mejorados */
+.btn {
+    padding: 0.75rem 1.75rem;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    border: none;
+    cursor: pointer;
+}
+
+.btn i {
+    font-size: 1rem;
+}
+
+.btn-outline-secondary {
+    background: transparent;
+    border: 1px solid #d1d5db;
+    color: var(--dark-text);
+}
+
+.btn-outline-secondary:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 6px rgba(67, 97, 238, 0.2);
+}
+
+.btn-primary:hover {
+    background: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(67, 97, 238, 0.3);
+}
+
+/* Validación de formularios */
+.is-invalid {
+    border-color: var(--danger-color) !important;
+}
+
+.invalid-feedback {
+    display: block;
+    color: var(--danger-color);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+/* Vista previa de imágenes */
+#fotos-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.preview-image {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+}
+
+.preview-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.preview-image .remove-image {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    background-color: var(--danger-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.preview-image:hover .remove-image {
+    opacity: 1;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .pricing-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .form-row {
+        flex-direction: column;
+        gap: 2rem;
+    }
+    
+    .form-column {
+        width: 100%;
+    }
+    
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .pricing-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .photos-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .form-section {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+    }
+    
+    .form-footer {
+        flex-direction: column-reverse;
+        gap: 1rem;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .pricing-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .photos-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .container {
+        padding: 0 15px;
+    }
+    
+    .form-section {
+        padding: 1.25rem;
+    }
+    
+    .file-upload-card {
+        padding: 1.5rem;
+    }
+}
+
+/* Efectos de enfoque mejorados */
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    background-color: #f8fafc;
+}
+
+/* Transiciones suaves para hover */
+.form-group input:hover,
+.form-group select:hover,
+.form-group textarea:hover {
+    border-color: #9ca3af;
+}
+
+/* Mejoras para switches */
+.form-switch .form-check-input {
+    width: 2.5em;
+    height: 1.5em;
+    margin-left: -0.5em;
+}
+
+/* Estilos para campos deshabilitados */
+.form-group input:disabled,
+.form-group select:disabled,
+.form-group textarea:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+}
+
+/* Mejoras para los tooltips */
+.tooltip {
+    font-family: inherit;
+}
+
+.tooltip-inner {
+    background-color: var(--dark-text);
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+}

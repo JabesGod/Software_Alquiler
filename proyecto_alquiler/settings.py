@@ -219,21 +219,17 @@ STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 
 if DEBUG or USE_LOCAL:
-    # Configuración para desarrollo local
     STATICFILES_DIRS = [
         BASE_DIR / 'alquiler' / 'static',
     ]
-    STATIC_ROOT = None  # No necesario en desarrollo
+    STATIC_ROOT = BASE_DIR / 'staticfiles_dev' # <--- Define una ruta para desarrollo
     MEDIA_ROOT = BASE_DIR / 'alquiler' / 'static' / 'media'
-    # NO usar WhiteNoise storage en desarrollo
 else:
-    # Configuración para producción
     STATICFILES_DIRS = [
         BASE_DIR / 'alquiler' / 'static',
     ]
     STATIC_ROOT = BASE_DIR / 'staticfiles'
     MEDIA_ROOT = BASE_DIR / 'media'
-    # Usar WhiteNoise storage solo en producción
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Configuración para CKEditor uploads

@@ -35,6 +35,7 @@ from alquiler.utils import crear_pago_inicial  # Asegúrate de importar
 from django.contrib.auth.decorators import login_required, permission_required
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
+from django.db.models import F
 import logging
 logger = logging.getLogger(__name__)
 
@@ -480,14 +481,48 @@ def series_disponibles(request, equipo_id):
 @permission_required('alquiler.change_alquiler', raise_exception=True)
 def finalizar_alquiler(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
+    
+    # Validar que el alquiler no esté ya finalizado o cancelado
+    if alquiler.estado_alquiler in ['finalizado', 'cancelado']:
+        messages.warning(request, f"Este alquiler ya está {alquiler.get_estado_alquiler_display().lower()}.")
+        return redirect('alquiler:listar_alquileres')
+    
     alquiler.estado_alquiler = 'finalizado'
     alquiler.save()
 
+    # Liberar equipos y números de serie
     for detalle in alquiler.detalles.all():
-        detalle.equipo.estado = 'disponible'
-        detalle.equipo.save()
+        equipo = detalle.equipo
+        
+        # Si el detalle tiene números de serie asignados, liberarlos
+        if detalle.numeros_serie:
+            # Convertir a lista si es necesario (por si está en formato string)
+            series = detalle.numeros_serie if isinstance(detalle.numeros_serie, list) else [s.strip() for s in detalle.numeros_serie.split(',') if s.strip()]
+            
+            # Actualizar el campo numero_serie del equipo (agregar las series liberadas)
+            series_equipo = [s.strip() for s in equipo.numero_serie.split(',')] if equipo.numero_serie else []
+            series_equipo.extend(series)
+            equipo.numero_serie = ', '.join(sorted(set(series_equipo)))  # Eliminar duplicados
+            
+            # Actualizar cantidades
+            equipo.cantidad_total = len(series_equipo)
+            equipo.cantidad_disponible = F('cantidad_disponible') + len(series)
+        
+        # Si no hay números de serie, simplemente aumentar la cantidad disponible
+        else:
+            equipo.cantidad_disponible = F('cantidad_disponible') + detalle.cantidad
+        
+        # Actualizar el estado del equipo
+        equipo.estado = 'disponible'
+        equipo.save()
+        
+        # Forzar la actualización de la disponibilidad
+        equipo.actualizar_disponibilidad()
 
-    messages.success(request, "Alquiler finalizado exitosamente.")
+    # Registrar acción en el historial (si tienes un modelo para esto)
+    # Historial.objects.create(usuario=request.user, accion=f"Finalizó alquiler {alquiler.id}")
+    
+    messages.success(request, "Alquiler finalizado exitosamente. Los equipos han sido liberados.")
     return redirect('alquiler:listar_alquileres')
 
 @login_required

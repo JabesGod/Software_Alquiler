@@ -45,8 +45,10 @@ INSTALLED_APPS = [
     'django_select2',
     'corsheaders',
     'crispy_forms',
-    'crispy_bootstrap5',
+    'crispy_bootstrap5'
+
 ]
+
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'

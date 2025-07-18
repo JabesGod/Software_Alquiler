@@ -541,7 +541,7 @@ class Pago(models.Model):
         ('otros', 'Otro método electrónico'),
     ]
 
-    alquiler = models.ForeignKey(Alquiler, on_delete=models.CASCADE, related_name='pagos')
+    alquiler = models.ForeignKey(Alquiler, on_delete=models.CASCADE, related_name='pagos', null=True, blank=True)
     monto = models.DecimalField(max_digits=10, decimal_places=2)
     fecha_pago = models.DateField(auto_now_add=True)
     fecha_vencimiento = models.DateField(null=True, blank=True)

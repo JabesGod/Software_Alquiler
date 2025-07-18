@@ -7,3 +7,4 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         actualizar_morosidad_clientes()
         self.stdout.write(self.style.SUCCESS('Morosidad de clientes actualizada correctamente'))
+

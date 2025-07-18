@@ -133,20 +133,18 @@
                     <td>{{ alquiler.fecha_vencimiento|date:"d/m/Y"|default:"-" }}</td>
                     <td>
                         <div class="btn-group" role="group">
-                            <!-- Acciones para alquileres activos -->
-                              {% if alquiler.estado_alquiler == 'activo' %}
-            <!-- Botones para alquileres activos -->
-            <a href="{% url 'alquiler:finalizar_alquiler' alquiler.id %}" class="btn btn-sm btn-danger" title="Finalizar">
-                <i class="fas fa-stop-circle"></i>
-            </a>
-              <a href="{% url 'alquiler:editar_alquiler' alquiler.id %}" class="btn btn-sm btn-warning">
-        <i class="fas fa-edit"></i>
-            </a>
-            <a href="{% url 'alquiler:renovar_alquiler' alquiler.id %}" class="btn btn-sm btn-warning" title="Renovar">
-                <i class="fas fa-sync-alt"></i>
-            </a>
+                            {% if alquiler.estado_alquiler == 'activo' %}
+                                <a href="{% url 'alquiler:finalizar_alquiler' alquiler.id %}" class="btn btn-sm btn-danger" title="Finalizar">
+                                    <i class="fas fa-stop-circle"></i>
+                                </a>
+                                <a href="{% url 'alquiler:editar_alquiler' alquiler.id %}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'alquiler:renovar_alquiler' alquiler.id %}" class="btn btn-sm btn-warning" title="Renovar">
+                                    <i class="fas fa-sync-alt"></i>
+                                </a>
             
-        {% elif alquiler.estado_alquiler == 'reservado' or alquiler.estado_alquiler == 'pendiente_aprobacion' %}
+                            {% elif alquiler.estado_alquiler == 'reservado' or alquiler.estado_alquiler == 'pendiente_aprobacion' %}
 
             <!-- Botón de aprobación para reservas -->
             <a href="{% url 'alquiler:aprobar_alquiler' alquiler.id %}" class="btn btn-sm btn-success" title="Aprobar Reserva"

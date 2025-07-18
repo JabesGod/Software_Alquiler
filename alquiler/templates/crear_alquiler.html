@@ -6,7 +6,12 @@
 {% block content %}
 <div class="container mt-4">
     <h2 class="mb-4"><i class="fas fa-cart-plus"></i> Crear Nuevo Alquiler</h2>
-
+    {% if cliente_moroso %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>Advertencia:</strong> Este cliente está marcado como moroso.
+    </div>
+    {% endif %}
     <form method="post" id="alquiler-form" class="needs-validation" novalidate>
         {% csrf_token %}
 
@@ -42,10 +47,9 @@
                     <div class="col-md-4 mb-3">
                         <label for="{{ form.fecha_inicio.id_for_label }}" class="form-label"><i
                                 class="fas fa-calendar-alt"></i> Fecha Inicio</label>
-                        <input type="date" class="form-control" 
-                               id="{{ form.fecha_inicio.id_for_label }}"
-                               name="{{ form.fecha_inicio.html_name }}"
-                               value="{{ form.fecha_inicio.value|default:''|date:'Y-m-d' }}">
+                        <input type="date" class="form-control" id="{{ form.fecha_inicio.id_for_label }}"
+                            name="{{ form.fecha_inicio.html_name }}"
+                            value="{{ form.fecha_inicio.value|default:''|date:'Y-m-d' }}">
                         <div class="invalid-feedback">
                             Por favor ingrese una fecha de inicio válida.
                         </div>
@@ -53,10 +57,9 @@
                     <div class="col-md-4 mb-3">
                         <label for="{{ form.fecha_fin.id_for_label }}" class="form-label"><i
                                 class="fas fa-calendar-alt"></i> Fecha Fin</label>
-                        <input type="date" class="form-control" 
-                               id="{{ form.fecha_fin.id_for_label }}"
-                               name="{{ form.fecha_fin.html_name }}"
-                               value="{{ form.fecha_fin.value|default:''|date:'Y-m-d' }}">
+                        <input type="date" class="form-control" id="{{ form.fecha_fin.id_for_label }}"
+                            name="{{ form.fecha_fin.html_name }}"
+                            value="{{ form.fecha_fin.value|default:''|date:'Y-m-d' }}">
                         <div class="invalid-feedback">
                             Por favor ingrese una fecha de fin válida.
                         </div>
@@ -80,8 +83,7 @@
                         <select class="form-control select2" id="equipo-selector">
                             <option value="">Seleccione un equipo...</option>
                             {% for equipo in equipos_disponibles %}
-                            <option value="{{ equipo.id }}" 
-                                data-precio-dia="{{ equipo.precio_dia|default:0 }}"
+                            <option value="{{ equipo.id }}" data-precio-dia="{{ equipo.precio_dia|default:0 }}"
                                 data-precio-semana="{{ equipo.precio_semana|default:0 }}"
                                 data-precio-mes="{{ equipo.precio_mes|default:0 }}"
                                 data-precio-trimestre="{{ equipo.precio_trimestre|default:0 }}"
@@ -246,6 +248,7 @@
         background-color: #f8f9fa;
         cursor: not-allowed;
     }
+
     .select2-container--disabled .select2-selection--multiple .select2-selection__choice {
         background-color: #e9ecef;
         border-color: #dee2e6;

@@ -332,6 +332,7 @@ class Cliente(models.Model):
     def __str__(self):
         return f"{self.nombre} ({self.numero_documento})"
     
+    
 class Alquiler(models.Model):
     ESTADO_ALQUILER = [
         ('activo', 'Activo'),
@@ -354,8 +355,7 @@ class Alquiler(models.Model):
     contrato_firmado = models.BooleanField(default=False)
     con_iva = models.BooleanField(default=False)
     renovacion_automatica = models.BooleanField(default=False)
-    numero_factura = models.CharField(max_length=20, unique=True, blank=True, null=True,
-        help_text="Dejar en blanco para reservas")
+    numero_factura = models.CharField(max_length=20, unique=True, blank=True, null=True, help_text="Dejar en blanco para reservas")
     es_reserva = models.BooleanField(default=False)
     fecha_creacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     observaciones = models.TextField(blank=True, null=True)
@@ -388,7 +388,6 @@ class Alquiler(models.Model):
         dias = (self.fecha_fin - self.fecha_inicio).days + 1
 
         for detalle in self.detalles.all():
-        # ✅ Usa el precio_total directamente si ya fue calculado
             if detalle.precio_total:
                 total += detalle.precio_total
             elif detalle.precio_unitario and detalle.precio_unitario > 0:
@@ -396,7 +395,6 @@ class Alquiler(models.Model):
                 precio_con_iva = (precio * Decimal('1.19')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
                 total += precio_con_iva
             else:
-            # fallback (puede dejarse como 0 o hacer log)
                 continue
 
         self.precio_total = total.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
@@ -418,7 +416,6 @@ class Alquiler(models.Model):
 
 class DetalleAlquiler(models.Model):
     PERIODO_CHOICES = [
-
         ('dia', 'Por día'),
         ('semana', 'Por semana'),
         ('mes', 'Por mes'),
@@ -440,18 +437,14 @@ class DetalleAlquiler(models.Model):
         return f"{self.equipo} - {self.get_periodo_alquiler_display()}"
 
     def save(self, *args, **kwargs):
-        # Forzar lista vacía si no hay números de serie
         if not self.numeros_serie:
             self.numeros_serie = []
     
-    # Si no hay series y el equipo no las requiere, usar cantidad=1
         if len(self.numeros_serie) == 0 and not self.equipo.requiere_serie:
             self.cantidad = 1
         
-        # Calcular duración
         dias = (self.alquiler.fecha_fin - self.alquiler.fecha_inicio).days + 1
         
-        # Calcular precio total por período
         if self.periodo_alquiler == 'dia':
             self.precio_total = self.precio_unitario * self.cantidad * dias
         elif self.periodo_alquiler == 'semana':
@@ -482,13 +475,11 @@ class DetalleAlquiler(models.Model):
     def actualizar_disponibilidad_equipo(self):
         equipo = self.equipo
         if self.numeros_serie and len(self.numeros_serie) > 0:
-            # Aquí puedes implementar la lógica para marcar los seriales como no disponibles si usas un modelo separado de Serie
             pass
         else:
             equipo.cantidad_disponible = F('cantidad_disponible') - self.cantidad
             equipo.save(update_fields=['cantidad_disponible'])
 
-        # Si tienes método para actualizar disponibilidad general
         equipo.actualizar_disponibilidad()
 
 
@@ -517,7 +508,6 @@ class Acta(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.numero_acta:
-            # Generar número de acta automático (ejemplo: ACT-0001)
             last = Acta.objects.order_by('-id').first()
             last_number = int(last.numero_acta.split('-')[1]) if last and last.numero_acta else 0
             self.numero_acta = f"ACT-{last_number + 1:04d}"
@@ -566,14 +556,13 @@ class Pago(models.Model):
             raise ValidationError("Un pago parcial no puede cubrir el saldo pendiente completo. Use estado 'pagado' en su lugar.")
     
     def save(self, *args, **kwargs):
-        if not self.pk:  # Solo para nuevos pagos
+        if not self.pk:  
             if self.estado_pago == 'parcial' and self.monto == self.alquiler.saldo_pendiente:
                 self.estado_pago = 'pagado'
         super().save(*args, **kwargs)
 
     def actualizar_estado_alquiler(self):
         alquiler = self.alquiler
-    # Solo considerar pagos pagados o parciales
         total_pagado = alquiler.pagos.filter(
             estado_pago__in=['pagado', 'parcial']
         ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
@@ -613,7 +602,6 @@ class Contrato(models.Model):
     def generar_documento_contrato(self):
         """Genera el PDF del contrato con las firmas incluidas"""
         try:
-            # Contexto con datos para el template
             context = {
                 'alquiler': self.alquiler,
                 'contrato': self,
@@ -625,17 +613,14 @@ class Contrato(models.Model):
 
             }
             
-            # Renderizar el HTML
             html = render_to_string('contrato_pdf.html', context)
             
-            # Configuración para el PDF
             result = BytesIO()
             pdf_options = {
                 'encoding': 'UTF-8',
                 'quiet': True,
             }
             
-            # Generar PDF
             pisa_status = pisa.CreatePDF(
                 html, 
                 dest=result,
@@ -692,7 +677,6 @@ class Rol(models.Model):
         return self.nombre_rol
 
     def save(self, *args, **kwargs):
-        # Crear/actualizar grupo automáticamente
         if not self.grupo:
             grupo, created = Group.objects.get_or_create(name=f"Rol_{self.nombre_rol}")
             self.grupo = grupo
@@ -702,7 +686,6 @@ class Rol(models.Model):
         
         super().save(*args, **kwargs)
         
-        # Sincronizar permisos con el grupo
         if self.grupo:
             self.grupo.permissions.set(self.permisos.all())
 
@@ -870,7 +853,12 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     def has_admin_access(self):
         """Determina si el usuario tiene acceso administrativo"""
         return self.is_staff or self.is_superuser
-
+    
+    @property
+    def username(self):
+        """Propiedad para compatibilidad con código que espere el campo username"""
+        return self.nombre_usuario
+    
     def get_role_permissions(self):
         """Obtiene los permisos del rol del usuario"""
         if hasattr(self, 'rol'):

@@ -16,7 +16,7 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 import json
-from ..models import Equipo, Contrato
+from ..models import Equipo, Contrato, Cliente
 from xhtml2pdf import pisa
 from io import BytesIO
 from django.core.files.base import ContentFile
@@ -99,10 +99,31 @@ def generar_pdf_acta(alquiler, request):
     result.seek(0)
     return result.getvalue()
 
+
 @login_required
 @permission_required('alquiler.add_alquiler', raise_exception=True)
 def crear_alquiler(request):
-    # Obtener equipos disponibles, incluyendo información sobre si requieren serie
+    cliente_id = request.GET.get('cliente')
+    cliente = None
+
+    if cliente_id:
+        cliente = get_object_or_404(Cliente, id=cliente_id)
+        print(f" Cliente: {cliente.nombre}, Moroso: {cliente.moroso}, Verificación: {cliente.estado_verificacion}")
+
+        if cliente.moroso and not request.user.has_perm('alquiler.override_moroso'):
+            messages.error(
+                request,
+                f"El cliente {cliente.nombre} está marcado como moroso y no puede realizar nuevos alquileres."
+            )
+            return redirect('alquiler:listar_clientes')
+
+        if cliente.estado_verificacion != 'verificado':
+            messages.error(
+                request,
+                f"El cliente {cliente.nombre} no está verificado. No puede realizar alquileres."
+            )
+            return redirect('alquiler:listar_clientes')
+
     equipos_disponibles = Equipo.objects.filter(cantidad_disponible__gt=0).annotate(
         requiere_serie_case=Case(
             When(requiere_serie=True, then=Value('True')),
@@ -111,31 +132,33 @@ def crear_alquiler(request):
         )
     )
 
-    DetalleAlquilerFormSet = inlineformset_factory(
-        Alquiler,
-        DetalleAlquiler,
-        form=DetalleAlquilerForm,
-        extra=1,
-        can_delete=True,
-        fields=['equipo', 'numeros_serie', 'periodo_alquiler', 'cantidad', 'precio_unitario', 'con_iva']
-    )
-
     if request.method == 'POST':
+        print("📥 Procesando POST para crear alquiler")
         alquiler = Alquiler(es_reserva=False)
-        form = AlquilerForm(request.POST, instance=alquiler)
+        form = AlquilerForm(request.POST, instance=alquiler, request=request)
         formset = DetalleAlquilerFormSet(request.POST, prefix='detalles')
 
         if form.is_valid() and formset.is_valid():
             try:
                 with transaction.atomic():
                     alquiler = form.save(commit=False)
+                    print(f"➡️ Cliente del alquiler: {alquiler.cliente.nombre}")
+
+                    # Validación final: moroso o no verificado
+                    if (alquiler.cliente.moroso and not form.cleaned_data.get('forzar_alquiler')) or \
+                       alquiler.cliente.estado_verificacion != 'verificado':
+                        messages.error(request, "No se puede crear alquiler para este cliente.")
+                        return redirect('alquiler:crear_alquiler')
+
                     alquiler.estado_alquiler = 'activo'
                     alquiler.es_reserva = False
+                    alquiler.aprobado_por = getattr(request.user, 'nombre_usuario', request.user.get_username())
 
                     if not alquiler.numero_factura:
                         raise ValidationError("Debe ingresar un número de factura para alquileres activos")
 
                     alquiler.save()
+                    print(f"✅ Alquiler guardado ID: {alquiler.id}")
 
                     for detalle in formset.save(commit=False):
                         detalle.alquiler = alquiler
@@ -149,11 +172,10 @@ def crear_alquiler(request):
                         if not isinstance(detalle.numeros_serie, list):
                             detalle.numeros_serie = []
 
-                        # Solo establecer cantidad basada en series si el equipo las requiere
                         if detalle.equipo.requiere_serie:
                             detalle.cantidad = len(detalle.numeros_serie)
                         else:
-                            detalle.cantidad = 1  # Para equipos sin serie
+                            detalle.cantidad = 1
 
                         if not detalle.precio_unitario:
                             periodo = detalle.periodo_alquiler
@@ -164,16 +186,18 @@ def crear_alquiler(request):
                         detalle.equipo.actualizar_disponibilidad()
 
                     alquiler.calcular_precio_total()
-
-                    # Crear el pago inicial automáticamente
-                    crear_pago_inicial(alquiler, aprobado_por=request.user if request.user.is_authenticated else None)
+                    crear_pago_inicial(alquiler, aprobado_por=request.user)
 
                     messages.success(request, "Alquiler creado exitosamente.")
                     return redirect(f"{reverse('alquiler:listar_alquileres')}?alquiler_id={alquiler.id}")
 
             except Exception as e:
                 messages.error(request, f"Error al guardar: {str(e)}")
+                print(f"🚨 Excepción durante guardado: {str(e)}")
         else:
+            print("❌ Formulario inválido")
+            print(f"Errores form: {form.errors}")
+            print(f"Errores formset: {[f.errors for f in formset]}")
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f"Error en {field}: {error}")
@@ -182,21 +206,26 @@ def crear_alquiler(request):
                     for error in errors:
                         messages.error(request, f"Error en equipo ({field}): {error}")
     else:
-        alquiler = Alquiler(es_reserva=False)
-        form = AlquilerForm(
-            initial={
-                'fecha_inicio': timezone.now().date(),
-                'fecha_fin': (timezone.now() + timezone.timedelta(days=7)).date()
-            },
-            instance=alquiler
-        )
+        print("📄 Renderizando formulario GET")
+        initial_data = {
+            'fecha_inicio': timezone.now().date(),
+            'fecha_fin': timezone.now().date() + timedelta(days=7),
+            'con_iva': True
+        }
+
+        if cliente_id:
+            initial_data['cliente'] = cliente_id
+
+        form = AlquilerForm(initial=initial_data, request=request)
         formset = DetalleAlquilerFormSet(prefix='detalles')
 
     return render(request, 'crear_alquiler.html', {
         'form': form,
         'formset': formset,
-        'equipos_disponibles': equipos_disponibles
+        'equipos_disponibles': equipos_disponibles,
+        'cliente_moroso': Cliente.objects.get(id=cliente_id).moroso if cliente_id else False
     })
+
 
 
 @login_required
@@ -393,8 +422,6 @@ def reservar_alquiler(request):
                     
                     messages.success(request, "Reserva creada exitosamente!")
                     return HttpResponseRedirect(f"{reverse('alquiler:listar_alquileres')}?alquiler_id={alquiler.id}")
-
-
 
             except Exception as e:
                 messages.error(request, f"Error al guardar: {str(e)}")

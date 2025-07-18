@@ -6,7 +6,8 @@ from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth.decorators import login_required,permission_required
-
+from django.db.models import Sum, Q
+from django.db import models
 
 def es_admin(user):
     return user.is_authenticated and user.is_staff  # o user.is_superuser
@@ -69,16 +70,31 @@ def bloquear_cliente(request, id):
     return redirect('alquiler:detalle_cliente', id=id)
 
 def clientes_morosos(request):
-    # Ejecutar la actualización primero
     actualizar_morosidad_clientes()
-    
-    # Obtener solo clientes marcados como morosos
-    clientes = Cliente.objects.filter(moroso=True).order_by('-dias_mora')
-    
+
+    clientes = Cliente.objects.filter(moroso=True).prefetch_related(
+        'alquileres__pagos'
+    )
+
+    for cliente in clientes:
+        if cliente.fecha_marcado_moroso:
+            cliente.dias_mora_calculado = (timezone.now().date() - cliente.fecha_marcado_moroso).days
+        else:
+            cliente.dias_mora_calculado = 0
+
+        cliente.alquileres_morosos = Alquiler.objects.filter(
+            cliente=cliente,
+            pagos__estado_pago__in=['pendiente', 'parcial'],
+            pagos__fecha_vencimiento__lte=timezone.now().date() - timedelta(days=2)
+        ).distinct()
+
+    clientes = sorted(clientes, key=lambda c: c.dias_mora_calculado, reverse=True)
+
     return render(request, 'clientes_morosos.html', {
         'clientes': clientes,
         'hoy': timezone.now().date()
     })
+
 
 @login_required
 def marcar_como_moroso(request, cliente_id):
@@ -95,32 +111,51 @@ def marcar_como_moroso(request, cliente_id):
     return render(request, 'confirmar_moroso.html', {'cliente': cliente})
 
 def actualizar_morosidad_clientes():
-    # Obtener clientes con pagos pendientes por más de X días
-    fecha_limite = timezone.now().date() - timedelta(days=15)  # 15 días de gracia
+    # Fecha límite para considerar moroso (15 días de gracia)
+    fecha_limite_moroso = timezone.now().date() - timedelta(days=2)
     
-    clientes_morosos = Cliente.objects.filter(
-        alquileres__pagos__estado_pago='pendiente',
-        alquileres__fecha_vencimiento__lte=timezone.now()
-
+    # 1. Identificar clientes que deben ser marcados como morosos
+    clientes_con_pagos_vencidos = Cliente.objects.filter(
+        Q(alquileres__pagos__estado_pago__in=['pendiente', 'parcial']) &
+        Q(alquileres__pagos__fecha_vencimiento__lte=fecha_limite_moroso)
     ).distinct()
     
-    for cliente in clientes_morosos:
-        # Calcular días de mora (usando el pago más atrasado)
-        pago_mas_atrasado = cliente.pagos.filter(
-            estado_pago='pendiente'
+    # 2. Actualizar clientes morosos
+    for cliente in clientes_con_pagos_vencidos:
+        # Obtener el pago más atrasado
+        pago_mas_atrasado = Pago.objects.filter(
+            alquiler__cliente=cliente,
+            estado_pago__in=['pendiente', 'parcial']
         ).order_by('fecha_vencimiento').first()
         
         if pago_mas_atrasado:
             dias_mora = (timezone.now().date() - pago_mas_atrasado.fecha_vencimiento).days
-            deuda_total = sum(
-                p.monto for p in cliente.pagos.filter(estado_pago='pendiente')
-            )
+            
+            # Calcular deuda total (suma de todos los pagos pendientes/parciales)
+            deuda_total = Pago.objects.filter(
+                alquiler__cliente=cliente,
+                estado_pago__in=['pendiente', 'parcial']
+            ).aggregate(total=Sum('monto'))['total'] or 0
             
             cliente.moroso = True
             cliente.dias_mora = dias_mora
             cliente.deuda_total = deuda_total
             cliente.fecha_marcado_moroso = timezone.now().date()
             cliente.save()
+    
+    # 3. Limpiar clientes que ya no son morosos (pagaron sus deudas)
+    clientes_que_pagaron = Cliente.objects.filter(
+        moroso=True
+    ).exclude(
+        id__in=clientes_con_pagos_vencidos.values('id')
+    )
+    
+    for cliente in clientes_que_pagaron:
+        cliente.moroso = False
+        cliente.dias_mora = 0
+        cliente.deuda_total = 0
+        cliente.fecha_marcado_moroso = None
+        cliente.save()
 
 def validar_documentos_cliente(request, id):
     cliente = get_object_or_404(Cliente, id=id)

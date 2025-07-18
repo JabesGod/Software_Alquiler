@@ -529,7 +529,7 @@ class RegistrarPagoView(APIView):
                 estado_pago=estado_pago,
                 referencia_transaccion=serializer.validated_data.get('referencia_transaccion', ''),
                 aprobado_por=request.user,
-                fecha_vencimiento=timezone.now().date() + timedelta(days=15)  # 15 días para pagar
+                fecha_vencimiento=timezone.now().date() + timedelta(days=2)  # 15 días para pagar
             )
 
             # Actualizar estado del alquiler si está completamente pagado
@@ -792,7 +792,7 @@ class RegistrarPagoParcialView(APIView):
                 estado_pago='parcial',
                 referencia_transaccion=serializer.validated_data.get('referencia_transaccion', ''),
                 aprobado_por=request.user,
-                fecha_vencimiento=timezone.now().date() + timedelta(days=15)
+                fecha_vencimiento=timezone.now().date() + timedelta(days=2)
             )
             enviar_notificacion_pago(pago, request.user)
             return Response(PagoDetalleSerializer(pago).data, status=status.HTTP_201_CREATED)

@@ -321,7 +321,7 @@ def crear_pago_inicial(alquiler, aprobado_por=None):
             monto=alquiler.precio_total,
             metodo_pago='pendiente',
             estado_pago='pendiente',
-            fecha_vencimiento=alquiler.fecha_fin + timedelta(days=15),
+            fecha_vencimiento=alquiler.fecha_fin + timedelta(days=2),
             aprobado_por=aprobado_por
         )
 

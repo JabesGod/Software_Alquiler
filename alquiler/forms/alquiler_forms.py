@@ -15,6 +15,7 @@ def validate_fecha_fin(value):
     if value < hoy_colombia:
         raise ValidationError(f"La fecha de fin ({value}) no puede ser anterior a hoy ({hoy_colombia})")
 
+
 class AlquilerForm(forms.ModelForm):
     iva = forms.DecimalField(
         max_digits=10,
@@ -30,6 +31,12 @@ class AlquilerForm(forms.ModelForm):
         required=False,
         initial=Decimal('0.00')
     )
+    forzar_alquiler = forms.BooleanField(
+        required=False,
+        label="Forzar alquiler (cliente moroso)",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        help_text="Marque solo si tiene autorización para alquilar a cliente moroso"
+    )
     
     class Meta:
         model = Alquiler
@@ -37,7 +44,7 @@ class AlquilerForm(forms.ModelForm):
             'cliente', 'fecha_inicio', 'fecha_fin', 'fecha_vencimiento',
             'numero_factura', 'con_iva', 'observaciones',
             'renovacion_automatica', 'contrato_firmado',
-            'iva', 'precio_total'
+            'iva', 'precio_total', 'forzar_alquiler'
         ]
         widgets = {
             'fecha_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
@@ -53,35 +60,44 @@ class AlquilerForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-        
+    
         if self.instance and self.instance.pk:
             self.fields['aprobado_por'] = forms.CharField(
-                initial=self.instance.aprobado_por or (self.request.user.username if self.request else ''),
+                initial=self.instance.aprobado_por or (
+                    getattr(self.request.user, 'nombre_usuario', '') if self.request else ''
+                ),
                 widget=forms.TextInput(attrs={'readonly': 'readonly', 'class': 'form-control'}),
                 required=False
             )
-            
-        if not self.instance.pk:
-            self.fields['con_iva'].initial = True
-            hoy = timezone.now().date()
-            self.fields['fecha_inicio'].initial = hoy
-            self.fields['fecha_fin'].initial = hoy + timedelta(days=7)
-            self.fields['fecha_vencimiento'].initial = hoy + timedelta(days=7)
-            
-            if self.request and self.request.user.has_perm('alquiler.approve_alquiler'):
-                self.fields['aprobado_por'] = forms.CharField(
-                    initial=self.request.user.nombre_usuario,
-                    widget=forms.TextInput(attrs={'readonly': 'readonly', 'class': 'form-control'}),
-                    required=False
-                )
+        
+        if not self.instance.pk and self.request and self.request.user.has_perm('alquiler.approve_alquiler'):
+            self.fields['aprobado_por'] = forms.CharField(
+                initial=getattr(self.request.user, 'nombre_usuario', ''),
+                widget=forms.TextInput(attrs={'readonly': 'readonly', 'class': 'form-control'}),
+                required=False
+            )
 
     def clean(self):
         cleaned_data = super().clean()
-        fecha_inicio = cleaned_data.get('fecha_inicio')
-        fecha_fin = cleaned_data.get('fecha_fin')
+        cliente = cleaned_data.get('cliente')
+        forzar = cleaned_data.get('forzar_alquiler')
         
-        if fecha_inicio and fecha_fin and fecha_fin <= fecha_inicio:
-            self.add_error('fecha_fin', "La fecha de fin debe ser posterior a la fecha de inicio")
+        # Validación de morosidad (solo para nuevos alquileres)
+        if not self.instance.pk and cliente:
+            if cliente and cliente.moroso and not forzar:
+                self.add_error('cliente', f"El cliente {cliente.nombre} está marcado como moroso.")
+
+
+            
+            if cliente and cliente.estado_verificacion != 'verificado':
+                self.add_error('cliente', f"El cliente {cliente.nombre} no está verificado. Solo se permiten alquileres para clientes verificados.")
+
+        
+        # Validación de permisos para forzar alquiler
+        if forzar and not (self.request and self.request.user.has_perm('alquiler.override_moroso')):
+            raise forms.ValidationError(
+                "No tiene permisos para forzar alquileres a clientes morosos."
+            )
         
         return cleaned_data
 
@@ -92,6 +108,7 @@ class AlquilerForm(forms.ModelForm):
     def clean_precio_total(self):
         precio_total = self.cleaned_data.get('precio_total', '0') or '0'
         return Decimal(precio_total).quantize(Decimal('0.00'))
+
 
 class DetalleAlquilerForm(forms.ModelForm):
     numeros_serie = forms.CharField(

@@ -1,36 +1,81 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Calendario Anual de Alquileres{% endblock %}
+{% block title %}Calendario de Alquileres{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/calendario0.css' %}">
+<style>
+    .evento-propio {
+        border-left: 3px solid #007bff;
+        position: relative;
+    }
+    .evento-propio::after {
+        content: '★';
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        font-size: 10px;
+        color: #007bff;
+    }
+    .alert-info {
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 1px solid #bee5eb;
+        border-radius: 4px;
+        color: #0c5460;
+        background-color: #d1ecf1;
+    }
+    .debug-info {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 10px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="calendario-container">
-    <div class="calendar-header">
-        <h2>
-            <i class="fas fa-calendar-alt"></i>
-            Calendario Anual de Alquileres
-        </h2>
-        
-        <div class="navegacion-anios">
-            <button id="anioAnterior">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <span id="anioActual" class="anio-display">{{ current_year }}</span>
-            <button id="anioSiguiente">
-                <i class="fas fa-chevron-right"></i>
-            </button>
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">
+                <i class="fas fa-calendar-alt"></i> Calendario de Alquileres
+            </h2>
+            <div class="navegacion-anios">
+                <button id="anioAnterior" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span id="anioActual" class="mx-2">{{ current_year }}</span>
+                <button id="anioSiguiente" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            {% if not is_admin and not tiene_alquileres %}
+            <div class="alert alert-info">
+                <h4 class="alert-heading">No se encontraron alquileres activos</h4>
+                <p>Usuario actual: <strong>{{ nombre_usuario }}</strong></p>
+                <hr>
+                <p class="mb-0">Si cree que esto es un error, por favor contacte al administrador.</p>
+                {% if debug %}
+                <div class="debug-info">
+                    <p><strong>Información de depuración:</strong></p>
+                    <p>Búsqueda realizada para: nombre de usuario, partes del nombre y email si existe.</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div id="calendarioContainer" class="calendario-grid"></div>
         </div>
     </div>
-
-    <div id="calendarioContainer" class="calendario-grid"></div>
 </div>
 
 <script>
     const eventos = {{ eventos_json|safe }};
+    const isAdmin = {% if is_admin %}true{% else %}false{% endif %};
 </script>
 <script src="{% static 'js/calendario.js' %}"></script>
 {% endblock %}

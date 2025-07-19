@@ -367,7 +367,7 @@ def listar_pagos(request):
     pagos_parciales = pagos.filter(estado_pago='parcial').count()
     
     
-    paginator = Paginator(pagos, 25)  
+    paginator = Paginator(pagos, 10)  
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     

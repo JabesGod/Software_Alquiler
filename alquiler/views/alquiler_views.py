@@ -682,45 +682,105 @@ def detalle_alquiler(request, id):
     
     return render(request, 'detalle_alquiler.html', context)
 
+
 @login_required
 @permission_required('alquiler.view_alquiler', raise_exception=True)
 def calendario_alquileres(request):
-    alquileres = Alquiler.objects.filter(estado_alquiler='activo').prefetch_related('detalles__equipo')
+    """
+    Vista que muestra el calendario de alquileres con prefijo 'guanabanazo/'
+    - Administradores ven todos los alquileres activos
+    - Usuarios normales ven solo sus alquileres
+    """
+    # Obtener alquileres según el tipo de usuario
+    if request.user.is_staff or request.user.is_superuser:
+        alquileres = Alquiler.objects.filter(estado_alquiler='activo').select_related('cliente').prefetch_related('detalles__equipo')
+    else:
+        # Para usuarios normales - búsqueda flexible
+        from django.db.models import Q
+        query = Q(estado_alquiler='activo')
+        
+        # Condiciones de búsqueda para usuarios normales
+        user_conditions = Q()
+        
+        # 1. Por cliente asociado directamente
+        if hasattr(request.user, 'cliente') and request.user.cliente:
+            user_conditions |= Q(cliente=request.user.cliente)
+        
+        # 2. Por nombre de usuario en nombre del cliente
+        user_conditions |= Q(cliente__nombre__iexact=request.user.nombre_usuario)
+        
+        # 3. Por partes del nombre de usuario
+        for parte in request.user.nombre_usuario.split():
+            user_conditions |= Q(cliente__nombre__icontains=parte)
+        
+        # 4. Por email si existe
+        if hasattr(request.user, 'email') and request.user.email:
+            user_conditions |= Q(cliente__email__iexact=request.user.email)
+        
+        alquileres = Alquiler.objects.filter(query & user_conditions).distinct()
+
+    # Generar eventos para el calendario
     eventos = []
-
     for alquiler in alquileres:
-        # Obtener resumen de equipos del alquiler
-        equipos = [f"{detalle.equipo.marca} {detalle.equipo.modelo}" for detalle in alquiler.detalles.all()]
-        equipos_str = " | ".join(equipos) if equipos else "Sin equipos"
+        # Información de equipos
+        equipos = []
+        for detalle in alquiler.detalles.all():
+            equipo_str = f"{detalle.equipo.marca} {detalle.equipo.modelo}"
+            if detalle.numeros_serie:
+                equipo_str += f" (Seriales: {', '.join(detalle.numeros_serie)})"
+            equipos.append(equipo_str)
+        
+        equipos_str = " | ".join(equipos) if equipos else "Sin equipos especificados"
+        cliente_nombre = alquiler.cliente.nombre if alquiler.cliente else "Sin cliente"
 
-        eventos.append({
-            "title": f"{equipos_str} - {alquiler.cliente.nombre} - INICIO",
-            "start": alquiler.fecha_inicio.strftime("%Y-%m-%d"),
-            "color": "#28a745",
-            "url": f"/alquileres/{alquiler.id}/detalle/"
-        })
+        # Determinar si es propio (para usuarios normales)
+        es_propio = not (request.user.is_staff or request.user.is_superuser)
 
-        eventos.append({
-            "title": f"{equipos_str} - {alquiler.cliente.nombre} - FIN",
-            "start": alquiler.fecha_fin.strftime("%Y-%m-%d"),
-            "color": "#dc3545",
-            "url": f"/alquileres/{alquiler.id}/detalle/"
-        })
+        # Generar URL con el prefijo usando reverse y namespace
+        try:
+            detalle_url = reverse('alquiler:detalle_alquiler', args=[alquiler.id])
+        except:
+            # Fallback si hay problemas con reverse()
+            detalle_url = f"/guanabanazo/alquileres/{alquiler.id}/detalle/"
 
-        # Evento de aviso por vencer (3 días antes)
-        fecha_aviso = alquiler.fecha_fin - timedelta(days=3)
-        eventos.append({
-            "title": f"{equipos_str} - {alquiler.cliente.nombre} - POR VENCER",
-            "start": fecha_aviso.strftime("%Y-%m-%d"),
-            "color": "#ffc107",
-            "url": f"/alquileres/{alquiler.id}/detalle/"
-        })
+        # Eventos para el calendario
+        eventos.extend([
+            {
+                "title": f"{equipos_str} - {cliente_nombre} - INICIO",
+                "start": alquiler.fecha_inicio.strftime("%Y-%m-%d"),
+                "color": "#28a745",
+                "url": detalle_url,
+                "es_propio": es_propio,
+                "alquiler_id": alquiler.id
+            },
+            {
+                "title": f"{equipos_str} - {cliente_nombre} - FIN",
+                "start": alquiler.fecha_fin.strftime("%Y-%m-%d"),
+                "color": "#dc3545",
+                "url": detalle_url,
+                "es_propio": es_propio,
+                "alquiler_id": alquiler.id
+            },
+            {
+                "title": f"{equipos_str} - {cliente_nombre} - POR VENCER",
+                "start": (alquiler.fecha_fin - timedelta(days=3)).strftime("%Y-%m-%d"),
+                "color": "#ffc107",
+                "url": detalle_url,
+                "es_propio": es_propio,
+                "alquiler_id": alquiler.id
+            }
+        ])
 
-    eventos_json = json.dumps(eventos)
-    return render(request, "calendario.html", {
-        "eventos_json": eventos_json,
-        "current_year": datetime.now().year
-    })
+    # Contexto para la plantilla
+    context = {
+        'eventos_json': json.dumps(eventos),
+        'current_year': datetime.now().year,
+        'is_admin': request.user.is_staff or request.user.is_superuser,
+        'tiene_alquileres': alquileres.exists(),
+        'nombre_usuario': request.user.nombre_usuario,
+    }
+
+    return render(request, 'calendario.html', context)
 
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)

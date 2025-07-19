@@ -27,9 +27,9 @@ from django.utils import timezone
 from datetime import timedelta, datetime
 import csv
 import json
+from django.core.paginator import Paginator
 from calendar import monthrange
 from django.db.models.functions import TruncMonth, TruncDay, TruncWeek
-from django.core.serializers.json import DjangoJSONEncoder
 
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)
@@ -303,10 +303,9 @@ def exportar_csv_pagos(pagos, fecha_inicio, fecha_fin):
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)
 def listar_pagos(request):
-    """Vista mejorada para listar pagos con búsqueda por número de factura y otros filtros"""
     pagos = Pago.objects.select_related('alquiler', 'alquiler__cliente')
     
-    # Improved Filters
+
     numero_factura = request.GET.get('numero_factura', '').strip()
     cliente = request.GET.get('cliente', '').strip()
     estado = request.GET.get('estado')
@@ -316,9 +315,9 @@ def listar_pagos(request):
     monto_min = request.GET.get('monto_min')
     monto_max = request.GET.get('monto_max')
     
-    # Corrected filter for numero_factura
+
     if numero_factura:
-        # Access numero_factura through the 'alquiler' relationship
+
         pagos = pagos.filter(alquiler__numero_factura__icontains=numero_factura)
     
     if cliente:
@@ -343,18 +342,15 @@ def listar_pagos(request):
         try:
             pagos = pagos.filter(monto__gte=float(monto_min))
         except ValueError:
-            pass # Silently ignore invalid float conversion for now
-    
+            pass 
     if monto_max:
         try:
             pagos = pagos.filter(monto__lte=float(monto_max))
         except ValueError:
-            pass # Silently ignore invalid float conversion for now
-    
-    # Order by most recent date
+            pass 
     pagos = pagos.order_by('-fecha_pago')
     
-    # Calculate totals with applied filters
+    
     total_pagado = pagos.filter(estado_pago='pagado').aggregate(
         Sum('monto'))['monto__sum'] or 0
     total_pendiente = pagos.filter(estado_pago='pendiente').aggregate(
@@ -363,24 +359,19 @@ def listar_pagos(request):
         Sum('monto'))['monto__sum'] or 0
     
     pagos_pendientes = pagos.filter(estado_pago='pendiente').count()
-    # Ensure 'hoy' is defined for comparison in the template if not passed explicitly
     hoy = timezone.now().date() 
     pagos_vencidos = pagos.filter(
         estado_pago__in=['pendiente', 'parcial'],
-        fecha_vencimiento__lt=hoy # Use 'hoy' here
+        fecha_vencimiento__lt=hoy 
     ).count()
     pagos_parciales = pagos.filter(estado_pago='parcial').count()
     
-    # Pagination
-    from django.core.paginator import Paginator
-    paginator = Paginator(pagos, 25)  # 25 payments per page
+    
+    paginator = Paginator(pagos, 25)  
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Get all possible statuses and methods for filter dropdowns
-    # Assuming Pago.ESTADO_PAGO and Pago.METODOS are defined in your Pago model
-    # from .models import Pago # Ensure Pago model is imported to access these
-    
+
     context = {
         'pagos': page_obj,
         'total_pagado': total_pagado,
@@ -389,14 +380,14 @@ def listar_pagos(request):
         'pagos_pendientes': pagos_pendientes,
         'pagos_vencidos': pagos_vencidos,
         'pagos_parciales': pagos_parciales,
-        'estados_pago': Pago.ESTADO_PAGO, # Ensure this is available from your model
-        'metodos_pago': Pago.METODOS,   # Ensure this is available from your model
+        'estados_pago': Pago.ESTADO_PAGO, 
+        'metodos_pago': Pago.METODOS,   
         'total_registros': pagos.count(),
         'filtros_activos': any([
             numero_factura, cliente, estado, metodo_pago, 
             fecha_inicio, fecha_fin, monto_min, monto_max
         ]),
-        'hoy': hoy, # Pass 'hoy' to the template for date comparisons
+        'hoy': hoy, 
     }
     
     return render(request, 'lista_pagos.html', context)

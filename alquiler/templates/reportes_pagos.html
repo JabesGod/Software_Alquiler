@@ -56,8 +56,14 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
 
 <script>
-    const datosGraficas = {{ datos_graficas|safe }};
+    // Elimina una de las definiciones de datosGraficas (deja solo esta)
+    const datosGraficas = JSON.parse('{{ datos_graficas|escapejs }}');
     console.log('Datos para gráficas:', datosGraficas);
+    
+    // Verificación adicional
+    if (!datosGraficas.evolucion || !datosGraficas.estados || !datosGraficas.metodos) {
+        console.error('Estructura de datosGraficas incorrecta');
+    }
 </script>
 
 <script src="{% static 'js/reportes_pagos.js' %}"></script>
@@ -229,7 +235,6 @@
                     </div>
                     <div id="noDataEvolucion" class="text-center py-4 d-none">
                         <i class="bi bi-graph-up-arrow"></i>
-                        <h4>No hay datos para mostrar</h4>
                         <p class="text-muted">Cambia los filtros o el período</p>
                     </div>
                 </div>
@@ -247,7 +252,6 @@
                     </div>
                     <div id="noDataEstados" class="text-center py-4 d-none">
                         <i class="bi bi-pie-chart"></i>
-                        <h4>No hay datos para mostrar</h4>
                         <p class="text-muted">Ajusta tus filtros</p>
                     </div>
                 </div>
@@ -268,7 +272,6 @@
                     </div>
                     <div id="noDataMetodos" class="text-center py-4 d-none">
                         <i class="bi bi-credit-card"></i>
-                        <h4>No hay datos para mostrar</h4>
                         <p class="text-muted">Ajusta tus filtros</p>
                     </div>
                 </div>

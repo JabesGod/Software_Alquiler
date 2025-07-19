@@ -1,19 +1,19 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('DOM loaded, iniciando configuración de gráficas...');
-    
+
     // Verificar si datosGraficas existe
     if (typeof datosGraficas === 'undefined') {
         console.error('ERROR: datosGraficas no está definido');
         return;
     }
-    
+
     console.log('Datos recibidos:', datosGraficas);
-    
+
     // Registrar el plugin de datalabels globalmente
     if (typeof ChartDataLabels !== 'undefined') {
         Chart.register(ChartDataLabels);
     }
-    
+
     // Configuración común para gráficas
     Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
     Chart.defaults.color = '#6c757d';
@@ -21,45 +21,105 @@ document.addEventListener('DOMContentLoaded', function() {
     Chart.defaults.plugins.tooltip.padding = 10;
     Chart.defaults.plugins.tooltip.cornerRadius = 4;
     Chart.defaults.plugins.tooltip.boxPadding = 4;
-    
-    // Función para crear o actualizar gráfico
-    function createOrUpdateChart(chartId, chartType, data, options, plugins = []) {
+    // Función para inicializar o destruir un gráfico
+    function initChart(chartId, chartType, data, options, plugins = []) {
         const canvas = document.getElementById(chartId);
         const noDataDiv = document.getElementById(`noData${chartId.replace('Chart', '')}`);
-        
+
         if (!canvas) {
             console.error(`Canvas element with ID '${chartId}' not found.`);
             return;
         }
-        
+
+        console.log(`[${chartId}] Datos recibidos:`, data);
+
+        // Verificar si hay datos de manera más robusta
+        let hasData = false;
+        try {
+            if (data.labels && data.labels.length > 0) {
+                if (chartType === 'bar' || chartType === 'line') {
+                    hasData = data.datasets.some(dataset =>
+                        dataset.data && dataset.data.length > 0 &&
+                        dataset.data.some(value => value !== null && value !== undefined && !isNaN(value))
+                    );
+                } else if (chartType === 'pie' || chartType === 'doughnut') {
+                    hasData = data.datasets[0]?.data?.some(value =>
+                        value !== null && value !== undefined && !isNaN(value) && value > 0
+                    );
+                }
+            }
+        } catch (e) {
+            console.error(`Error verificando datos para ${chartId}:`, e);
+        }
+
+        console.log(`[${chartId}] ¿Tiene datos?`, hasData);
+
+        if (hasData) {
+            canvas.style.display = 'block';
+            if (noDataDiv) noDataDiv.classList.add('d-none');
+
+            const existingChart = Chart.getChart(chartId);
+            if (existingChart) existingChart.destroy();
+
+            try {
+                new Chart(canvas.getContext('2d'), {
+                    type: chartType,
+                    data: data,
+                    options: options,
+                    plugins: plugins
+                });
+                console.log(`[${chartId}] Gráfico creado exitosamente`);
+            } catch (e) {
+                console.error(`Error creando gráfico ${chartId}:`, e);
+                canvas.style.display = 'none';
+                if (noDataDiv) noDataDiv.classList.remove('d-none');
+            }
+        } else {
+            console.log(`[${chartId}] No hay datos válidos para mostrar`);
+            canvas.style.display = 'none';
+            if (noDataDiv) noDataDiv.classList.remove('d-none');
+            const existingChart = Chart.getChart(chartId);
+            if (existingChart) existingChart.destroy();
+        }
+    }
+    // Función para crear o actualizar gráfico
+    function createOrUpdateChart(chartId, chartType, data, options, plugins = []) {
+        const canvas = document.getElementById(chartId);
+        const noDataDiv = document.getElementById(`noData${chartId.replace('Chart', '')}`);
+
+        if (!canvas) {
+            console.error(`Canvas element with ID '${chartId}' not found.`);
+            return;
+        }
+
         console.log(`[DEBUG - ${chartId}] - Data recibida:`, data);
-        
+
         // Verificar si hay datos
         let hasData = false;
         if (data.labels && data.labels.length > 0) {
             if (chartType === 'bar' || chartType === 'line') {
-                hasData = data.datasets.some(dataset => 
+                hasData = data.datasets.some(dataset =>
                     dataset.data && dataset.data.length > 0 && dataset.data.some(value => value > 0)
                 );
             } else if (chartType === 'pie' || chartType === 'doughnut') {
-                hasData = data.datasets[0] && data.datasets[0].data && 
-                         data.datasets[0].data.length > 0 && 
-                         data.datasets[0].data.some(value => value > 0);
+                hasData = data.datasets[0] && data.datasets[0].data &&
+                    data.datasets[0].data.length > 0 &&
+                    data.datasets[0].data.some(value => value > 0);
             }
         }
-        
+
         console.log(`[DEBUG - ${chartId}] - hasData evaluado como:`, hasData);
-        
+
         if (hasData) {
             canvas.style.display = 'block';
             if (noDataDiv) noDataDiv.classList.add('d-none');
-            
+
             // Destruir gráfico existente
             const existingChart = Chart.getChart(chartId);
             if (existingChart) {
                 existingChart.destroy();
             }
-            
+
             const ctx = canvas.getContext('2d');
             const newChart = new Chart(ctx, {
                 type: chartType,
@@ -67,22 +127,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 options: options,
                 plugins: plugins
             });
-            
+
             console.log(`[DEBUG - ${chartId}] - Gráfico creado exitosamente.`);
         } else {
             canvas.style.display = 'none';
             if (noDataDiv) noDataDiv.classList.remove('d-none');
-            
+
             // Destruir gráfico existente
             const existingChart = Chart.getChart(chartId);
             if (existingChart) {
                 existingChart.destroy();
             }
-            
+
             console.log(`[DEBUG - ${chartId}] - No hay datos, gráfico oculto.`);
         }
     }
-    
+
     // --- Gráfica de Evolución ---
     function createEvolucionChart() {
         const evolucionData = {
@@ -108,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             ]
         };
-        
+
         const evolucionOptions = {
             responsive: true,
             maintainAspectRatio: false,
@@ -123,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     cornerRadius: 4,
                     boxPadding: 4,
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             let label = context.dataset.label || '';
                             if (label) {
                                 label += ': ';
@@ -164,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     },
                     ticks: {
-                        callback: function(value) {
+                        callback: function (value) {
                             return '$' + value.toLocaleString();
                         },
                         font: {
@@ -202,10 +262,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         };
-        
+
         createOrUpdateChart('evolucionChart', 'bar', evolucionData, evolucionOptions);
     }
-    
+
     // --- Gráfica de Estados ---
     function createEstadosChart() {
         const estadosData = {
@@ -229,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 borderWidth: 1
             }]
         };
-        
+
         const estadosOptions = {
             responsive: true,
             maintainAspectRatio: false,
@@ -239,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     padding: 10,
                     cornerRadius: 4,
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             const label = context.label || '';
                             const value = context.raw || 0;
                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
@@ -273,11 +333,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         };
-        
+
         const plugins = typeof ChartDataLabels !== 'undefined' ? [ChartDataLabels] : [];
         createOrUpdateChart('estadosChart', 'doughnut', estadosData, estadosOptions, plugins);
     }
-    
+
     // --- Gráfica de Métodos de Pago ---
     function createMetodosChart() {
         const metodosData = {
@@ -303,7 +363,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 borderWidth: 1
             }]
         };
-        
+
         const metodosOptions = {
             responsive: true,
             maintainAspectRatio: false,
@@ -313,7 +373,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     padding: 10,
                     cornerRadius: 4,
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             const label = context.label || '';
                             const value = context.raw || 0;
                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
@@ -347,19 +407,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         };
-        
+
         const plugins = typeof ChartDataLabels !== 'undefined' ? [ChartDataLabels] : [];
         createOrUpdateChart('metodosChart', 'pie', metodosData, metodosOptions, plugins);
     }
-    
+
     // Crear todas las gráficas
     createEvolucionChart();
     createEstadosChart();
     createMetodosChart();
-    
+
     // Manejar los botones de período para cambiar el filtro
     document.querySelectorAll('.periodo-btn').forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const periodo = this.dataset.periodo;
             const url = new URL(window.location.href);
             url.searchParams.set('periodo', periodo);

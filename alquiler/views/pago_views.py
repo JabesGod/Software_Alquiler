@@ -197,20 +197,20 @@ def obtener_datos_graficas(pagos, periodo, fecha_inicio, fecha_fin):
     return {
         'evolucion': {
             'labels': labels,
-            'montos': montos,
+            'montos': [float(m) for m in montos],  # Asegurar conversión a float
             'cantidades': cantidades,
             'completados': completados,
             'pendientes': pendientes
         },
         'estados': {
             'labels': [dict(Pago.ESTADO_PAGO).get(item['estado_pago'], item['estado_pago']) for item in distribucion_estados],
-            'data': [float(item['total']) for item in distribucion_estados],
+            'data': [float(item['total']) for item in distribucion_estados],  # Conversión a float
             'cantidades': [item['cantidad'] for item in distribucion_estados]
         },
         'metodos': {
-            'labels': [dict(Pago.METODOS).get(item['metodo_pago'], item['metodo_pago']) for item in distribucion_metodos],
-            'data': [float(item['total']) for item in distribucion_metodos],
-            'cantidades': [item['cantidad'] for item in distribucion_metodos]
+            'labels': [dict(Pago.METODOS).get(item['metodo_pago'], item['metodo_pago']) for item in distribucion_metodos if item['metodo_pago']],  # Filtrar valores vacíos
+            'data': [float(item['total']) for item in distribucion_metodos if item['metodo_pago']],  # Filtrar y convertir
+            'cantidades': [item['cantidad'] for item in distribucion_metodos if item['metodo_pago']]
         }
     }
 
@@ -298,6 +298,7 @@ def exportar_csv_pagos(pagos, fecha_inicio, fecha_fin):
         ])
     
     return response
+
 
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)

@@ -1,13 +1,9 @@
-// Este archivo debe estar en static/js/reportes_pagos.js
-// Las variables de datos deben pasarse desde el template HTML
-
-// Esperar a que el DOM esté cargado
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, iniciando configuración de gráficas...');
     
-    // Verificar si datosGraficas existe (debe ser definido en el HTML)
+    // Verificar si datosGraficas existe
     if (typeof datosGraficas === 'undefined') {
-        console.error('ERROR: datosGraficas no está definido. Asegúrate de que esté en el HTML template.');
+        console.error('ERROR: datosGraficas no está definido');
         return;
     }
     
@@ -21,8 +17,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Configuración común para gráficas
     Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
     Chart.defaults.color = '#6c757d';
+    Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    Chart.defaults.plugins.tooltip.padding = 10;
+    Chart.defaults.plugins.tooltip.cornerRadius = 4;
+    Chart.defaults.plugins.tooltip.boxPadding = 4;
     
-    // Función para inicializar o destruir un gráfico
+    // Función para crear o actualizar gráfico
     function createOrUpdateChart(chartId, chartType, data, options, plugins = []) {
         const canvas = document.getElementById(chartId);
         const noDataDiv = document.getElementById(`noData${chartId.replace('Chart', '')}`);
@@ -37,14 +37,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Verificar si hay datos
         let hasData = false;
         if (data.labels && data.labels.length > 0) {
-            // Para gráficas de barras/líneas, verificar si hay datos en los datasets
             if (chartType === 'bar' || chartType === 'line') {
                 hasData = data.datasets.some(dataset => 
                     dataset.data && dataset.data.length > 0 && dataset.data.some(value => value > 0)
                 );
-            } 
-            // Para gráficas de pie/doughnut, verificar si hay datos en el dataset
-            else if (chartType === 'pie' || chartType === 'doughnut') {
+            } else if (chartType === 'pie' || chartType === 'doughnut') {
                 hasData = data.datasets[0] && data.datasets[0].data && 
                          data.datasets[0].data.length > 0 && 
                          data.datasets[0].data.some(value => value > 0);
@@ -57,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
             canvas.style.display = 'block';
             if (noDataDiv) noDataDiv.classList.add('d-none');
             
-            // Si ya existe un Chart.js en este canvas, destrúyelo primero
+            // Destruir gráfico existente
             const existingChart = Chart.getChart(chartId);
             if (existingChart) {
                 existingChart.destroy();
@@ -76,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
             canvas.style.display = 'none';
             if (noDataDiv) noDataDiv.classList.remove('d-none');
             
-            // Destruir el gráfico si existía y ahora no hay datos
+            // Destruir gráfico existente
             const existingChart = Chart.getChart(chartId);
             if (existingChart) {
                 existingChart.destroy();
@@ -121,6 +118,10 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             plugins: {
                 tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    padding: 10,
+                    cornerRadius: 4,
+                    boxPadding: 4,
                     callbacks: {
                         label: function(context) {
                             let label = context.dataset.label || '';
@@ -138,6 +139,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 legend: {
                     position: 'top',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 15,
+                        font: {
+                            size: 11
+                        }
+                    }
                 },
                 datalabels: {
                     display: false,
@@ -150,11 +158,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     position: 'left',
                     title: {
                         display: true,
-                        text: 'Monto ($)'
+                        text: 'Monto ($)',
+                        font: {
+                            size: 10
+                        }
                     },
                     ticks: {
                         callback: function(value) {
                             return '$' + value.toLocaleString();
+                        },
+                        font: {
+                            size: 10
                         }
                     }
                 },
@@ -164,14 +178,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     position: 'right',
                     title: {
                         display: true,
-                        text: 'Cantidad de Pagos'
+                        text: 'Cantidad de Pagos',
+                        font: {
+                            size: 10
+                        }
                     },
                     grid: {
                         drawOnChartArea: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 10
+                        }
                     }
                 },
                 x: {
-                    type: 'category'
+                    type: 'category',
+                    ticks: {
+                        font: {
+                            size: 10
+                        }
+                    }
                 }
             }
         };
@@ -207,10 +234,10 @@ document.addEventListener('DOMContentLoaded', function() {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: 'right',
-                },
                 tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    padding: 10,
+                    cornerRadius: 4,
                     callbacks: {
                         label: function(context) {
                             const label = context.label || '';
@@ -218,6 +245,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
                             const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                             return `${label}: $${value.toLocaleString()} (${percentage}%)`;
+                        }
+                    }
+                },
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 15,
+                        font: {
+                            size: 11
                         }
                     }
                 },
@@ -230,7 +267,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     color: '#fff',
                     font: {
-                        weight: 'bold'
+                        weight: 'bold',
+                        size: 10
                     }
                 }
             }
@@ -270,10 +308,10 @@ document.addEventListener('DOMContentLoaded', function() {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: 'right',
-                },
                 tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    padding: 10,
+                    cornerRadius: 4,
                     callbacks: {
                         label: function(context) {
                             const label = context.label || '';
@@ -281,6 +319,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
                             const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                             return `${label}: $${value.toLocaleString()} (${percentage}%)`;
+                        }
+                    }
+                },
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 15,
+                        font: {
+                            size: 11
                         }
                     }
                 },
@@ -293,7 +341,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     color: '#fff',
                     font: {
-                        weight: 'bold'
+                        weight: 'bold',
+                        size: 10
                     }
                 }
             }

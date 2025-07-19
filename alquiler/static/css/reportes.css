@@ -1,25 +1,30 @@
-/* reportes.css */
-
 /* Estilos generales */
 body {
     background-color: #f8f9fa;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Contenedor principal más compacto */
+.container-fluid {
+    padding: 1rem;
+}
+
+/* Tarjetas optimizadas */
 .card {
     border: none;
     border-radius: 0.5rem;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     transition: all 0.3s ease;
+    margin-bottom: 1rem;
 }
 
 .card:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    padding: 1rem 1.25rem;
+    padding: 0.75rem 1rem;
     background-color: #fff;
 }
 
@@ -28,88 +33,79 @@ body {
 }
 
 .card-body {
-    padding: 1.25rem;
+    padding: 1rem;
 }
 
-/* Estilos para las tarjetas de métricas */
+/* Gráficas con tamaño controlado */
+.chart-container {
+    position: relative;
+    height: 300px;
+    min-height: 250px;
+}
+
+/* Estilos para las tarjetas de métricas (más compactas) */
 .card-metric {
     position: relative;
     overflow: hidden;
+    height: 100%;
 }
 
 .card-metric .avatar-sm {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .card-metric .avatar-title {
-    font-size: 1.25rem;
+    font-size: 1rem;
 }
 
 .card-metric h6 {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 0.5rem;
+    color: #6c757d;
 }
 
 .card-metric h3 {
     font-weight: 600;
     margin-bottom: 0;
+    font-size: 1.5rem;
 }
 
 /* Bordes izquierdos para las tarjetas de métricas */
 .border-start.border-5 {
-    border-left-width: 5px !important;
+    border-left-width: 4px !important;
 }
 
-/* Estilos para los filtros */
+/* Estilos para los filtros (más compactos) */
 .form-label {
     font-weight: 500;
     margin-bottom: 0.5rem;
+    font-size: 0.9rem;
 }
 
 .form-control, .form-select {
-    padding: 0.5rem 0.75rem;
+    padding: 0.45rem 0.75rem;
     border-radius: 0.375rem;
     border: 1px solid #ced4da;
     font-size: 0.875rem;
+    height: auto;
 }
 
 .btn {
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.75rem;
     border-radius: 0.375rem;
     font-weight: 500;
     font-size: 0.875rem;
 }
 
-.btn-primary {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-}
-
-.btn-outline-secondary {
-    border-color: #dee2e6;
-}
-
-.btn-success {
-    background-color: #198754;
-    border-color: #198754;
-}
-
-/* Estilos para las gráficas */
-.chart-container {
-    position: relative;
-    height: 100%;
-    min-height: 300px;
-}
-
-/* Estilos para la tabla */
+/* Tablas más compactas */
 .table {
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     margin-bottom: 0;
 }
 
@@ -120,91 +116,66 @@ body {
     letter-spacing: 0.5px;
     color: #6c757d;
     border-top: none;
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
+    padding: 0.5rem;
 }
 
 .table td {
     vertical-align: middle;
-    padding: 0.75rem;
+    padding: 0.5rem;
     border-top: 1px solid #f1f1f1;
 }
 
-.table-hover tbody tr:hover {
-    background-color: rgba(0, 0, 0, 0.02);
-}
-
-/* Estilos para los badges */
-.badge {
-    font-weight: 500;
-    padding: 0.35em 0.65em;
-    font-size: 0.75em;
-    letter-spacing: 0.5px;
-}
-
-.bg-success {
-    background-color: #198754 !important;
-}
-
-.bg-warning {
-    background-color: #ffc107 !important;
-    color: #212529 !important;
-}
-
-.bg-danger {
-    background-color: #dc3545 !important;
-}
-
-.bg-info {
-    background-color: #0dcaf0 !important;
-}
-
-/* Estilos para los mensajes de no datos */
-.text-center.py-5 {
+/* Estilos para mensajes de no datos */
+.text-center.py-4 {
     color: #6c757d;
+    padding: 1.5rem 0 !important;
 }
 
-.text-center.py-5 i {
+.text-center.py-4 i {
     opacity: 0.5;
+    font-size: 2rem;
 }
 
-.text-center.py-5 h4 {
-    font-size: 1.1rem;
-    margin-top: 1rem;
+.text-center.py-4 h4 {
+    font-size: 1rem;
+    margin-top: 0.75rem;
     margin-bottom: 0.5rem;
 }
 
-.text-center.py-5 p {
+.text-center.py-4 p {
     font-size: 0.875rem;
 }
 
-/* Estilos para los botones de periodo */
-.btn-group-sm .btn {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
+/* Optimización para móviles */
+@media (max-width: 992px) {
+    .chart-container {
+        height: 250px;
+    }
+    
+    .card-metric h3 {
+        font-size: 1.3rem;
+    }
 }
 
-/* Estilos para los avatares de clientes */
-.avatar-xs {
-    width: 24px;
-    height: 24px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background-color: #f1f1f1;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-/* Estilos responsive */
 @media (max-width: 768px) {
-    .card-header {
+    .container-fluid {
         padding: 0.75rem;
     }
     
+    .card-header {
+        padding: 0.6rem;
+    }
+    
     .card-body {
-        padding: 1rem;
+        padding: 0.75rem;
+    }
+    
+    .chart-container {
+        height: 220px;
+    }
+    
+    .card-metric h3 {
+        font-size: 1.2rem;
     }
     
     .form-control, .form-select {
@@ -212,80 +183,21 @@ body {
     }
     
     .table th, .table td {
-        padding: 0.5rem;
+        padding: 0.4rem;
     }
 }
 
-/* Efectos hover para botones y enlaces */
-.btn:hover, a:hover {
-    opacity: 0.9;
-    transition: all 0.2s ease;
-}
-
-/* Estilos para el contenedor principal */
-.container-fluid {
-    padding: 1.5rem;
-}
-
-/* Estilos para los títulos */
-h5 {
-    font-weight: 600;
-    margin-bottom: 0;
-}
-
-/* Estilos para los iconos */
-.bi {
-    vertical-align: middle;
-    margin-right: 0.25rem;
-}
-
-/* Colores para los estados de pago en la tabla */
-.bg-success {
-    background-color: #28a745 !important;
-}
-
-.bg-warning {
-    background-color: #ffc107 !important;
-    color: #212529 !important;
-}
-
-.bg-danger {
-    background-color: #dc3545 !important;
-}
-
-/* Estilos para el botón de exportar */
-.btn-success {
-    background-color: #28a745;
-    border-color: #28a745;
-}
-
-/* Ajustes para el texto en las tarjetas de métricas */
-.text-success {
-    color: #28a745 !important;
-}
-
-.text-danger {
-    color: #dc3545 !important;
-}
-
-.text-muted {
-    color: #6c757d !important;
-}
-
-/* Estilos para el botón de limpiar filtros */
-.btn-outline-secondary {
-    color: #6c757d;
-    border-color: #dee2e6;
-}
-
-/* Ajustes para la tabla de top clientes */
-.table-hover tbody tr {
-    transition: all 0.2s ease;
-}
-
-/* Estilos para el contador de registros */
-.badge.bg-light {
-    background-color: #f8f9fa !important;
-    color: #212529 !important;
-    font-weight: 500;
+@media (max-width: 576px) {
+    .chart-container {
+        height: 200px;
+    }
+    
+    .card-metric h3 {
+        font-size: 1.1rem;
+    }
+    
+    .btn {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+    }
 }

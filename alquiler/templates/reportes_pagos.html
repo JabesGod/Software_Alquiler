@@ -7,6 +7,46 @@
 <link rel="stylesheet" href="{% static 'css/reportes.css' %}">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+<style>
+    /* Ajustes específicos adicionales */
+    .compact-card {
+        margin-bottom: 0.75rem;
+    }
+    
+    .card-header h5 {
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+    
+    .metrics-row .col-md-3 {
+        padding: 0 0.5rem;
+    }
+    
+    .graphics-row {
+        margin: -0.5rem;
+    }
+    
+    .graphics-row > div {
+        padding: 0.5rem;
+    }
+    
+    .client-table td, .client-table th {
+        padding: 0.4rem 0.5rem;
+    }
+    
+    .client-name {
+        font-size: 0.9rem;
+        line-height: 1.2;
+    }
+    
+    .pagos-table {
+        font-size: 0.85rem;
+    }
+    
+    .pagos-table td, .pagos-table th {
+        padding: 0.4rem;
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}
@@ -15,11 +55,9 @@
 <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
 
-<!-- AGREGAR ESTA SECCIÓN -->
 <script>
-    // Pasar datos de Django al JavaScript
     const datosGraficas = {{ datos_graficas|safe }};
-    console.log('Datos pasados al JavaScript:', datosGraficas);
+    console.log('Datos para gráficas:', datosGraficas);
 </script>
 
 <script src="{% static 'js/reportes_pagos.js' %}"></script>
@@ -27,45 +65,40 @@
 
 {% block content %}
 <div class="container-fluid">
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-primary text-white">
+    <!-- Filtros -->
+    <div class="card mb-3 shadow-sm compact-card">
+        <div class="card-header bg-primary text-white py-2">
             <h5><i class="bi bi-funnel"></i> Filtros de Reporte</h5>
         </div>
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-3">
+        <div class="card-body p-2">
+            <form method="get" class="row g-2">
+                <div class="col-md-3 col-6">
                     <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
-                    <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio"
-                           value="{{ fecha_inicio }}">
+                    <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio }}">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 col-6">
                     <label for="fecha_fin" class="form-label">Fecha Fin</label>
-                    <input type="date" class="form-control" id="fecha_fin" name="fecha_fin"
-                           value="{{ fecha_fin }}">
+                    <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin }}">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-2 col-6">
                     <label for="estado" class="form-label">Estado</label>
                     <select class="form-select" id="estado" name="estado">
                         <option value="">Todos</option>
                         {% for estado in estados %}
-                        <option value="{{ estado.0 }}" {% if request.GET.estado == estado.0 %}selected{% endif %}>
-                            {{ estado.1 }}
-                        </option>
+                        <option value="{{ estado.0 }}" {% if request.GET.estado == estado.0 %}selected{% endif %}>{{ estado.1 }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-2 col-6">
                     <label for="metodo_pago" class="form-label">Método</label>
                     <select class="form-select" id="metodo_pago" name="metodo_pago">
                         <option value="">Todos</option>
                         {% for metodo in metodos_pago %}
-                        <option value="{{ metodo.0 }}" {% if request.GET.metodo_pago == metodo.0 %}selected{% endif %}>
-                            {{ metodo.1 }}
-                        </option>
+                        <option value="{{ metodo.0 }}" {% if request.GET.metodo_pago == metodo.0 %}selected{% endif %}>{{ metodo.1 }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-2 col-6">
                     <label for="periodo" class="form-label">Periodo</label>
                     <select class="form-select" id="periodo" name="periodo">
                         <option value="diario" {% if periodo_actual == 'diario' %}selected{% endif %}>Diario</option>
@@ -73,113 +106,116 @@
                         <option value="mensual" {% if periodo_actual == 'mensual' or not periodo_actual %}selected{% endif %}>Mensual</option>
                     </select>
                 </div>
-                <div class="col-12 text-end">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-filter"></i> Aplicar Filtros
+                <div class="col-12 text-end mt-2">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-filter"></i> Aplicar
                     </button>
-                    <a href="{% url 'alquiler:reportes_pagos' %}" class="btn btn-outline-secondary">
+                    <a href="{% url 'alquiler:reportes_pagos' %}" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-arrow-counterclockwise"></i> Limpiar
                     </a>
-                    <button type="submit" name="export" value="csv" class="btn btn-success">
-                        <i class="bi bi-file-earmark-excel"></i> Exportar CSV
+                    <button type="submit" name="export" value="csv" class="btn btn-success btn-sm">
+                        <i class="bi bi-file-earmark-excel"></i> Exportar
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card h-100 border-start border-5 border-success">
-                <div class="card-body">
+    <!-- Métricas -->
+    <div class="row mb-3 metrics-row">
+        <div class="col-md-3 col-6">
+            <div class="card h-100 border-start border-5 border-success compact-card">
+                <div class="card-body p-2">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h6 class="text-muted mb-2">Total Pagado</h6>
+                            <h6 class="text-muted mb-1">Total Pagado</h6>
                             <h3 class="mb-0">${{ metricas.total_pagado|floatformat:2 }}</h3>
                         </div>
                         <div class="avatar-sm">
                             <span class="avatar-title bg-light-success rounded-circle">
-                                <i class="bi bi-currency-dollar text-success fs-4"></i>
+                                <i class="bi bi-currency-dollar text-success"></i>
                             </span>
                         </div>
                     </div>
-                    <p class="text-muted mt-3 mb-0">
-                        <span class="
-                        {% if tendencias.variacion_monto >= 0 %}text-success{% else %}text-danger{% endif %}
-                        "><i class="bi bi-arrow-{% if tendencias.variacion_monto >= 0 %}up{% else %}down{% endif %}"></i> {{ tendencias.variacion_monto }}%</span> vs período anterior
+                    <p class="text-muted mt-2 mb-0 small">
+                        <span class="{% if tendencias.variacion_monto >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            <i class="bi bi-arrow-{% if tendencias.variacion_monto >= 0 %}up{% else %}down{% endif %}"></i> 
+                            {{ tendencias.variacion_monto }}%
+                        </span> vs anterior
                     </p>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card h-100 border-start border-5 border-warning">
-                <div class="card-body">
+        <div class="col-md-3 col-6">
+            <div class="card h-100 border-start border-5 border-warning compact-card">
+                <div class="card-body p-2">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h6 class="text-muted mb-2">Pagos Pendientes</h6>
+                            <h6 class="text-muted mb-1">Pagos Pendientes</h6>
                             <h3 class="mb-0">${{ metricas.total_pendiente|floatformat:2 }}</h3>
                         </div>
                         <div class="avatar-sm">
                             <span class="avatar-title bg-light-warning rounded-circle">
-                                <i class="bi bi-exclamation-triangle text-warning fs-4"></i>
+                                <i class="bi bi-exclamation-triangle text-warning"></i>
                             </span>
                         </div>
                     </div>
-                    <p class="text-muted mt-3 mb-0">
-                        <span class="text-danger">{{ metricas.pagos_pendientes }}</span> pagos pendientes
+                    <p class="text-muted mt-2 mb-0 small">
+                        <span class="text-danger">{{ metricas.pagos_pendientes }}</span> pendientes
                     </p>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card h-100 border-start border-5 border-danger">
-                <div class="card-body">
+        <div class="col-md-3 col-6">
+            <div class="card h-100 border-start border-5 border-danger compact-card">
+                <div class="card-body p-2">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h6 class="text-muted mb-2">Pagos Vencidos</h6>
+                            <h6 class="text-muted mb-1">Pagos Vencidos</h6>
                             <h3 class="mb-0">{{ metricas.pagos_vencidos }}</h3>
                         </div>
                         <div class="avatar-sm">
                             <span class="avatar-title bg-light-danger rounded-circle">
-                                <i class="bi bi-clock-history text-danger fs-4"></i>
+                                <i class="bi bi-clock-history text-danger"></i>
                             </span>
                         </div>
                     </div>
-                    <p class="text-muted mt-3 mb-0">
-                        <span class="text-danger"><i class="bi bi-exclamation-circle"></i> {{ metricas.pagos_vencidos }}</span> pagos atrasados
+                    <p class="text-muted mt-2 mb-0 small">
+                        <span class="text-danger"><i class="bi bi-exclamation-circle"></i> {{ metricas.pagos_vencidos }}</span> atrasados
                     </p>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card h-100 border-start border-5 border-info">
-                <div class="card-body">
+        <div class="col-md-3 col-6">
+            <div class="card h-100 border-start border-5 border-info compact-card">
+                <div class="card-body p-2">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h6 class="text-muted mb-2">Tasa Cumplimiento</h6>
+                            <h6 class="text-muted mb-1">Tasa Cumplimiento</h6>
                             <h3 class="mb-0">{{ metricas.tasa_cumplimiento|floatformat:2 }}%</h3>
                         </div>
                         <div class="avatar-sm">
                             <span class="avatar-title bg-light-info rounded-circle">
-                                <i class="bi bi-check-circle text-info fs-4"></i>
+                                <i class="bi bi-check-circle text-info"></i>
                             </span>
                         </div>
                     </div>
-                    <p class="text-muted mt-3 mb-0">
-                        <span class="text-success">{{ metricas.pagos_completados }}</span> de {{ metricas.total_pagos }} pagos completados
+                    <p class="text-muted mt-2 mb-0 small">
+                        <span class="text-success">{{ metricas.pagos_completados }}</span>/{{ metricas.total_pagos }} completados
                     </p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row mb-4">
+    <!-- Gráficas principales -->
+    <div class="row mb-3 graphics-row">
         <div class="col-lg-8">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div class="card h-100 shadow-sm compact-card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
                     <h5 class="mb-0">Evolución de Pagos</h5>
                     <div class="btn-group btn-group-sm">
                         <button class="btn {% if periodo_actual == 'diario' %}btn-primary{% else %}btn-outline-secondary{% endif %} periodo-btn" data-periodo="diario">Diario</button>
@@ -187,66 +223,73 @@
                         <button class="btn {% if periodo_actual == 'mensual' or not periodo_actual %}btn-primary{% else %}btn-outline-secondary{% endif %} periodo-btn" data-periodo="mensual">Mensual</button>
                     </div>
                 </div>
-                <div class="card-body">
-                    <canvas id="evolucionChart" height="300"></canvas>
-                    <div id="noDataEvolucion" class="text-center py-5 d-none">
-                        <i class="bi bi-graph-up-arrow fa-3x text-muted mb-3"></i>
-                        <h4>No hay datos para mostrar la evolución en este período.</h4>
-                        <p class="text-muted">Intenta cambiar los filtros de fecha o el período.</p>
+                <div class="card-body p-2">
+                    <div class="chart-container">
+                        <canvas id="evolucionChart"></canvas>
+                    </div>
+                    <div id="noDataEvolucion" class="text-center py-4 d-none">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        <h4>No hay datos para mostrar</h4>
+                        <p class="text-muted">Cambia los filtros o el período</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-white">
+            <div class="card h-100 shadow-sm compact-card">
+                <div class="card-header bg-white py-2">
                     <h5 class="mb-0">Distribución por Estado</h5>
                 </div>
-                <div class="card-body">
-                    <canvas id="estadosChart" height="300"></canvas>
-                    <div id="noDataEstados" class="text-center py-5 d-none">
-                        <i class="bi bi-pie-chart fa-3x text-muted mb-3"></i>
-                        <h4>No hay datos para mostrar la distribución por estado.</h4>
-                        <p class="text-muted">Ajusta tus filtros o añade más pagos.</p>
+                <div class="card-body p-2">
+                    <div class="chart-container">
+                        <canvas id="estadosChart"></canvas>
+                    </div>
+                    <div id="noDataEstados" class="text-center py-4 d-none">
+                        <i class="bi bi-pie-chart"></i>
+                        <h4>No hay datos para mostrar</h4>
+                        <p class="text-muted">Ajusta tus filtros</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row mb-4">
+    <!-- Gráficas secundarias -->
+    <div class="row mb-3 graphics-row">
         <div class="col-lg-6">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">Distribución por Método de Pago</h5>
+            <div class="card h-100 shadow-sm compact-card">
+                <div class="card-header bg-white py-2">
+                    <h5 class="mb-0">Distribución por Método</h5>
                 </div>
-                <div class="card-body">
-                    <canvas id="metodosChart" height="250"></canvas>
-                    <div id="noDataMetodos" class="text-center py-5 d-none">
-                        <i class="bi bi-credit-card fa-3x text-muted mb-3"></i>
-                        <h4>No hay datos para mostrar la distribución por método de pago.</h4>
-                        <p class="text-muted">Ajusta tus filtros o añade más pagos.</p>
+                <div class="card-body p-2">
+                    <div class="chart-container">
+                        <canvas id="metodosChart"></canvas>
+                    </div>
+                    <div id="noDataMetodos" class="text-center py-4 d-none">
+                        <i class="bi bi-credit-card"></i>
+                        <h4>No hay datos para mostrar</h4>
+                        <p class="text-muted">Ajusta tus filtros</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-6">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-white">
+            <div class="card h-100 shadow-sm compact-card">
+                <div class="card-header bg-white py-2">
                     <h5 class="mb-0">Top 10 Clientes</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-2">
                     <div class="table-responsive">
                         {% if top_clientes %}
-                        <table class="table table-hover">
+                        <table class="table table-hover client-table">
                             <thead>
                                 <tr>
                                     <th>Cliente</th>
-                                    <th class="text-end">Total Pagado</th>
+                                    <th class="text-end">Total</th>
                                     <th class="text-end">Pagos</th>
-                                    <th class="text-end">Último Pago</th>
+                                    <th class="text-end">Último</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -260,23 +303,23 @@
                                                 </span>
                                             </div>
                                             <div>
-                                                <h6 class="mb-0">{{ cliente.alquiler__cliente__nombre }}</h6>
-                                                <small class="text-muted">{{ cliente.alquiler__cliente__email }}</small>
+                                                <h6 class="mb-0 client-name">{{ cliente.alquiler__cliente__nombre|truncatechars:15 }}</h6>
+                                                <small class="text-muted">{{ cliente.alquiler__cliente__email|truncatechars:15 }}</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="text-end">${{ cliente.total_pagado|floatformat:2 }}</td>
                                     <td class="text-end">{{ cliente.cantidad_pagos }}</td>
-                                    <td class="text-end">{{ cliente.ultimo_pago|date:"d/m/Y" }}</td>
+                                    <td class="text-end">{{ cliente.ultimo_pago|date:"d/m/y" }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                         {% else %}
-                        <div class="text-center py-5">
-                            <i class="bi bi-people fa-3x text-muted mb-3"></i>
-                            <h4>No se encontraron clientes para el Top 10.</h4>
-                            <p class="text-muted">Asegúrate de que existan pagos registrados.</p>
+                        <div class="text-center py-4">
+                            <i class="bi bi-people"></i>
+                            <h4>No hay clientes</h4>
+                            <p class="text-muted">No se encontraron datos</p>
                         </div>
                         {% endif %}
                     </div>
@@ -285,23 +328,24 @@
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <!-- Tabla de pagos -->
+    <div class="card shadow-sm compact-card">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
             <h5 class="mb-0">Detalle de Pagos</h5>
             <div>
                 <span class="badge bg-light text-dark">{{ total_registros }} registros</span>
             </div>
         </div>
-        <div class="card-body">
+        <div class="card-body p-2">
             <div class="table-responsive">
                 {% if pagos %}
-                <table class="table table-hover">
+                <table class="table table-hover pagos-table">
                     <thead>
                         <tr>
                             <th>ID</th>
                             <th>Fecha</th>
                             <th>Cliente</th>
-                            <th>N° Factura</th>
+                            <th>Factura</th>
                             <th class="text-end">Monto</th>
                             <th>Método</th>
                             <th>Estado</th>
@@ -312,23 +356,23 @@
                         {% for pago in pagos %}
                         <tr>
                             <td>#{{ pago.id }}</td>
-                            <td>{{ pago.fecha_pago|date:"d/m/Y" }}</td>
-                            <td>{{ pago.alquiler.cliente.nombre }}</td>
-                            <td>{{ pago.alquiler.numero_factura }}</td>
+                            <td>{{ pago.fecha_pago|date:"d/m/y" }}</td>
+                            <td>{{ pago.alquiler.cliente.nombre|truncatechars:12 }}</td>
+                            <td>{{ pago.alquiler.numero_factura|default:"-"|truncatechars:8 }}</td>
                             <td class="text-end">${{ pago.monto|floatformat:2 }}</td>
-                            <td>{{ pago.get_metodo_pago_display }}</td>
+                            <td>{{ pago.get_metodo_pago_display|truncatechars:10 }}</td>
                             <td>
                                 <span class="badge
                                 {% if pago.estado_pago == 'pagado' %}bg-success
                                 {% elif pago.estado_pago == 'pendiente' %}bg-warning
                                 {% elif pago.estado_pago == 'cancelado' %}bg-danger
                                 {% else %}bg-info{% endif %}">
-                                    {{ pago.get_estado_pago_display }}
+                                    {{ pago.get_estado_pago_display|truncatechars:10 }}
                                 </span>
                             </td>
                             <td>
                                 <a href="{% url 'alquiler:detalle_pago' pago.id %}"
-                                   class="btn btn-sm btn-outline-primary" title="Ver detalle">
+                                   class="btn btn-sm btn-outline-primary py-0 px-1" title="Ver detalle">
                                     <i class="bi bi-eye"></i>
                                 </a>
                             </td>
@@ -337,16 +381,14 @@
                     </tbody>
                 </table>
                 {% else %}
-                <div class="text-center py-5">
-                    <i class="bi bi-search fa-3x text-muted mb-3"></i>
+                <div class="text-center py-4">
+                    <i class="bi bi-search"></i>
                     <h4>No se encontraron pagos</h4>
-                    <p class="text-muted">Intenta con otros criterios de búsqueda</p>
+                    <p class="text-muted">Intenta con otros filtros</p>
                 </div>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
-
-
 {% endblock %}

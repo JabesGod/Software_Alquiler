@@ -111,6 +111,7 @@ def reportes_pagos(request):
 
     return render(request, 'reportes_pagos.html', context)
 
+
 def calcular_metricas_pagos(pagos):
     """Calcula métricas principales de los pagos"""
     total_pagado = pagos.filter(estado_pago='pagado').aggregate(total=Sum('monto'))['total'] or 0
@@ -285,7 +286,7 @@ def exportar_csv_pagos(pagos, fecha_inicio, fecha_fin):
     for pago in pagos:
         writer.writerow([
             pago.id,
-            pago.numero_factura or '',
+            pago.alquiler.numero_factura or '',
             pago.fecha_pago.strftime('%d/%m/%Y'),
             pago.alquiler.cliente.nombre,
             pago.alquiler.cliente.email,
@@ -299,14 +300,13 @@ def exportar_csv_pagos(pagos, fecha_inicio, fecha_fin):
     
     return response
 
-
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)
 def listar_pagos(request):
-    """Vista mejorada para listar pagos con búsqueda por número de factura"""
+    """Vista mejorada para listar pagos con búsqueda por número de factura y otros filtros"""
     pagos = Pago.objects.select_related('alquiler', 'alquiler__cliente')
     
-    # Filtros mejorados
+    # Improved Filters
     numero_factura = request.GET.get('numero_factura', '').strip()
     cliente = request.GET.get('cliente', '').strip()
     estado = request.GET.get('estado')
@@ -316,9 +316,10 @@ def listar_pagos(request):
     monto_min = request.GET.get('monto_min')
     monto_max = request.GET.get('monto_max')
     
-    # Aplicar filtros
+    # Corrected filter for numero_factura
     if numero_factura:
-        pagos = pagos.filter(numero_factura__icontains=numero_factura)
+        # Access numero_factura through the 'alquiler' relationship
+        pagos = pagos.filter(alquiler__numero_factura__icontains=numero_factura)
     
     if cliente:
         pagos = pagos.filter(
@@ -342,18 +343,18 @@ def listar_pagos(request):
         try:
             pagos = pagos.filter(monto__gte=float(monto_min))
         except ValueError:
-            pass
+            pass # Silently ignore invalid float conversion for now
     
     if monto_max:
         try:
             pagos = pagos.filter(monto__lte=float(monto_max))
         except ValueError:
-            pass
+            pass # Silently ignore invalid float conversion for now
     
-    # Ordenar por fecha más reciente
+    # Order by most recent date
     pagos = pagos.order_by('-fecha_pago')
     
-    # Calcular totales con filtros aplicados
+    # Calculate totals with applied filters
     total_pagado = pagos.filter(estado_pago='pagado').aggregate(
         Sum('monto'))['monto__sum'] or 0
     total_pendiente = pagos.filter(estado_pago='pendiente').aggregate(
@@ -362,17 +363,23 @@ def listar_pagos(request):
         Sum('monto'))['monto__sum'] or 0
     
     pagos_pendientes = pagos.filter(estado_pago='pendiente').count()
+    # Ensure 'hoy' is defined for comparison in the template if not passed explicitly
+    hoy = timezone.now().date() 
     pagos_vencidos = pagos.filter(
         estado_pago__in=['pendiente', 'parcial'],
-        fecha_vencimiento__lt=timezone.now().date()
+        fecha_vencimiento__lt=hoy # Use 'hoy' here
     ).count()
     pagos_parciales = pagos.filter(estado_pago='parcial').count()
     
-    # Paginación
+    # Pagination
     from django.core.paginator import Paginator
-    paginator = Paginator(pagos, 25)  # 25 pagos por página
+    paginator = Paginator(pagos, 25)  # 25 payments per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    
+    # Get all possible statuses and methods for filter dropdowns
+    # Assuming Pago.ESTADO_PAGO and Pago.METODOS are defined in your Pago model
+    # from .models import Pago # Ensure Pago model is imported to access these
     
     context = {
         'pagos': page_obj,
@@ -382,17 +389,17 @@ def listar_pagos(request):
         'pagos_pendientes': pagos_pendientes,
         'pagos_vencidos': pagos_vencidos,
         'pagos_parciales': pagos_parciales,
-        'estados_pago': Pago.ESTADO_PAGO,
-        'metodos_pago': Pago.METODOS,
+        'estados_pago': Pago.ESTADO_PAGO, # Ensure this is available from your model
+        'metodos_pago': Pago.METODOS,   # Ensure this is available from your model
         'total_registros': pagos.count(),
         'filtros_activos': any([
             numero_factura, cliente, estado, metodo_pago, 
             fecha_inicio, fecha_fin, monto_min, monto_max
-        ])
+        ]),
+        'hoy': hoy, # Pass 'hoy' to the template for date comparisons
     }
     
     return render(request, 'lista_pagos.html', context)
-
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)
 def api_datos_graficas(request):

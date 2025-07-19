@@ -4,6 +4,8 @@
 {% block title %}Lista de Pagos{% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{% static 'css/pagos.css' %}">
+<!-- Add Bootstrap Icons if you haven't already in base.html -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
 {% endblock %}
 
 {% block page_title %}Lista de Pagos{% endblock %}
@@ -68,14 +70,25 @@
         </div>
     </div>
 
-    <div class="filter-form">
-        <form method="get" class="form-inline">
-            <div class="form-group mr-3">
-                <label for="id_alquiler_id" class="mr-2">Alquiler ID:</label>
-                <input type="number" name="alquiler_id" id="id_alquiler_id" class="form-control"
-                    value="{{ request.GET.alquiler_id }}" min="1" step="1">
+    <!-- START: Updated Filter Form -->
+    <div class="filter-form card p-3 mb-4">
+        <form method="get" class="form-inline d-flex flex-wrap align-items-end">
+            <!-- Campo para Número de Factura -->
+            <div class="form-group mr-3 mb-2">
+                <label for="id_numero_factura" class="mr-2">Factura:</label>
+                <input type="text" name="numero_factura" id="id_numero_factura" class="form-control"
+                    value="{{ request.GET.numero_factura|default:'' }}" placeholder="Número de Factura">
             </div>
-            <div class="form-group mr-3">
+
+            <!-- Campo para Cliente -->
+            <div class="form-group mr-3 mb-2">
+                <label for="id_cliente" class="mr-2">Cliente:</label>
+                <input type="text" name="cliente" id="id_cliente" class="form-control"
+                    value="{{ request.GET.cliente|default:'' }}" placeholder="Nombre o Email Cliente">
+            </div>
+
+            <!-- Selector de Estado -->
+            <div class="form-group mr-3 mb-2">
                 <label for="id_estado" class="mr-2">Estado:</label>
                 <select name="estado" id="id_estado" class="form-control">
                     <option value="">Todos</option>
@@ -86,14 +99,60 @@
                     {% endfor %}
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary mr-2">
-                <i class="fas fa-filter"></i> Filtrar
-            </button>
-            <a href="{% url 'alquiler:lista_pagos' %}" class="btn btn-outline-secondary">
-                <i class="fas fa-broom"></i> Limpiar
-            </a>
+
+            <!-- Selector de Método de Pago -->
+            <div class="form-group mr-3 mb-2">
+                <label for="id_metodo_pago" class="mr-2">Método:</label>
+                <select name="metodo_pago" id="id_metodo_pago" class="form-control">
+                    <option value="">Todos</option>
+                    {% for value, label in metodos_pago %}
+                    <option value="{{ value }}" {% if request.GET.metodo_pago == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Campo Fecha Inicio -->
+            <div class="form-group mr-3 mb-2">
+                <label for="id_fecha_inicio" class="mr-2">Fecha Inicio:</label>
+                <input type="date" name="fecha_inicio" id="id_fecha_inicio" class="form-control"
+                    value="{{ request.GET.fecha_inicio|default:'' }}">
+            </div>
+
+            <!-- Campo Fecha Fin -->
+            <div class="form-group mr-3 mb-2">
+                <label for="id_fecha_fin" class="mr-2">Fecha Fin:</label>
+                <input type="date" name="fecha_fin" id="id_fecha_fin" class="form-control"
+                    value="{{ request.GET.fecha_fin|default:'' }}">
+            </div>
+
+            <!-- Campo Monto Mínimo -->
+            <div class="form-group mr-3 mb-2">
+                <label for="id_monto_min" class="mr-2">Monto Mínimo:</label>
+                <input type="number" name="monto_min" id="id_monto_min" class="form-control"
+                    value="{{ request.GET.monto_min|default:'' }}" placeholder="Mínimo" step="0.01">
+            </div>
+
+            <!-- Campo Monto Máximo -->
+            <div class="form-group mr-3 mb-2">
+                <label for="id_monto_max" class="mr-2">Monto Máximo:</label>
+                <input type="number" name="monto_max" id="id_monto_max" class="form-control"
+                    value="{{ request.GET.monto_max|default:'' }}" placeholder="Máximo" step="0.01">
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="form-group mb-2">
+                <button type="submit" class="btn btn-primary mr-2">
+                    <i class="fas fa-filter"></i> Filtrar
+                </button>
+                <a href="{% url 'alquiler:lista_pagos' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-broom"></i> Limpiar
+                </a>
+            </div>
         </form>
     </div>
+    <!-- END: Updated Filter Form -->
 
     <div class="pagos-table-container">
         {% if pagos %}
@@ -175,8 +234,8 @@
         <div class="pagination mt-4">
             <span class="step-links">
                 {% if pagos.has_previous %}
-                <a href="?page=1" class="btn btn-sm btn-outline-primary">&laquo; Primera</a>
-                <a href="?page={{ pagos.previous_page_number }}" class="btn btn-sm btn-outline-primary">
+                <a href="?page=1&{{ request.GET.urlencode }}" class="btn btn-sm btn-outline-primary">&laquo; Primera</a>
+                <a href="?page={{ pagos.previous_page_number }}&{{ request.GET.urlencode }}" class="btn btn-sm btn-outline-primary">
                     <i class="fas fa-arrow-left"></i> Anterior
                 </a>
                 {% endif %}
@@ -186,10 +245,10 @@
                 </span>
 
                 {% if pagos.has_next %}
-                <a href="?page={{ pagos.next_page_number }}" class="btn btn-sm btn-outline-primary">
+                <a href="?page={{ pagos.next_page_number }}&{{ request.GET.urlencode }}" class="btn btn-sm btn-outline-primary">
                     Siguiente <i class="fas fa-arrow-right"></i>
                 </a>
-                <a href="?page={{ pagos.paginator.num_pages }}" class="btn btn-sm btn-outline-primary">Última
+                <a href="?page={{ pagos.paginator.num_pages }}&{{ request.GET.urlencode }}" class="btn btn-sm btn-outline-primary">Última
                     &raquo;</a>
                 {% endif %}
             </span>

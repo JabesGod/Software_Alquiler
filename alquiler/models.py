@@ -414,6 +414,7 @@ class Alquiler(models.Model):
     def saldo_pendiente(self):
         return Decimal(self.precio_total) - Decimal(self.total_pagado())
 
+
 class DetalleAlquiler(models.Model):
     PERIODO_CHOICES = [
         ('dia', 'Por día'),

@@ -10,6 +10,7 @@ from alquiler.forms.alquiler_forms import (
     DetalleAlquilerForm,
     ConvertirReservaForm
 )
+from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
 from django.http import HttpResponse
@@ -228,15 +229,20 @@ def crear_alquiler(request):
         'cliente_moroso': Cliente.objects.get(id=cliente_id).moroso if cliente_id else False
     })
 
-
-
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)
 def editar_alquiler(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
-    equipos_disponibles = Equipo.objects.filter(cantidad_disponible__gt=0)
-    equipos_en_alquiler = Equipo.objects.filter(detallealquiler__alquiler=alquiler).distinct()
-    equipos_disponibles = equipos_disponibles.union(equipos_en_alquiler)
+    
+    equipos_disponibles = Equipo.objects.filter(
+        Q(cantidad_disponible__gt=0) | Q(detallealquiler__alquiler=alquiler)
+    ).distinct().annotate(
+        requiere_serie_case=Case(
+            When(requiere_serie=True, then=Value('True')),
+            default=Value('False'),
+            output_field=CharField()
+        )
+    )
 
     DetalleAlquilerFormSet = inlineformset_factory(
         Alquiler,
@@ -244,118 +250,120 @@ def editar_alquiler(request, id):
         form=DetalleAlquilerForm,
         extra=0,
         can_delete=True,
-        fields=['equipo', 'numeros_serie', 'periodo_alquiler', 'cantidad', 'precio_unitario']
+        fields=['equipo', 'numeros_serie', 'periodo_alquiler', 'cantidad', 'precio_unitario', 'con_iva']
     )
 
     if request.method == 'POST':
-        form = AlquilerForm(request.POST, instance=alquiler)
+        form = AlquilerForm(request.POST, instance=alquiler, request=request)
         formset = DetalleAlquilerFormSet(request.POST, instance=alquiler, prefix='detalles')
 
-        if form.is_valid() and formset.is_valid():
+        if form.is_valid():
             try:
                 with transaction.atomic():
-                    alquiler_actualizado = form.save(commit=False)
+                    # Procesar el formset manualmente para manejar mejor las series
+                    detalles_data = []
+                    for i in range(int(request.POST.get('detalles-TOTAL_FORMS', 0))):
+                        prefix = f'detalles-{i}'
+                        if request.POST.get(f'{prefix}-DELETE') == 'on':
+                            continue
+                            
+                        equipo_id = request.POST.get(f'{prefix}-equipo')
+                        equipo = get_object_or_404(Equipo, id=equipo_id)
+                        
+                        numeros_serie = request.POST.get(f'{prefix}-numeros_serie', '[]')
+                        try:
+                            numeros_serie = json.loads(numeros_serie)
+                        except json.JSONDecodeError:
+                            numeros_serie = [s.strip() for s in numeros_serie.split(',') if s.strip()]
+                        
+                        # Filtrar series vacías
+                        numeros_serie = [s for s in numeros_serie if s]
+                        
+                        # Si el equipo requiere serie pero no tiene, saltar este detalle
+                        if equipo.requiere_serie and not numeros_serie:
+                            continue
+                            
+                        detalles_data.append({
+                            'id': request.POST.get(f'{prefix}-id'),
+                            'equipo': equipo_id,
+                            'numeros_serie': numeros_serie,
+                            'periodo_alquiler': request.POST.get(f'{prefix}-periodo_alquiler'),
+                            'cantidad': len(numeros_serie) if equipo.requiere_serie else 1,
+                            'precio_unitario': request.POST.get(f'{prefix}-precio_unitario'),
+                            'con_iva': request.POST.get(f'{prefix}-con_iva') == 'on',
+                            'DELETE': False
+                        })
 
-                    if not alquiler_actualizado.es_reserva and not alquiler_actualizado.numero_factura:
-                        raise ValidationError("Debe ingresar un número de factura para alquileres activos")
+                    # Validar que haya al menos un equipo
+                    if not detalles_data:
+                        form.add_error(None, 'Debe agregar al menos un equipo al alquiler')
+                        raise forms.ValidationError('Debe agregar al menos un equipo al alquiler')
+
+                    alquiler_actualizado = form.save(commit=False)
+                    alquiler_actualizado.fecha_vencimiento = form.cleaned_data['fecha_fin']
                     alquiler_actualizado.save()
 
-                    detalles_existentes = list(alquiler.detalles.all())
-                    detalles = formset.save(commit=False)
+                    # Procesar detalles
+                    detalles_existentes = {d.id: d for d in alquiler.detalles.all()}
+                    equipos_afectados = set()
 
-                    # Procesar eliminaciones
-                    for detalle in formset.deleted_objects:
-                        if detalle.numeros_serie:
-                            series = []
-                            if isinstance(detalle.numeros_serie, str):
-                                try:
-                                    series = json.loads(detalle.numeros_serie)
-                                except json.JSONDecodeError:
-                                    series = [s.strip() for s in detalle.numeros_serie.split(',') if s.strip()]
-                            elif isinstance(detalle.numeros_serie, list):
-                                series = detalle.numeros_serie
+                    for detalle_data in detalles_data:
+                        if detalle_data['id']:
+                            # Actualizar detalle existente
+                            detalle = detalles_existentes.get(int(detalle_data['id']))
+                            if not detalle:
+                                continue
+                        else:
+                            # Crear nuevo detalle
+                            detalle = DetalleAlquiler(alquiler=alquiler_actualizado)
 
-                            detalle.equipo.actualizar_disponibilidad()
+                        detalle.equipo_id = detalle_data['equipo']
+                        detalle.numeros_serie = detalle_data['numeros_serie']
+                        detalle.periodo_alquiler = detalle_data['periodo_alquiler']
+                        detalle.cantidad = detalle_data['cantidad']
+                        detalle.precio_unitario = detalle_data['precio_unitario']
+                        detalle.con_iva = detalle_data['con_iva']
+                        detalle.save()
+                        equipos_afectados.add(detalle.equipo)
+
+                    # Eliminar detalles no incluidos
+                    detalles_a_eliminar = set(detalles_existentes.keys()) - {
+                        int(d['id']) for d in detalles_data if d['id']
+                    }
+                    for detalle_id in detalles_a_eliminar:
+                        detalle = detalles_existentes[detalle_id]
+                        equipos_afectados.add(detalle.equipo)
                         detalle.delete()
 
-                    # Procesar detalles nuevos/modificados
-                    for detalle in detalles:
-                        detalle.alquiler = alquiler_actualizado
-
-                        if isinstance(detalle.numeros_serie, str):
-                            try:
-                                detalle.numeros_serie = json.loads(detalle.numeros_serie)
-                            except json.JSONDecodeError:
-                                detalle.numeros_serie = [s.strip() for s in detalle.numeros_serie.split(',') if s.strip()]
-                        if not isinstance(detalle.numeros_serie, list):
-                            detalle.numeros_serie = []
-
-                        detalle.cantidad = len(detalle.numeros_serie)
-
-                        if not detalle.precio_unitario:
-                            periodo = detalle.periodo_alquiler
-                            detalle.precio_unitario = getattr(detalle.equipo, f'precio_{periodo}', 0) or 0
-
-                        detalle.save()
-
                     # Actualizar disponibilidad
-                    equipos_afectados = set(d.equipo for d in detalles)
-                    equipos_afectados.update(d.equipo for d in formset.deleted_objects)
                     for equipo in equipos_afectados:
                         equipo.actualizar_disponibilidad()
 
                     alquiler_actualizado.calcular_precio_total()
 
-                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                        return JsonResponse({
-                            'success': True,
-                            'redirect_url': reverse('alquiler:listar_alquileres')
-                        })
-
                     messages.success(request, "Alquiler actualizado exitosamente!")
                     return redirect('alquiler:listar_alquileres')
 
             except Exception as e:
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    return JsonResponse({
-                        'success': False,
-                        'errors': {'general': str(e)}
-                    }, status=400)
-
                 messages.error(request, f"Error al actualizar: {str(e)}")
                 logger.error(f"Error al editar alquiler: {str(e)}", exc_info=True)
-
-        else:
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                errors = {}
-                for field, error_list in form.errors.items():
-                    errors[field] = error_list
-                for f in formset:
-                    for field, error_list in f.errors.items():
-                        errors[f"{f.prefix}-{field}"] = error_list
-                return JsonResponse({'success': False, 'errors': errors}, status=400)
-
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"Error en {field}: {error}")
-            for f in formset:
-                for field, errors in f.errors.items():
-                    for error in errors:
-                        messages.error(request, f"Error en equipo ({field}): {error}")
     else:
-        form = AlquilerForm(instance=alquiler)
+        form = AlquilerForm(instance=alquiler, request=request)
         formset = DetalleAlquilerFormSet(instance=alquiler, prefix='detalles')
 
+    # Preparar datos JSON para los equipos existentes, filtrando series vacías
     equipos_json = json.dumps([
         {
             "id": detalle.id,
             "equipoId": detalle.equipo.id,
             "equipoTexto": f"{detalle.equipo.marca} {detalle.equipo.modelo}",
-            "series": detalle.numeros_serie if isinstance(detalle.numeros_serie, list) else [],
+            "series": [s for s in (detalle.numeros_serie if isinstance(detalle.numeros_serie, list) else []) if s],
             "periodo": detalle.periodo_alquiler,
             "periodoTexto": detalle.get_periodo_alquiler_display(),
             "precioUnitario": float(detalle.precio_unitario),
-            "formIndex": i
+            "formIndex": i,
+            "conIva": detalle.con_iva,
+            "requiereSerie": detalle.equipo.requiere_serie
         }
         for i, detalle in enumerate(alquiler.detalles.all())
     ])
@@ -367,7 +375,6 @@ def editar_alquiler(request, id):
         'equipos_disponibles': equipos_disponibles,
         'equipos_json': mark_safe(equipos_json)
     })
-
 
 
 @login_required

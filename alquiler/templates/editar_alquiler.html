@@ -6,7 +6,7 @@
 {% block content %}
 <div class="container mt-4">
     <h2 class="mb-4">
-        <i class="fas fa-edit"></i> 
+        <i class="fas fa-edit"></i>
         Editar {{ alquiler.es_reserva|yesno:"Reserva,Alquiler" }} #{{ alquiler.id }}
         <span class="badge bg-{{ alquiler.estado_alquiler|default:'secondary' }}">
             {{ alquiler.get_estado_alquiler_display }}
@@ -48,6 +48,7 @@
                     </div>
                 </div>
 
+                <!-- Mantén todo el HTML anterior pero actualiza la sección de fechas así: -->
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label for="{{ form.fecha_inicio.id_for_label }}" class="form-label">
@@ -68,8 +69,10 @@
                         </div>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label"><i class="fas fa-clock"></i> Duración</label>
-                        <input type="text" class="form-control" id="duracion-alquiler" readonly>
+                        <label for="{{ form.fecha_vencimiento.id_for_label }}" class="form-label">
+                            <i class="fas fa-calendar-check"></i> Fecha Vencimiento
+                        </label>
+                        {{ form.fecha_vencimiento }}
                     </div>
                 </div>
             </div>
@@ -86,13 +89,13 @@
                         <select class="form-control select2" id="equipo-selector">
                             <option value="">Seleccione un equipo...</option>
                             {% for equipo in equipos_disponibles %}
-                            <option value="{{ equipo.id }}" 
-                                data-precio-dia="{{ equipo.precio_dia|default:0 }}"
+                            <option value="{{ equipo.id }}" data-precio-dia="{{ equipo.precio_dia|default:0 }}"
                                 data-precio-semana="{{ equipo.precio_semana|default:0 }}"
                                 data-precio-mes="{{ equipo.precio_mes|default:0 }}"
                                 data-precio-trimestre="{{ equipo.precio_trimestre|default:0 }}"
                                 data-precio-semestre="{{ equipo.precio_semestre|default:0 }}"
-                                data-precio-anio="{{ equipo.precio_anio|default:0 }}">
+                                data-precio-anio="{{ equipo.precio_anio|default:0 }}"
+                                data-requiere-serie="{{ equipo.requiere_serie|yesno:'True,False' }}">
                                 {{ equipo.marca }} {{ equipo.modelo }} (Disponibles: {{ equipo.cantidad_disponible }})
                             </option>
                             {% endfor %}
@@ -114,6 +117,9 @@
                         <select class="form-control select2" id="serie-selector" multiple>
                             <!-- Se llenará dinámicamente -->
                         </select>
+                        <small id="sinSerieHelp" class="form-text text-muted" style="display: none;">
+                            Este equipo no requiere número de serie
+                        </small>
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
                         <button type="button" id="agregar-equipo" class="btn btn-primary">
@@ -131,6 +137,7 @@
                                 <th><i class="fas fa-calendar-week"></i> Periodo</th>
                                 <th><i class="fas fa-dollar-sign"></i> Precio Unitario</th>
                                 <th><i class="fas fa-calculator"></i> Total</th>
+                                <th><i class="fas fa-percent"></i> IVA</th>
                                 <th><i class="fas fa-times"></i> Acciones</th>
                             </tr>
                         </thead>
@@ -226,19 +233,19 @@
                 <i class="fas fa-save"></i> Actualizar Alquiler
             </button>
         </div>
-    
+
     </form>
-    
+
 </div>
 
 <!-- TEMPLATE PARA FORMULARIOS OCULTOS -->
 <div id="empty-form" style="display: none;">
     {% for field in formset.empty_form %}
-        {% if field.name != 'DELETE' %}
-            <input type="hidden" name="{{ field.html_name }}" id="{{ field.id_for_label }}" value="">
-        {% else %}
-            <input type="checkbox" name="{{ field.html_name }}" id="{{ field.id_for_label }}">
-        {% endif %}
+    {% if field.name != 'DELETE' %}
+    <input type="hidden" name="{{ field.html_name }}" id="{{ field.id_for_label }}" value="">
+    {% else %}
+    <input type="checkbox" name="{{ field.html_name }}" id="{{ field.id_for_label }}">
+    {% endif %}
     {% endfor %}
 </div>
 
@@ -246,7 +253,6 @@
 <script id="equipos-existentes" type="application/json">
     {{ equipos_json }}
 </script>
-
 
 <script>
     window.SERIES_DISPONIBLES_URL = "{% url 'alquiler:series_disponibles' equipo_id=0 %}".replace('0', '{equipoId}');

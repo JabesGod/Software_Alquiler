@@ -129,29 +129,26 @@ class DetalleAlquilerForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         equipo = cleaned_data.get('equipo')
-        numeros_serie = cleaned_data.get('numeros_serie')
-        cantidad = cleaned_data.get('cantidad')
+        numeros_serie = cleaned_data.get('numeros_serie', '[]')
+        
+        try:
+            numeros_serie = json.loads(numeros_serie)
+        except json.JSONDecodeError:
+            numeros_serie = [s.strip() for s in numeros_serie.split(',') if s.strip()]
+        
+        # Filtrar series vacías
+        numeros_serie = [s for s in numeros_serie if s]
+        cleaned_data['numeros_serie'] = numeros_serie
 
         if equipo and equipo.requiere_serie:
-            # Asegurar que sea lista válida
-            if isinstance(numeros_serie, str):
-                try:
-                    numeros_serie = json.loads(numeros_serie)
-                except json.JSONDecodeError:
-                    raise ValidationError("Formato inválido para los números de serie.")
-
-            if not isinstance(numeros_serie, list) or not numeros_serie:
-                raise ValidationError("Este equipo requiere al menos un número de serie.")
-
-            # Establecer cantidad como cantidad de series
+            if not numeros_serie:
+                raise ValidationError("Este equipo requiere al menos un número de serie válido.")
             cleaned_data['cantidad'] = len(numeros_serie)
-
         else:
-            # Si no requiere serie, asegurar que haya una cantidad válida
-            if not cantidad or int(cantidad) <= 0:
-                cleaned_data['cantidad'] = 1  # Valor por defecto
+            cleaned_data['cantidad'] = 1  # Valor por defecto para equipos sin serie
 
         return cleaned_data
+
 
 DetalleAlquilerFormSet = inlineformset_factory(
     Alquiler,

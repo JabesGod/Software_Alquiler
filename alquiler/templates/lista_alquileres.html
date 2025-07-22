@@ -79,12 +79,13 @@
             <thead class="table-dark">
                 <tr>
                     <th>Factura</th>
+                    <th>SKU(s)</th> {# Nueva columna para el SKU #}
                     <th>Cliente</th>
                     <th>Equipo(s)</th>
                     <th>Aprobado</th>
                     <th>Periodo</th>
                     <th>Estado</th>
-                    <th>Precio</th>
+                    <th>Precio Total</th>
                     <th>Vencimiento</th>
                     <th>Acciones</th>
                 </tr>
@@ -93,13 +94,26 @@
                 {% for alquiler in alquileres %}
                 <tr class="estado-{{ alquiler.estado_alquiler }}">
                     <td>{{ alquiler.numero_factura|default:"-" }}</td>
+                    <td> {# Celda para mostrar los SKU(s) #}
+                        {% for detalle in alquiler.detalles.all %}
+                            {% if detalle.equipo.sku %}
+                                {{ detalle.equipo.sku }}{% if not forloop.last %}<br>{% endif %}
+                            {% else %}
+                                -{% if not forloop.last %}<br>{% endif %}
+                            {% endif %}
+                        {% empty %}
+                            -
+                        {% endfor %}
+                    </td>
                     <td>{{ alquiler.cliente.nombre }}</td>
                     <td>
                         {% for detalle in alquiler.detalles.all %}
                             {{ detalle.equipo.marca }} {{ detalle.equipo.modelo }} ({{ detalle.cantidad }})<br>
                             {% if detalle.numeros_serie %}
-                                <small class="text-muted">Seriales: {{ detalle.numeros_serie|join:", " }}</small>
+                                <small class="text-muted">Seriales: {{ detalle.numeros_serie|join:", " }}</small><br>
                             {% endif %}
+                            {# Separador para múltiples equipos en la misma celda #}
+                            {% if not forloop.last %}<hr class="my-1">{% endif %}
                         {% endfor %}
                     </td>
                     <td>
@@ -143,25 +157,23 @@
                                 <a href="{% url 'alquiler:renovar_alquiler' alquiler.id %}" class="btn btn-sm btn-warning" title="Renovar">
                                     <i class="fas fa-sync-alt"></i>
                                 </a>
-            
+                            
                             {% elif alquiler.estado_alquiler == 'reservado' or alquiler.estado_alquiler == 'pendiente_aprobacion' %}
 
-            <!-- Botón de aprobación para reservas -->
-            <a href="{% url 'alquiler:aprobar_alquiler' alquiler.id %}" class="btn btn-sm btn-success" title="Aprobar Reserva"
-               onclick="return confirm('¿Está seguro que desea aprobar esta reserva y convertirla en alquiler activo?')">
-                <i class="fas fa-check"></i>
-            </a>
-            
-        {% endif %}
+                            <a href="{% url 'alquiler:aprobar_alquiler' alquiler.id %}" class="btn btn-sm btn-success" title="Aprobar Reserva"
+                               onclick="return confirm('¿Está seguro que desea aprobar esta reserva y convertirla en alquiler activo?')">
+                                <i class="fas fa-check"></i>
+                            </a>
                             
-                       
+                        {% endif %}
+                                                    
                             {% if alquiler.estado_alquiler != 'finalizado' and alquiler.estado_alquiler != 'cancelado' %}
                                 <a href="{% url 'alquiler:cancelar_alquiler' alquiler.id %}" class="btn btn-sm btn-secondary" title="Cancelar">
                                     <i class="fas fa-times"></i>
                                 </a>
                             {% endif %}
                             
-               
+                        
                             {% if alquiler.estado_alquiler == 'finalizado' %}
                                 <a href="{% url 'alquiler:generar_acta_devolucion' alquiler.id %}" class="btn btn-sm btn-info" title="Acta Devolución">
                                     <i class="fas fa-file-download"></i>
@@ -180,8 +192,8 @@
                                     </a>
                                 {% else %}
                                     <a href="{{ alquiler.contrato.documento_contrato.url }}" target="_blank" class="btn btn-sm btn-info" title="Ver Contrato">
-                <i class="fas fa-file-contract"></i>
-            </a>
+                                        <i class="fas fa-file-contract"></i>
+                                    </a>
                                 {% endif %}
                             {% else %}
                                 <a href="{% url 'alquiler:crear_contrato' alquiler.id %}" class="btn btn-sm btn-primary" title="Generar Contrato">
@@ -195,7 +207,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="9" class="text-center py-4">
+                    <td colspan="11" class="text-center py-4"> {# ¡IMPORTANTE! Ajustar el colspan #}
                         <i class="fas fa-info-circle me-2"></i> No se encontraron alquileres
                     </td>
                 </tr>

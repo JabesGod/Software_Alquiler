@@ -70,10 +70,6 @@ def reportes_pagos(request):
     if metodo_pago:
         pagos = pagos.filter(metodo_pago=metodo_pago)
 
-    # --- DEBUGGING: Puedes descomentar estas líneas para ver en la consola del servidor ---
-    print(f"DEBUG: Fecha Inicio: {fecha_inicio}, Fecha Fin: {fecha_fin}, Periodo: {periodo}")
-    print(f"DEBUG: Total pagos filtrados antes de métricas/gráficas: {pagos.count()}")
-    # --- FIN DEBUGGING ---
 
     # Exportar a CSV si se solicita (esta función ya la tienes)
     if request.GET.get('export') == 'csv':
@@ -188,12 +184,6 @@ def obtener_datos_graficas(pagos, periodo, fecha_inicio, fecha_fin):
         total=Sum('monto'),
         cantidad=Count('id')
     ).order_by('-total'))
-
-    # --- DEBUGGING: Puedes descomentar estas líneas para ver los datos de las gráficas en la consola del servidor ---
-    print(f"DEBUG: Datos para evolucionChart - Labels: {labels}, Montos: {montos}")
-    print(f"DEBUG: Datos para estadosChart: {distribucion_estados}")
-    print(f"DEBUG: Datos para metodosChart: {distribucion_metodos}")
-    # --- FIN DEBUGGING ---
 
     return {
         'evolucion': {
@@ -430,7 +420,6 @@ def api_datos_graficas(request):
 
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)
-@login_required
 def pagos_vencidos(request):
     hoy = timezone.now().date()
     pagos = Pago.objects.filter(
@@ -481,6 +470,7 @@ def pagos_proximos_vencer(request):
         'pagos': pagos,
         'titulo': 'Pagos Próximos a Vencer'
     })
+
 
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)

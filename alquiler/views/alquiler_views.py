@@ -22,6 +22,7 @@ from io import BytesIO
 from django.core.files.base import ContentFile
 import base64
 import re
+from decimal import Decimal, ROUND_HALF_UP
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db import transaction
@@ -369,24 +370,35 @@ def editar_alquiler(request, id):
 
 
 
-
 @login_required
 @permission_required('alquiler.add_alquiler', raise_exception=True)
 def reservar_alquiler(request):
     equipos_disponibles = Equipo.objects.filter(cantidad_disponible__gt=0)
     DetalleAlquilerFormSet = inlineformset_factory(
-        Alquiler, 
-        DetalleAlquiler, 
+        Alquiler,
+        DetalleAlquiler,
         form=DetalleAlquilerForm,
         extra=1,
         can_delete=True,
-        fields=['equipo', 'numeros_serie', 'periodo_alquiler', 'cantidad', 'precio_unitario']
+        fields=['equipo', 'numeros_serie', 'periodo_alquiler', 'cantidad', 'precio_unitario', 'con_iva']
     )
 
     if request.method == 'POST':
-        form = AlquilerForm(request.POST)
+        form = AlquilerForm(request.POST, request=request)
         form.instance.es_reserva = True
         formset = DetalleAlquilerFormSet(request.POST, prefix='detalles')
+
+        cliente_id = request.POST.get('cliente')
+        cliente = Cliente.objects.get(pk=cliente_id) if cliente_id else None
+
+        # Validación: moroso y no verificado
+        if cliente:
+            if cliente.moroso and not request.user.has_perm('alquiler.override_moroso'):
+                messages.error(request, f"El cliente {cliente.nombre} está marcado como moroso y no puede reservar.")
+                return redirect('alquiler:listar_clientes')
+            if cliente.estado_verificacion != 'verificado':
+                messages.error(request, f"El cliente {cliente.nombre} no está verificado.")
+                return redirect('alquiler:listar_clientes')
 
         if form.is_valid() and formset.is_valid():
             try:
@@ -394,34 +406,44 @@ def reservar_alquiler(request):
                     alquiler = form.save(commit=False)
                     alquiler.estado_alquiler = 'reservado'
                     alquiler.es_reserva = True
-                    alquiler.numero_factura = None  # Forzar a None para reservas
+                    alquiler.numero_factura = None  # Reservas no generan factura
+                    alquiler.fecha_vencimiento = alquiler.fecha_fin  # Igualar fecha de vencimiento
                     alquiler.save()
-                    
-                    # Procesar detalles
+
                     for detalle in formset.save(commit=False):
                         detalle.alquiler = alquiler
-                        
+
                         if isinstance(detalle.numeros_serie, str):
                             try:
                                 detalle.numeros_serie = json.loads(detalle.numeros_serie)
                             except json.JSONDecodeError:
-                                detalle.numeros_serie = [s.strip() for s in detalle.numeros_serie.split(',') if s.strip()]
-                        
+                                detalle.numeros_serie = [
+                                    s.strip() for s in detalle.numeros_serie.split(',') if s.strip()
+                                ]
+
                         if not isinstance(detalle.numeros_serie, list):
                             detalle.numeros_serie = []
-                        
-                        detalle.cantidad = len(detalle.numeros_serie)
-                        
-                        if not detalle.precio_unitario or str(detalle.precio_unitario).strip() == '':
+
+                        if detalle.equipo.requiere_serie:
+                            detalle.cantidad = len(detalle.numeros_serie) if detalle.numeros_serie else detalle.cantidad or 1
+                        else:
+                            detalle.cantidad = 1
+
+                        if not detalle.precio_unitario:
                             periodo = detalle.periodo_alquiler
                             equipo = detalle.equipo
                             detalle.precio_unitario = getattr(equipo, f'precio_{periodo}', 0) or 0
-                        
+
                         detalle.save()
-                        detalle.equipo.estado = 'reservado'
-                        detalle.equipo.save()
-                    
-                    messages.success(request, "Reserva creada exitosamente!")
+
+                    # Calcular totales
+                    alquiler.calcular_precio_total()
+                    if alquiler.con_iva:
+                        alquiler.iva = (alquiler.precio_total * Decimal('0.19')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+                        alquiler.save(update_fields=['iva'])
+
+                    messages.success(request, "Reserva creada exitosamente.")
                     return HttpResponseRedirect(f"{reverse('alquiler:listar_alquileres')}?alquiler_id={alquiler.id}")
 
             except Exception as e:
@@ -430,20 +452,22 @@ def reservar_alquiler(request):
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f"Error en {field}: {error}")
-            
-            for form in formset:
-                for field, errors in form.errors.items():
+
+            for f in formset:
+                for field, errors in f.errors.items():
                     for error in errors:
                         messages.error(request, f"Error en equipo ({field}): {error}")
     else:
-        form = AlquilerForm(initial={
-            'fecha_inicio': timezone.now().date(),
-            'fecha_fin': (timezone.now() + timezone.timedelta(days=7)).date()
-        })
-        # Ocultar campo de número de factura para reservas
+        form = AlquilerForm(
+            initial={
+                'fecha_inicio': timezone.now().date(),
+                'fecha_fin': timezone.now().date() + timedelta(days=7),
+                'con_iva': True
+            },
+            request=request
+        )
         form.fields['numero_factura'].widget = forms.HiddenInput()
         form.initial['numero_factura'] = None
-        
         formset = DetalleAlquilerFormSet(prefix='detalles')
 
     return render(request, 'reservar_alquiler.html', {
@@ -453,41 +477,69 @@ def reservar_alquiler(request):
     })
 
 
+
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)
 def aprobar_alquiler(request, id):
     alquiler = get_object_or_404(Alquiler, id=id)
-    
+
     if alquiler.estado_alquiler in ['reservado', 'pendiente_aprobacion']:
         try:
             with transaction.atomic():
+                # Cambiar estado
                 alquiler.estado_alquiler = 'activo'
                 alquiler.es_reserva = False
-                alquiler.aprobado_por = str(request.user)
-                
-                # Generar número de factura solo al aprobar reserva
+                alquiler.aprobado_por = getattr(request.user, 'nombre_usuario', str(request.user))
+                alquiler.fecha_vencimiento = alquiler.fecha_fin
+
+                # Generar número de factura si no tiene
                 if not alquiler.numero_factura:
-                    last = Alquiler.objects.filter(es_reserva=False).order_by('-fecha_creacion').first()
+                    last = Alquiler.objects.filter(
+                        es_reserva=False,
+                        numero_factura__isnull=False
+                    ).exclude(numero_factura='').order_by('-fecha_creacion').first()
+
                     last_number = 0
+                    if last and last.numero_factura:
+                        match = re.search(r'FACT[-]?(\d+)', last.numero_factura)
+                        if match:
+                            last_number = int(match.group(1))
 
-                if last and last.numero_factura:
-        # Buscar número con regex: FACT-0042 o FACT0042
-                    match = re.search(r'FACT[-]?(\d+)', last.numero_factura)
-                    if match:
-                        last_number = int(match.group(1))
+                    # Buscar número de factura disponible
+                    while True:
+                        nuevo_numero = last_number + 1
+                        nuevo_factura = f"FACT-{nuevo_numero:04d}"
+                        if not Alquiler.objects.filter(numero_factura=nuevo_factura).exists():
+                            alquiler.numero_factura = nuevo_factura
+                            break
+                        last_number += 1
 
-                alquiler.numero_factura = f"FACT-{last_number + 1:04d}"
                 alquiler.save()
-                
-                # Actualizar estado de equipos y calcular precios...
-                
-                messages.success(request, "Reserva aprobada y convertida a alquiler activo exitosamente.")
+
+                # Actualizar detalles del alquiler
+                for detalle in alquiler.detalles.all():
+                    # Asignar precio unitario si no tiene
+                    if not detalle.precio_unitario or detalle.precio_unitario == 0:
+                        equipo = detalle.equipo
+                        periodo = detalle.periodo_alquiler
+                        detalle.precio_unitario = getattr(equipo, f'precio_{periodo}', 0) or 0
+
+                    # Esto también recalcula precio_total y actualiza disponibilidad
+                    detalle.save()
+
+                # Recalcular totales y generar pago inicial
+                alquiler.calcular_precio_total()
+                crear_pago_inicial(alquiler, aprobado_por=request.user)
+
+                messages.success(request, "Reserva aprobada y convertida en alquiler activo exitosamente.")
+
         except Exception as e:
             messages.error(request, f"Error al aprobar la reserva: {str(e)}")
     else:
-        messages.warning(request, "Solo se pueden aprobar reservas pendientes.")
-    
+        messages.warning(request, "Solo se pueden aprobar reservas o alquileres en estado pendiente.")
+
     return redirect('alquiler:listar_alquileres')
+
 
 
 @login_required

@@ -9,8 +9,6 @@
 
     <form method="post" id="reserva-form" class="needs-validation" novalidate>
         {% csrf_token %}
-
-        <!-- CAMPOS OCULTOS DEL FORMSET -->
         {{ formset.management_form }}
 
         <div class="card mb-4">
@@ -20,44 +18,41 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="{{ form.cliente.id_for_label }}" class="form-label"><i class="fas fa-user"></i>
-                            Cliente</label>
+                        <label class="form-label"><i class="fas fa-user"></i> Cliente</label>
                         {{ form.cliente }}
-                        <div class="invalid-feedback">
-                            Por favor seleccione un cliente.
-                        </div>
+                        <div class="invalid-feedback">Por favor seleccione un cliente válido.</div>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label"><i class="fas fa-calendar-check"></i> Estado de Reserva</label>
+                        <label class="form-label"><i class="fas fa-calendar-check"></i> Estado</label>
                         <input type="text" class="form-control" value="Reservado" readonly>
-                        <input type="hidden" name="tipo_alquiler" value="reservado">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label for="{{ form.fecha_inicio.id_for_label }}" class="form-label"><i
-                                class="fas fa-calendar-alt"></i> Fecha Inicio</label>
+                        <label class="form-label"><i class="fas fa-calendar-alt"></i> Fecha Inicio</label>
                         {{ form.fecha_inicio }}
-                        <div class="invalid-feedback">
-                            Por favor ingrese una fecha de inicio válida.
-                        </div>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="{{ form.fecha_fin.id_for_label }}" class="form-label"><i
-                                class="fas fa-calendar-alt"></i> Fecha Fin</label>
+                        <label class="form-label"><i class="fas fa-calendar-alt"></i> Fecha Fin</label>
                         {{ form.fecha_fin }}
-                        <div class="invalid-feedback">
-                            Por favor ingrese una fecha de fin válida.
-                        </div>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label"><i class="fas fa-clock"></i> Duración</label>
                         <input type="text" class="form-control" id="duracion-reserva" readonly>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch pt-4">
+                            {{ form.con_iva }}
+                            <label class="form-check-label"><i class="fas fa-percent"></i> Aplicar IVA</label>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
+        <!-- Equipos a reservar -->
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">
                 <i class="fas fa-laptop"></i> Equipos a Reservar
@@ -81,7 +76,7 @@
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label"><i class="fas fa-calendar-week"></i> Periodo de Reserva</label>
+                        <label class="form-label"><i class="fas fa-calendar-week"></i> Periodo</label>
                         <select class="form-control" id="periodo-selector">
                             <option value="dia">Por día</option>
                             <option value="semana">Por semana</option>
@@ -93,9 +88,7 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label"><i class="fas fa-barcode"></i> Números de Serie</label>
-                        <select class="form-control select2" id="serie-selector" multiple>
-                            <!-- Se llenará dinámicamente -->
-                        </select>
+                        <select class="form-control select2" id="serie-selector" multiple></select>
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
                         <button type="button" id="agregar-equipo" class="btn btn-primary">
@@ -108,39 +101,64 @@
                     <table class="table table-bordered" id="tabla-equipos">
                         <thead class="table-dark">
                             <tr>
-                                <th><i class="fas fa-desktop"></i> Equipo</th>
-                                <th><i class="fas fa-barcode"></i> Seriales</th>
-                                <th><i class="fas fa-calendar-week"></i> Periodo</th>
-                                <th><i class="fas fa-dollar-sign"></i> Precio Unitario</th>
-                                <th><i class="fas fa-times"></i> Acciones</th>
+                                <th>Equipo</th>
+                                <th>Series</th>
+                                <th>Periodo</th>
+                                <th>Precio Unitario</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Filas se agregarán dinámicamente -->
+                            <!-- Aquí se agregan dinámicamente -->
                         </tbody>
                     </table>
                 </div>
+
                 <div id="equipos-container">
-                    <!-- Inputs ocultos para el formulario -->
+                    <!-- Inputs ocultos del formset -->
                 </div>
             </div>
         </div>
 
+        <!-- Observaciones -->
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">
-                <i class="fas fa-comment-alt"></i> Información Adicional
+                <i class="fas fa-comment-alt"></i> Observaciones
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-12 mb-3">
-                        <label for="{{ form.observaciones.id_for_label }}" class="form-label"><i
-                                class="fas fa-sticky-note"></i> Observaciones</label>
-                        {{ form.observaciones }}
-                    </div>
+                <div class="mb-3">
+                    {{ form.observaciones }}
                 </div>
             </div>
         </div>
 
+        <!-- Resumen de Costos -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-receipt"></i> Resumen de la Reserva
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold">Subtotal:</span>
+                    <span id="subtotal">$0.00</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold">IVA (19%):</span>
+                    <span id="impuestos">$0.00</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold">Total:</h5>
+                    <h5 id="total">$0.00</h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- Campos ocultos de precio_total y iva -->
+        {{ form.precio_total }}
+        {{ form.iva }}
+
+        <!-- Botones -->
         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
             <a href="{% url 'alquiler:listar_alquileres' %}" class="btn btn-secondary me-md-2">
                 <i class="fas fa-arrow-left"></i> Cancelar
@@ -152,14 +170,14 @@
     </form>
 </div>
 
-<!-- TEMPLATE PARA FORMULARIOS OCULTOS -->
+<!-- Formulario vacío para JS -->
 <div id="empty-form" style="display: none;">
     {% for field in formset.empty_form %}
     <input type="hidden" name="{{ field.html_name }}" id="{{ field.id_for_label }}" value="">
     {% endfor %}
 </div>
 
-<!-- Script para definir la URL de series disponibles -->
+<!-- Series dinámicas -->
 <script>
     window.SERIES_DISPONIBLES_URL = "{% url 'alquiler:series_disponibles' equipo_id=0 %}".replace('0', '{equipoId}');
 </script>

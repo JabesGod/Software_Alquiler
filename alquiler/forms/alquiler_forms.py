@@ -130,16 +130,27 @@ class DetalleAlquilerForm(forms.ModelForm):
         cleaned_data = super().clean()
         equipo = cleaned_data.get('equipo')
         numeros_serie = cleaned_data.get('numeros_serie')
+        cantidad = cleaned_data.get('cantidad')
 
         if equipo and equipo.requiere_serie:
-            # Intenta parsear si es string
+            # Asegurar que sea lista válida
             if isinstance(numeros_serie, str):
                 try:
                     numeros_serie = json.loads(numeros_serie)
                 except json.JSONDecodeError:
-                    raise forms.ValidationError("Formato inválido para los números de serie.")
-            if not numeros_serie:
-                raise forms.ValidationError("Este equipo requiere al menos un número de serie.")
+                    raise ValidationError("Formato inválido para los números de serie.")
+
+            if not isinstance(numeros_serie, list) or not numeros_serie:
+                raise ValidationError("Este equipo requiere al menos un número de serie.")
+
+            # Establecer cantidad como cantidad de series
+            cleaned_data['cantidad'] = len(numeros_serie)
+
+        else:
+            # Si no requiere serie, asegurar que haya una cantidad válida
+            if not cantidad or int(cantidad) <= 0:
+                cleaned_data['cantidad'] = 1  # Valor por defecto
+
         return cleaned_data
 
 DetalleAlquilerFormSet = inlineformset_factory(
@@ -159,24 +170,56 @@ class ConvertirReservaForm(forms.ModelForm):
         widgets = {
             'fecha_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'fecha_fin': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)  # Para validar permisos si querés
+        super().__init__(*args, **kwargs)
 
     def clean(self):
         cleaned_data = super().clean()
         fecha_inicio = cleaned_data.get('fecha_inicio')
         fecha_fin = cleaned_data.get('fecha_fin')
+        cliente = self.instance.cliente
 
-        # ✅ Forzar reserva antes de que el modelo la valide
-        self.instance.es_reserva = True
+        # 👉 Lógica de reserva: va a ser activado
+        self.instance.es_reserva = False
 
+        # ✅ Validaciones de fechas
+        hoy = timezone.now().date()
         if fecha_inicio and fecha_fin:
-            if fecha_inicio < timezone.now().date():
+            if fecha_inicio < hoy:
                 raise ValidationError("La fecha de inicio no puede ser en el pasado.")
-            if fecha_fin <= fecha_inicio:
-                raise ValidationError("La fecha de fin debe ser posterior a la fecha de inicio.")
+            if fecha_fin < fecha_inicio:
+                raise ValidationError("La fecha de fin debe ser igual o posterior a la fecha de inicio.")
+
+        # ✅ Validación de cliente
+        if cliente:
+            if cliente.moroso and not (self.request and self.request.user.has_perm('alquiler.override_moroso')):
+                raise ValidationError(f"El cliente {cliente.nombre} está marcado como moroso.")
+            if cliente.estado_verificacion != 'verificado':
+                raise ValidationError(f"El cliente {cliente.nombre} no está verificado.")
 
         return cleaned_data
 
+    def save(self, commit=True):
+        alquiler = super().save(commit=False)
+        
+        # ✅ Estado
+        alquiler.estado_alquiler = 'activo'
+        alquiler.fecha_vencimiento = alquiler.fecha_fin
+        alquiler.es_reserva = False
+
+        # ✅ Asignar aprobado_por si no existe
+        if not alquiler.aprobado_por and self.request:
+            alquiler.aprobado_por = getattr(self.request.user, 'nombre_usuario', self.request.user.username)
+
+        if commit:
+            alquiler.save()
+
+        return alquiler
+    
 
 class RenovarAlquilerForm(forms.Form):
     numero_factura = forms.CharField(

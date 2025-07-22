@@ -25,7 +25,7 @@ from django.core.validators import FileExtensionValidator
 from django.contrib.auth import get_user_model
 import json
 from django.db.models import F
-
+import re
 from django.core.serializers.json import DjangoJSONEncoder
 
 
@@ -370,11 +370,28 @@ class Alquiler(models.Model):
             self.numero_factura = None
 
     def save(self, *args, **kwargs):
+        # Si no es reserva y no tiene número de factura, generarlo
         if not self.es_reserva and not self.numero_factura and not self.renovacion:
-            last = Alquiler.objects.filter(es_reserva=False).order_by('-fecha_creacion').first()
-            last_number = int(last.numero_factura.split('-')[1]) if last and last.numero_factura else 0
-            self.numero_factura = f"FACT-{last_number + 1:04d}"
-        
+            last = Alquiler.objects.filter(
+                es_reserva=False,
+                numero_factura__isnull=False
+            ).exclude(numero_factura='').order_by('-fecha_creacion').first()
+
+            last_number = 0
+            if last and last.numero_factura:
+                match = re.search(r'FACT[-]?(\d+)', last.numero_factura)
+                if match:
+                    last_number = int(match.group(1))
+
+            # Buscar el siguiente número disponible
+            while True:
+                nuevo_codigo = f"FACT-{last_number + 1:04d}"
+                if not Alquiler.objects.filter(numero_factura=nuevo_codigo).exists():
+                    self.numero_factura = nuevo_codigo
+                    break
+                last_number += 1
+
+        # Siempre validar antes de guardar
         self.full_clean()
         super().save(*args, **kwargs)
 

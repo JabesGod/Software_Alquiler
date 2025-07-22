@@ -65,51 +65,50 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         function cargarEquiposExistentes() {
-    const equiposExistentesElement = document.getElementById('equipos-existentes');
-    if (!equiposExistentesElement) return;
+            const equiposExistentesElement = document.getElementById('equipos-existentes');
+            if (!equiposExistentesElement) return;
 
-    try {
-        const equiposExistentesData = JSON.parse(equiposExistentesElement.textContent);
+            try {
+                const equiposExistentesData = JSON.parse(equiposExistentesElement.textContent);
 
-        equiposExistentesData.forEach((equipo, index) => {
-            // Filtrar series vacías
-            let series = Array.isArray(equipo.series)
-                ? equipo.series.filter(s => s && s.trim() !== '')
-                : (typeof equipo.series === 'string'
-                    ? equipo.series.split(',').map(s => s.trim()).filter(Boolean)
-                    : []);
+                equiposExistentesData.forEach((equipo, index) => {
+                    let series = Array.isArray(equipo.series)
+                        ? equipo.series
+                        : (typeof equipo.series === 'string'
+                            ? equipo.series.split(',').map(s => s.trim()).filter(Boolean)
+                            : []);
 
-            // Obtener el precio del periodo seleccionado
-            const equipoOption = $(`#equipo-selector option[value="${equipo.equipoId}"]`);
-            let precioUnitario = parseFloat(equipo.precioUnitario) || 0;
-            
-            // Si no tiene precio, obtenerlo del equipo
-            if (precioUnitario <= 0 && equipoOption.length) {
-                precioUnitario = parseFloat(equipoOption.data(`precio-${equipo.periodo}`)) || 0;
+                    // Obtener el precio del periodo seleccionado
+                    const equipoOption = $(`#equipo-selector option[value="${equipo.equipoId}"]`);
+                    let precioUnitario = parseFloat(equipo.precioUnitario) || 0;
+                    
+                    // Si no tiene precio, obtenerlo del equipo
+                    if (precioUnitario <= 0 && equipoOption.length) {
+                        precioUnitario = parseFloat(equipoOption.data(`precio-${equipo.periodo}`)) || 0;
+                    }
+
+                    state.equiposAgregados.push({
+                        id: state.contadorEquipos++,
+                        equipoId: equipo.equipoId,
+                        equipoTexto: equipo.equipoTexto,
+                        series: series,
+                        periodo: equipo.periodo,
+                        periodoTexto: obtenerTextoPeriodo(equipo.periodo),
+                        precioUnitario: precioUnitario,
+                        existente: true,
+                        detalleId: equipo.id,
+                        formIndex: index,
+                        conIva: equipo.conIva !== false,
+                        requiereSerie: series.length > 0 || (equipoOption.length && equipoOption.data('requiere-serie') === 'True')
+                    });
+                });
+
+                actualizarTablaEquipos();
+                actualizarInputsOcultos();
+            } catch (e) {
+                console.error("Error al cargar equipos existentes:", e);
             }
-
-            state.equiposAgregados.push({
-                id: state.contadorEquipos++,
-                equipoId: equipo.equipoId,
-                equipoTexto: equipo.equipoTexto,
-                series: series,
-                periodo: equipo.periodo,
-                periodoTexto: obtenerTextoPeriodo(equipo.periodo),
-                precioUnitario: precioUnitario,
-                existente: true,
-                detalleId: equipo.id,
-                formIndex: index,
-                conIva: equipo.conIva !== false,
-                requiereSerie: equipo.requiereSerie || (equipoOption.length && equipoOption.data('requiere-serie') === 'True')
-            });
-        });
-
-        actualizarTablaEquipos();
-        actualizarInputsOcultos();
-    } catch (e) {
-        console.error("Error al cargar equipos existentes:", e);
-    }
-}
+        }
 
         function cargarSeriesDisponibles() {
             const equipoId = $(this).val();

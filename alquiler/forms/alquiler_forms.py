@@ -81,25 +81,24 @@ class AlquilerForm(forms.ModelForm):
         cleaned_data = super().clean()
         cliente = cleaned_data.get('cliente')
         forzar = cleaned_data.get('forzar_alquiler')
-        
-        # Validación de morosidad (solo para nuevos alquileres)
+        fecha_inicio = cleaned_data.get('fecha_inicio')
+        fecha_fin = cleaned_data.get('fecha_fin')
+
+        if fecha_inicio and fecha_fin and fecha_fin < fecha_inicio:
+            raise forms.ValidationError("La fecha de fin no puede ser anterior a la fecha de inicio.")
+
         if not self.instance.pk and cliente:
-            if cliente and cliente.moroso and not forzar:
+            if cliente.moroso and not forzar:
                 self.add_error('cliente', f"El cliente {cliente.nombre} está marcado como moroso.")
-
-
-            
-            if cliente and cliente.estado_verificacion != 'verificado':
+            if cliente.estado_verificacion != 'verificado':
                 self.add_error('cliente', f"El cliente {cliente.nombre} no está verificado. Solo se permiten alquileres para clientes verificados.")
 
-        
-        # Validación de permisos para forzar alquiler
         if forzar and not (self.request and self.request.user.has_perm('alquiler.override_moroso')):
-            raise forms.ValidationError(
-                "No tiene permisos para forzar alquileres a clientes morosos."
-            )
-        
+            raise forms.ValidationError("No tiene permisos para forzar alquileres a clientes morosos.")
+
         return cleaned_data
+
+
 
     def clean_iva(self):
         iva = self.cleaned_data.get('iva', '0') or '0'

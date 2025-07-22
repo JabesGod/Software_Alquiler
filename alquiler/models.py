@@ -385,7 +385,7 @@ class Alquiler(models.Model):
             return self.precio_total
 
         total = Decimal('0.00')
-        dias = (self.fecha_fin - self.fecha_inicio).days + 1
+        dias = (self.fecha_fin - self.fecha_inicio).days + 0
 
         for detalle in self.detalles.all():
             if detalle.precio_total:
@@ -440,38 +440,41 @@ class DetalleAlquiler(models.Model):
     def save(self, *args, **kwargs):
         if not self.numeros_serie:
             self.numeros_serie = []
-    
+
         if len(self.numeros_serie) == 0 and not self.equipo.requiere_serie:
             self.cantidad = 1
-        
+
         dias = (self.alquiler.fecha_fin - self.alquiler.fecha_inicio).days + 1
-        
+        precio_total_base = Decimal('0.00')
+
         if self.periodo_alquiler == 'dia':
-            self.precio_total = self.precio_unitario * self.cantidad * dias
+            precio_total_base = self.precio_unitario * self.cantidad * dias
         elif self.periodo_alquiler == 'semana':
             semanas = max(1, ceil(dias / 7))
-            self.precio_total = self.precio_unitario * self.cantidad * semanas
+            precio_total_base = self.precio_unitario * self.cantidad * semanas
         elif self.periodo_alquiler == 'mes':
             meses = max(1, ceil(dias / 30))
-            self.precio_total = self.precio_unitario * self.cantidad * meses
+            precio_total_base = self.precio_unitario * self.cantidad * meses
         elif self.periodo_alquiler == 'trimestre':
             trimestres = max(1, ceil(dias / 90))
-            self.precio_total = self.precio_unitario * self.cantidad * trimestres
+            precio_total_base = self.precio_unitario * self.cantidad * trimestres
         elif self.periodo_alquiler == 'semestre':
             semestres = max(1, ceil(dias / 180))
-            self.precio_total = self.precio_unitario * self.cantidad * semestres
+            precio_total_base = self.precio_unitario * self.cantidad * semestres
         elif self.periodo_alquiler == 'anio':
             anios = max(1, ceil(dias / 365))
-            self.precio_total = self.precio_unitario * self.cantidad * anios
+            precio_total_base = self.precio_unitario * self.cantidad * anios
 
         if self.con_iva:
-            self.precio_total = self.precio_total * Decimal('1.19')
+            self.precio_total = (precio_total_base * Decimal('1.19')).quantize(Decimal('0.01'))
+        else:
+            self.precio_total = precio_total_base.quantize(Decimal('0.01'))
 
         super().save(*args, **kwargs)
 
-
         self.actualizar_disponibilidad_equipo()
         self.alquiler.calcular_precio_total()
+
 
     def actualizar_disponibilidad_equipo(self):
         equipo = self.equipo

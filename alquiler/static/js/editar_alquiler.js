@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         function bindEvents() {
-            $('#id_fecha_inicio, #id_fecha_fin').on('change', function() {
+            $('#id_fecha_inicio, #id_fecha_fin').on('change', function () {
                 calcularDuracion();
                 sincronizarFechasVencimiento();
             });
@@ -62,6 +62,28 @@ document.addEventListener('DOMContentLoaded', function () {
             if (fechaFin) {
                 $('#id_fecha_vencimiento').val(fechaFin);
             }
+        }
+        function calcularDuracion() {
+            const inicio = document.getElementById("id_fecha_inicio").value;
+            const fin = document.getElementById("id_fecha_fin").value;
+            const duracionInput = document.getElementById("duracion-alquiler");
+
+            if (!inicio || !fin || !duracionInput) {
+                return;
+            }
+
+            const fechaInicio = new Date(inicio);
+            const fechaFin = new Date(fin);
+
+            if (fechaInicio > fechaFin) {
+                duracionInput.value = 'Fechas inválidas';
+                return;
+            }
+
+            const diffTime = Math.abs(fechaFin - fechaInicio);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // mínimo 1 día
+
+            duracionInput.value = `${diffDays} día${diffDays > 1 ? 's' : ''}`;
         }
 
         function cargarEquiposExistentes() {
@@ -81,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Obtener el precio del periodo seleccionado
                     const equipoOption = $(`#equipo-selector option[value="${equipo.equipoId}"]`);
                     let precioUnitario = parseFloat(equipo.precioUnitario) || 0;
-                    
+
                     // Si no tiene precio, obtenerlo del equipo
                     if (precioUnitario <= 0 && equipoOption.length) {
                         precioUnitario = parseFloat(equipoOption.data(`precio-${equipo.periodo}`)) || 0;
@@ -302,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (equipoIndex >= 0) {
                     state.equiposAgregados[equipoIndex].precioUnitario = nuevoPrecio;
-                    const cantidad = state.equiposAgregados[equipoIndex].requiereSerie ? 
+                    const cantidad = state.equiposAgregados[equipoIndex].requiereSerie ?
                         state.equiposAgregados[equipoIndex].series.length : 1;
                     $(`.precio-total[data-id="${id}"]`).text('$' + (nuevoPrecio * cantidad).toFixed(2));
                     actualizarResumenCostos();

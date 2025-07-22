@@ -232,8 +232,10 @@ def crear_alquiler(request):
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)
 def editar_alquiler(request, id):
+    print(f"[INFO] Iniciando edición del alquiler ID: {id}")
     alquiler = get_object_or_404(Alquiler, id=id)
-    
+    print(f"[INFO] Alquiler cargado: Cliente={alquiler.cliente}, Fecha Fin={alquiler.fecha_fin}")
+
     equipos_disponibles = Equipo.objects.filter(
         Q(cantidad_disponible__gt=0) | Q(detallealquiler__alquiler=alquiler)
     ).distinct().annotate(
@@ -243,6 +245,7 @@ def editar_alquiler(request, id):
             output_field=CharField()
         )
     )
+    print(f"[INFO] Equipos disponibles encontrados: {equipos_disponibles.count()}")
 
     DetalleAlquilerFormSet = inlineformset_factory(
         Alquiler,
@@ -254,35 +257,40 @@ def editar_alquiler(request, id):
     )
 
     if request.method == 'POST':
+        print("[INFO] Método POST recibido.")
         form = AlquilerForm(request.POST, instance=alquiler, request=request)
         formset = DetalleAlquilerFormSet(request.POST, instance=alquiler, prefix='detalles')
+
+        print(f"[DEBUG] ¿Formulario principal válido? {form.is_valid()}")
 
         if form.is_valid():
             try:
                 with transaction.atomic():
-                    # Procesar el formset manualmente para manejar mejor las series
                     detalles_data = []
-                    for i in range(int(request.POST.get('detalles-TOTAL_FORMS', 0))):
+                    total_forms = int(request.POST.get('detalles-TOTAL_FORMS', 0))
+                    print(f"[INFO] Procesando {total_forms} formularios de detalle.")
+
+                    for i in range(total_forms):
                         prefix = f'detalles-{i}'
                         if request.POST.get(f'{prefix}-DELETE') == 'on':
+                            print(f"[INFO] Detalle #{i} marcado para eliminar. Saltando.")
                             continue
-                            
+
                         equipo_id = request.POST.get(f'{prefix}-equipo')
                         equipo = get_object_or_404(Equipo, id=equipo_id)
-                        
+                        print(f"[DEBUG] Detalle #{i} -> Equipo ID: {equipo_id}")
+
                         numeros_serie = request.POST.get(f'{prefix}-numeros_serie', '[]')
                         try:
                             numeros_serie = json.loads(numeros_serie)
                         except json.JSONDecodeError:
                             numeros_serie = [s.strip() for s in numeros_serie.split(',') if s.strip()]
-                        
-                        # Filtrar series vacías
                         numeros_serie = [s for s in numeros_serie if s]
-                        
-                        # Si el equipo requiere serie pero no tiene, saltar este detalle
+
                         if equipo.requiere_serie and not numeros_serie:
+                            print(f"[WARN] El equipo {equipo} requiere serie, pero no se encontró ninguna. Saltando.")
                             continue
-                            
+
                         detalles_data.append({
                             'id': request.POST.get(f'{prefix}-id'),
                             'equipo': equipo_id,
@@ -294,64 +302,86 @@ def editar_alquiler(request, id):
                             'DELETE': False
                         })
 
-                    # Validar que haya al menos un equipo
                     if not detalles_data:
+                        print("[ERROR] No se proporcionaron detalles válidos.")
                         form.add_error(None, 'Debe agregar al menos un equipo al alquiler')
                         raise forms.ValidationError('Debe agregar al menos un equipo al alquiler')
 
                     alquiler_actualizado = form.save(commit=False)
                     alquiler_actualizado.fecha_vencimiento = form.cleaned_data['fecha_fin']
                     alquiler_actualizado.save()
+                    print(f"[INFO] Alquiler actualizado: ID={alquiler_actualizado.id}")
 
-                    # Procesar detalles
                     detalles_existentes = {d.id: d for d in alquiler.detalles.all()}
                     equipos_afectados = set()
 
                     for detalle_data in detalles_data:
                         if detalle_data['id']:
-                            # Actualizar detalle existente
                             detalle = detalles_existentes.get(int(detalle_data['id']))
                             if not detalle:
+                                print(f"[WARN] Detalle con ID {detalle_data['id']} no encontrado. Saltando.")
                                 continue
                         else:
-                            # Crear nuevo detalle
                             detalle = DetalleAlquiler(alquiler=alquiler_actualizado)
 
                         detalle.equipo_id = detalle_data['equipo']
                         detalle.numeros_serie = detalle_data['numeros_serie']
                         detalle.periodo_alquiler = detalle_data['periodo_alquiler']
                         detalle.cantidad = detalle_data['cantidad']
-                        detalle.precio_unitario = detalle_data['precio_unitario']
+                        try:
+                            detalle.precio_unitario = Decimal(str(detalle_data['precio_unitario']))
+                        except:
+                            detalle.precio_unitario = Decimal('0')
                         detalle.con_iva = detalle_data['con_iva']
+
+                        print(f"[INFO] Guardando detalle -> Equipo: {detalle.equipo_id}, Cantidad: {detalle.cantidad}, Precio: {detalle.precio_unitario}")
                         detalle.save()
                         equipos_afectados.add(detalle.equipo)
 
-                    # Eliminar detalles no incluidos
                     detalles_a_eliminar = set(detalles_existentes.keys()) - {
                         int(d['id']) for d in detalles_data if d['id']
                     }
+                    print(f"[INFO] Eliminando {len(detalles_a_eliminar)} detalles no presentes en el formulario.")
                     for detalle_id in detalles_a_eliminar:
                         detalle = detalles_existentes[detalle_id]
                         equipos_afectados.add(detalle.equipo)
                         detalle.delete()
 
-                    # Actualizar disponibilidad
+                    print(f"[INFO] Actualizando disponibilidad de {len(equipos_afectados)} equipos.")
                     for equipo in equipos_afectados:
+                        print(f"[DEBUG] Actualizando equipo ID: {equipo.id}")
                         equipo.actualizar_disponibilidad()
 
                     alquiler_actualizado.calcular_precio_total()
-
-                    messages.success(request, "Alquiler actualizado exitosamente!")
-                    return redirect('alquiler:listar_alquileres')
-
+                    print("[INFO] Precio total recalculado.")
+                    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                        return JsonResponse({'success': True, 'redirect_url': reverse('alquiler:listar_alquileres')})
+                    else:
+                        return redirect('alquiler:listar_alquileres')
+                    
             except Exception as e:
+                import traceback
+                print(f"[ERROR] Excepción durante la actualización: {str(e)}")
+                traceback.print_exc()
                 messages.error(request, f"Error al actualizar: {str(e)}")
                 logger.error(f"Error al editar alquiler: {str(e)}", exc_info=True)
+
+        else:
+            print("[ERROR] El formulario principal no es válido.")
+            for field, errors in form.errors.items():
+                for error in errors:
+                    print(f"[ERROR] Campo: {field} -> {error}")
+                    messages.error(request, f"Error en {field}: {error}")
+
+            for error in form.non_field_errors():
+                print(f"[ERROR] Error general: {error}")
+                messages.error(request, f"Error: {error}")
+
     else:
+        print("[INFO] Método GET - cargando formulario existente.")
         form = AlquilerForm(instance=alquiler, request=request)
         formset = DetalleAlquilerFormSet(instance=alquiler, prefix='detalles')
 
-    # Preparar datos JSON para los equipos existentes, filtrando series vacías
     equipos_json = json.dumps([
         {
             "id": detalle.id,
@@ -367,6 +397,8 @@ def editar_alquiler(request, id):
         }
         for i, detalle in enumerate(alquiler.detalles.all())
     ])
+    print("[DEBUG] JSON de equipos enviado al frontend:")
+    print(equipos_json)
 
     return render(request, 'editar_alquiler.html', {
         'form': form,
@@ -375,7 +407,6 @@ def editar_alquiler(request, id):
         'equipos_disponibles': equipos_disponibles,
         'equipos_json': mark_safe(equipos_json)
     })
-
 
 @login_required
 @permission_required('alquiler.add_alquiler', raise_exception=True)

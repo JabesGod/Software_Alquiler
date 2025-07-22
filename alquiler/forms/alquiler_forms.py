@@ -6,7 +6,7 @@ from django.forms import inlineformset_factory
 from django.core.exceptions import ValidationError
 import json
 import pytz
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 
 def validate_fecha_fin(value):
@@ -125,6 +125,17 @@ class DetalleAlquilerForm(forms.ModelForm):
             'periodo_alquiler': forms.HiddenInput(),
             'cantidad': forms.HiddenInput(),
         }
+
+    def save(self, *args, **kwargs):
+        try:
+            precio_unitario = Decimal(str(self.precio_unitario or '0'))
+            cantidad = int(self.cantidad or 0)
+            precio_total_base = precio_unitario * cantidad
+            self.precio_total = precio_total_base.quantize(Decimal('0.01'))
+        except (InvalidOperation, AttributeError, TypeError, ValueError) as e:
+            print(f"[ERROR] Error al calcular precio_total: {e}")
+            self.precio_total = Decimal('0.00')
+        super().save(*args, **kwargs)
 
     def clean(self):
         cleaned_data = super().clean()

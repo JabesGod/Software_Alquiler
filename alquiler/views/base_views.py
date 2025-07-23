@@ -9,8 +9,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
 
 
-@method_decorator(login_required, name='dispatch')
-@method_decorator(permission_required('alquiler.view_alquiler', raise_exception=True), name='dispatch')
+
 class BusquedaGlobalView(ListView):
     template_name = 'resultados_busqueda.html'
     context_object_name = 'resultados'
@@ -29,6 +28,7 @@ class BusquedaGlobalView(ListView):
                 'model': Equipo,
                 'fields': [
                     ('marca', 3.0),
+                    ('sku', 3.0),
                     ('modelo', 3.0),
                     ('numero_serie', 2.5),
                     ('ubicacion', 2.0),

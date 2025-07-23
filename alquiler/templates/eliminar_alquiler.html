@@ -17,7 +17,7 @@
         <div class="card-body">
             <p class="confirmation-message">
                 ¿Estás seguro de que deseas eliminar permanentemente el alquiler de
-                <strong>{{ alquiler.cliente.nombre }}</strong> 
+                <strong>{{ alquiler.cliente.nombre }} con número de factura {{ alquiler.numero_factura }}</strong> 
                 {% if alquiler.equipo %}
                 para el equipo <strong>{{ alquiler.equipo }}</strong>
                 {% endif %}?

@@ -126,16 +126,23 @@ class DetalleAlquilerForm(forms.ModelForm):
             'cantidad': forms.HiddenInput(),
         }
 
-    def save(self, *args, **kwargs):
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
         try:
-            precio_unitario = Decimal(str(self.precio_unitario or '0'))
-            cantidad = int(self.cantidad or 0)
+            precio_unitario = Decimal(str(self.cleaned_data.get('precio_unitario', '0')))
+            cantidad = int(self.cleaned_data.get('cantidad', 0))
             precio_total_base = precio_unitario * cantidad
-            self.precio_total = precio_total_base.quantize(Decimal('0.01'))
+            instance.precio_total = precio_total_base.quantize(Decimal('0.01'))
         except (InvalidOperation, AttributeError, TypeError, ValueError) as e:
             print(f"[ERROR] Error al calcular precio_total: {e}")
-            self.precio_total = Decimal('0.00')
-        super().save(*args, **kwargs)
+            instance.precio_total = Decimal('0.00')
+
+        if commit:
+            instance.save()
+
+        return instance
+
 
     def clean(self):
         cleaned_data = super().clean()

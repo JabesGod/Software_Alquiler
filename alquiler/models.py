@@ -341,7 +341,14 @@ class Alquiler(models.Model):
         ('reservado', 'Reservado'),
         ('pendiente_aprobacion', 'Pendiente de Aprobación'),
     ]
-
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL, # Si el usuario se elimina, el campo se pone a NULL
+        null=True,
+        blank=True,
+        related_name='alquileres_creados',
+        verbose_name="Creado por"
+    )
     cliente = models.ForeignKey('Cliente', on_delete=models.CASCADE, related_name='alquileres')
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
@@ -533,6 +540,7 @@ class Acta(models.Model):
             last_number = int(last.numero_acta.split('-')[1]) if last and last.numero_acta else 0
             self.numero_acta = f"ACT-{last_number + 1:04d}"
         super().save(*args, **kwargs)
+
 
 class Pago(models.Model):
     ESTADO_PAGO = [

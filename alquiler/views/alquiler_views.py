@@ -101,7 +101,6 @@ def generar_pdf_acta(alquiler, request):
     result.seek(0)
     return result.getvalue()
 
-
 @login_required
 @permission_required('alquiler.add_alquiler', raise_exception=True)
 def crear_alquiler(request):
@@ -126,13 +125,7 @@ def crear_alquiler(request):
             )
             return redirect('alquiler:listar_clientes')
 
-    equipos_disponibles = Equipo.objects.filter(cantidad_disponible__gt=0).annotate(
-        requiere_serie_case=Case(
-            When(requiere_serie=True, then=Value('True')),
-            default=Value('False'),
-            output_field=CharField()
-        )
-    )
+    equipos_disponibles = Equipo.objects.filter(cantidad_disponible__gt=0)
 
     if request.method == 'POST':
         print("📥 Procesando POST para crear alquiler")
@@ -144,9 +137,10 @@ def crear_alquiler(request):
             try:
                 with transaction.atomic():
                     alquiler = form.save(commit=False)
+                    alquiler.creado_por = request.user
                     print(f"➡️ Cliente del alquiler: {alquiler.cliente.nombre}")
 
-                    # Validación final: moroso o no verificado
+                    # Validaciones de negocio
                     if (alquiler.cliente.moroso and not form.cleaned_data.get('forzar_alquiler')) or \
                        alquiler.cliente.estado_verificacion != 'verificado':
                         messages.error(request, "No se puede crear alquiler para este cliente.")
@@ -163,30 +157,35 @@ def crear_alquiler(request):
                     alquiler.save()
                     print(f"✅ Alquiler guardado ID: {alquiler.id}")
 
-                    for detalle in formset.save(commit=False):
-                        detalle.alquiler = alquiler
+                    # Guardar detalles del alquiler
+                    for form_detalle in formset.forms:
+                        if form_detalle.cleaned_data and not form_detalle.cleaned_data.get('DELETE', False):
+                            detalle = form_detalle.save(commit=False)
+                            detalle.alquiler = alquiler
 
-                        if isinstance(detalle.numeros_serie, str):
-                            try:
-                                detalle.numeros_serie = json.loads(detalle.numeros_serie)
-                            except json.JSONDecodeError:
-                                detalle.numeros_serie = [s.strip() for s in detalle.numeros_serie.split(',') if s.strip()]
+                            # Normalizar números de serie
+                            if isinstance(detalle.numeros_serie, str):
+                                try:
+                                    detalle.numeros_serie = json.loads(detalle.numeros_serie)
+                                except json.JSONDecodeError:
+                                    detalle.numeros_serie = [s.strip() for s in detalle.numeros_serie.split(',') if s.strip()]
 
-                        if not isinstance(detalle.numeros_serie, list):
-                            detalle.numeros_serie = []
+                            if not isinstance(detalle.numeros_serie, list):
+                                detalle.numeros_serie = []
 
-                        if detalle.equipo.requiere_serie:
-                            detalle.cantidad = len(detalle.numeros_serie)
-                        else:
-                            detalle.cantidad = 1
+                            # Cantidad según necesidad de serie
+                            if detalle.equipo.requiere_serie:
+                                detalle.cantidad = len(detalle.numeros_serie)
+                            else:
+                                detalle.cantidad = 1
 
-                        if not detalle.precio_unitario:
-                            periodo = detalle.periodo_alquiler
-                            equipo = detalle.equipo
-                            detalle.precio_unitario = getattr(equipo, f'precio_{periodo}', 0) or 0
+                            # Precio si no fue seteado manualmente
+                            if not detalle.precio_unitario:
+                                periodo = detalle.periodo_alquiler
+                                detalle.precio_unitario = getattr(detalle.equipo, f'precio_{periodo}', 0) or 0
 
-                        detalle.save()
-                        detalle.equipo.actualizar_disponibilidad()
+                            detalle.save()
+                            detalle.equipo.actualizar_disponibilidad()
 
                     alquiler.calcular_precio_total()
                     crear_pago_inicial(alquiler, aprobado_por=request.user)
@@ -228,6 +227,8 @@ def crear_alquiler(request):
         'equipos_disponibles': equipos_disponibles,
         'cliente_moroso': Cliente.objects.get(id=cliente_id).moroso if cliente_id else False
     })
+
+
 
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)
@@ -775,11 +776,19 @@ def detalle_alquiler(request, id):
 @login_required
 @permission_required('alquiler.view_alquiler', raise_exception=True)
 def calendario_alquileres(request):
-    alquileres = Alquiler.objects.filter(estado_alquiler='activo').prefetch_related('detalles__equipo')
+    # Obtener todos los alquileres o solo los del usuario actual
+    if request.user.is_superuser:
+        alquileres = Alquiler.objects.filter(estado_alquiler='activo').prefetch_related('detalles__equipo')
+    else:
+        # Filtra por el usuario que inició sesión
+        alquileres = Alquiler.objects.filter(
+            estado_alquiler='activo',
+            creado_por=request.user
+        ).prefetch_related('detalles__equipo')
+
     eventos = []
 
     for alquiler in alquileres:
-        # Obtener resumen de equipos del alquiler
         equipos = [f"{detalle.equipo.marca} {detalle.equipo.modelo}" for detalle in alquiler.detalles.all()]
         equipos_str = " | ".join(equipos) if equipos else "Sin equipos"
 
@@ -809,10 +818,9 @@ def calendario_alquileres(request):
     eventos_json = json.dumps(eventos)
     return render(request, "calendario.html", {
         "eventos_json": eventos_json,
-        "current_year": datetime.now().year
+        "current_year": datetime.now().year,
+        "es_superusuario": request.user.is_superuser, # Pasa esta variable al template
     })
-
-
 
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)

@@ -53,7 +53,7 @@ core_patterns = [
     #Buscador
     path('buscar/', BusquedaGlobalView.as_view(), name='busqueda_global'),
     path('buscar/sugerencias/', sugerencias_busqueda, name='sugerencias_busqueda'),
-
+    
     # Urls de Equipos
     path('equipos/', listar_equipos, name='listar_equipos'),
     path('equipos/nuevo/', crear_equipo, name='crear_equipo'),

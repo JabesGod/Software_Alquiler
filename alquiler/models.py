@@ -18,7 +18,7 @@ from io import BytesIO
 from django.template.loader import render_to_string
 from xhtml2pdf import pisa
 from django.core.files.base import ContentFile
-import tempfile
+from django.urls import reverse
 from django.contrib.auth.models import Permission, Group
 from django.db.models import F
 from django.core.validators import FileExtensionValidator
@@ -178,6 +178,9 @@ class Equipo(models.Model):
         if self.fecha_ultimo_alquiler:
             return self.fecha_ultimo_alquiler + timedelta(days=30)
         return None
+    
+    def get_absolute_url(self):
+        return reverse('detalle_equipo', args=[str(self.id)])
 
     def __str__(self):
         series = self.numeros_serie_lista()
@@ -328,7 +331,9 @@ class Cliente(models.Model):
     fecha_marcado_moroso = models.DateField(null=True, blank=True)
     dias_mora = models.IntegerField(default=0)
     deuda_total = models.IntegerField(default=0)
-
+    
+    def get_absolute_url(self):
+        return reverse('detalle_cliente', args=[str(self.id)])
     def __str__(self):
         return f"{self.nombre} ({self.numero_documento})"
     
@@ -369,7 +374,10 @@ class Alquiler(models.Model):
 
     def __str__(self):
         return f"{'Reserva' if self.es_reserva else 'Alquiler'} #{self.id} - {self.cliente}"
-
+    
+    def get_absolute_url(self):
+        return reverse('detalle_alquiler', args=[str(self.id)])
+    
     def clean(self):
         if not self.es_reserva and not self.numero_factura:
             raise ValidationError("Debe ingresar un número de factura para alquileres activos.")

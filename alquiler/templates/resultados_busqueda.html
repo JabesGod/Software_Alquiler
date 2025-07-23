@@ -1,68 +1,111 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
-
-{% block title %}Resultados de búsqueda{% endblock %}
-
+{% block title %} Búsqueda {% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/resultados_busqueda.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="search-results-container">
-    <h2>Resultados de búsqueda para: "{{ query }}"</h2>
-    
-    {% if resultados %}
-        <div class="results-list">
-            {% for resultado in resultados %}
-                <div class="result-item" data-type="{{ resultado.tipo_resultado|lower }}">
-                    <h3>
-                        {% if resultado.tipo_resultado == 'Equipo' %}
-                            <a href="{% url 'alquiler:detalle_equipo' resultado.id %}">
-                                <i class="fas fa-laptop"></i>
-                                {{ resultado.marca }} {{ resultado.modelo }} {{resultado.foto}}
-                            </a>
-                        {% elif resultado.tipo_resultado == 'Cliente' %}
-                            <a href="{% url 'alquiler:detalle_cliente' resultado.id %}">
-                                <i class="fas fa-user"></i>
-                                {{ resultado.nombre }}
-                            </a>
-                        {% elif resultado.tipo_resultado == 'Alquiler' %}
-                            <a href="{% url 'alquiler:detalle_alquiler' resultado.id %}">
-                                <i class="fas fa-handshake"></i>
-                                Alquiler de: {{ resultado.cliente }}
-                            </a>
-                        {% endif %}
-                    </h3>
-                    <div class="result-details">
-                        {% if resultado.tipo_resultado == 'Equipo' %}
-                            <p><span class="detail-label">N° Serie:</span> {{ resultado.numero_serie }}</p>
-                            <p><span class="detail-label">Estado:</span> {{ resultado.get_estado_display }}</p>
-                        {% elif resultado.tipo_resultado == 'Cliente' %}
-                            <p><span class="detail-label">Email:</span> {{ resultado.email }}</p>
-                            <p><span class="detail-label">Teléfono:</span> {{ resultado.telefono }}</p>
-                        {% elif resultado.tipo_resultado == 'Alquiler' %}
-                            <p><span class="detail-label">Cliente:</span> {{ resultado.cliente.nombre }}</p>
-                            <p><span class="detail-label">Equipo:</span> {{ resultado.equipo.marca }}</p>
-                        {% endif %}
-                    </div>
-                </div>
+<div class="search-results">
+    <div class="search-header">
+        <h2>Resultados para "{{ query }}"</h2>
+        {% if tipos_resultados %}
+        <div class="search-filters">
+            <button class="filter-btn active" data-filter="todos">Todos</button>
+            {% for tipo in tipos_resultados %}
+                <button class="filter-btn" data-filter="{{ tipo|lower }}">{{ tipo }}</button>
             {% endfor %}
         </div>
-    {% else %}
-        <div class="no-results">
-            <div class="no-results-icon">
-                <i class="fas fa-search"></i>
+        {% endif %}
+    </div>
+    
+    <div class="results-container">
+        {% for resultado in resultados %}
+            <div class="result-card" 
+                 data-type="{{ resultado.tipo_resultado|lower }}"
+                 onclick="window.location.href='{% if resultado.tipo_resultado == 'Equipo' %}{% url 'alquiler:detalle_equipo' resultado.id %}{% elif resultado.tipo_resultado == 'Cliente' %}{% url 'alquiler:detalle_cliente' resultado.id %}{% elif resultado.tipo_resultado == 'Alquiler' %}{% url 'alquiler:detalle_alquiler' resultado.id %}{% elif resultado.tipo_resultado == 'Pago' %}{% url 'alquiler:detalle_pago' resultado.id %}{% elif resultado.tipo_resultado == 'Usuario' %}{% url 'alquiler:detalle_usuario' resultado.id %}{% elif resultado.tipo_resultado == 'Rol' %}{% url 'alquiler:editar_rol' resultado.id %}{% endif %}'">
+                {% if resultado.imagen_url %}
+                    <img src="{{ resultado.imagen_url }}" alt="{{ resultado.tipo_resultado }}" class="result-image">
+                {% else %}
+                    <div class="result-image" style="background: #f3f4f6; display: flex; align-items: center; justify-content: center;">
+                        {% if resultado.tipo_resultado == 'Usuario' %}
+                            <i class="fas fa-user" style="color: #9ca3af; font-size: 2rem;"></i>
+                        {% elif resultado.tipo_resultado == 'Rol' %}
+                            <i class="fas fa-user-shield" style="color: #9ca3af; font-size: 2rem;"></i>
+                        {% elif resultado.tipo_resultado == 'Pago' %}
+                            <i class="fas fa-money-bill-wave" style="color: #9ca3af; font-size: 2rem;"></i>
+                        {% else %}
+                            <i class="fas fa-image" style="color: #9ca3af; font-size: 2rem;"></i>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                <div class="result-content">
+                    <h3>
+                        <span>
+                            {% if resultado.tipo_resultado == 'Usuario' %}
+                                {{ resultado.nombre_usuario }}
+                            {% elif resultado.tipo_resultado == 'Rol' %}
+                                {{ resultado.nombre_rol }}
+                            {% elif resultado.tipo_resultado == 'Pago' %}
+                                Pago #{{ resultado.id }} - ${{ resultado.monto }}
+                            {% else %}
+                                {{ resultado }}
+                            {% endif %}
+                        </span>
+                        <span class="result-type">{{ resultado.tipo_resultado }}</span>
+                    </h3>
+                    <p class="result-meta">
+                        <span class="relevance">Relevancia: {{ resultado.puntaje_relevancia|floatformat:1 }}</span>
+                    </p>
+                    {% if resultado.descripcion_larga %}
+                        <p class="result-description">{{ resultado.descripcion_larga|truncatechars:120 }}</p>
+                    {% elif resultado.especificaciones %}
+                        <p class="result-description">{{ resultado.especificaciones|truncatechars:120 }}</p>
+                    {% elif resultado.tipo_resultado == 'Usuario' and resultado.rol %}
+                        <p class="result-description">Rol: {{ resultado.rol.nombre_rol }}</p>
+                    {% elif resultado.tipo_resultado == 'Rol' and resultado.descripcion %}
+                        <p class="result-description">{{ resultado.descripcion|truncatechars:120 }}</p>
+                    {% elif resultado.tipo_resultado == 'Pago' %}
+                        <p class="result-description">Estado: {{ resultado.estado_pago }} - {{ resultado.fecha_pago|date:"d/m/Y" }}</p>
+                    {% endif %}
+                </div>
             </div>
-            <p>No encontramos resultados para "<strong>{{ query }}</strong>"</p>
-            <div class="suggestions">
-                <p>Intenta con:</p>
-                <ul>
-                    <li>Usar términos más generales</li>
-                    <li>Revisar la ortografía</li>
-                    <li>Buscar por número de serie</li>
-                </ul>
+        {% empty %}
+            <div class="no-results">
+                <p>No se encontraron resultados para "{{ query }}"</p>
+                <div class="suggestions">
+                    <p>Prueba con:</p>
+                    <ul>
+                        <li><a href="{% url 'alquiler:listar_equipos' %}">Ver todos los equipos</a></li>
+                        <li><a href="{% url 'alquiler:listar_clientes' %}">Ver todos los clientes</a></li>
+                        <li><a href="{% url 'alquiler:listar_alquileres' %}">Ver alquileres recientes</a></li>
+                        <li><a href="{% url 'alquiler:lista_pagos' %}">Ver todos los pagos</a></li>
+                        <li><a href="{% url 'alquiler:lista_usuarios' %}">Ver todos los usuarios</a></li>
+                        <li><a href="{% url 'alquiler:lista_roles' %}">Ver todos los roles</a></li>
+                    </ul>
+                </div>
             </div>
-        </div>
+        {% endfor %}
+    </div>
+    
+    {% if is_paginated %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?q={{ query }}&page={{ page_obj.previous_page_number }}" class="page-link">&laquo; Anterior</a>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="current-page">{{ num }}</span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?q={{ query }}&page={{ num }}" class="page-link">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+            <a href="?q={{ query }}&page={{ page_obj.next_page_number }}" class="page-link">Siguiente &raquo;</a>
+        {% endif %}
+    </div>
     {% endif %}
 </div>
 {% endblock %}

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/usuarios.css' %}">
+<link rel="stylesheet" href="{% static 'css/errores.css' %}">
 {% endblock %}
 {% block content %}
 <div class="container mt-5">
@@ -19,7 +19,7 @@
                 <p>Verifica la URL o utiliza el buscador para encontrar lo que necesitas.</p>
             {% endif %}
             
-            <a href="{% url 'alquiler:pagina_principal' %}" class="btn btn-primary mt-4">
+            <a href="{% url 'alquiler:pagina_principal' %}" class="btn btn-secondary mt-4">
                 <i class="fas fa-home"></i> Volver al inicio
             </a>
         </div>

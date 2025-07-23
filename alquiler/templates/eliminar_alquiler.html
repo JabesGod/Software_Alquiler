@@ -1,19 +1,44 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <title>Eliminar Alquiler</title>
-    <link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
-</head>
-<body>
-    <h2>🗑️ Confirmar Eliminación del Alquiler</h2>
 
-    <p>¿Estás seguro de que deseas eliminar el alquiler del cliente <strong>{{ alquiler.cliente.nombre }}</strong> del equipo <strong>{{ alquiler.equipo }}</strong>?</p>
+{% block title %}Eliminar Alquiler{% endblock %}
 
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit">✅ Sí, eliminar</button>
-        <a href="{% url 'alquiler:detalle_alquiler' alquiler.id %}">❌ Cancelar</a>
-    </form>
-</body>
-</html>
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="confirm-delete-container">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title"><i class="fas fa-radiation-alt icon-header"></i> Confirmar Eliminación</h2>
+        </div>
+        <div class="card-body">
+            <p class="confirmation-message">
+                ¿Estás seguro de que deseas eliminar permanentemente el alquiler de
+                <strong>{{ alquiler.cliente.nombre }}</strong> 
+                {% if alquiler.equipo %}
+                para el equipo <strong>{{ alquiler.equipo }}</strong>
+                {% endif %}?
+                <br><br>
+                <span style="color: var(--accent); font-weight: 600;">Esta acción no se puede deshacer.</span>
+            </p>
+
+            <form method="post" class="form-actions">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-skull-crossbones"></i> Confirmar Eliminación
+                </button>
+                <a href="{% url 'alquiler:detalle_alquiler' alquiler.id %}" class="btn btn-secondary">
+                    <i class="fas fa-ban"></i> Cancelar Operación
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/eliminar_alquiler.css' %}">
+{% endblock %}
+{% endblock %}

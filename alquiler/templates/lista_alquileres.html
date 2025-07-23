@@ -146,64 +146,65 @@
                     <td>${{ alquiler.precio_total|floatformat:2 }}</td>
                     <td>{{ alquiler.fecha_vencimiento|date:"d/m/Y"|default:"-" }}</td>
                     <td>
-                        <div class="btn-group" role="group">
-                            {% if alquiler.estado_alquiler == 'activo' %}
-                                <a href="{% url 'alquiler:finalizar_alquiler' alquiler.id %}" class="btn btn-sm btn-danger" title="Finalizar">
-                                    <i class="fas fa-stop-circle"></i>
-                                </a>
-                                <a href="{% url 'alquiler:editar_alquiler' alquiler.id %}" class="btn btn-sm btn-warning">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="{% url 'alquiler:renovar_alquiler' alquiler.id %}" class="btn btn-sm btn-warning" title="Renovar">
-                                    <i class="fas fa-sync-alt"></i>
-                                </a>
-                            
-                            {% elif alquiler.estado_alquiler == 'reservado' or alquiler.estado_alquiler == 'pendiente_aprobacion' %}
+    <div class="btn-group d-flex flex-wrap gap-1" role="group">
 
-                            <a href="{% url 'alquiler:aprobar_alquiler' alquiler.id %}" class="btn btn-sm btn-success" title="Aprobar Reserva"
-                               onclick="return confirm('¿Está seguro que desea aprobar esta reserva y convertirla en alquiler activo?')">
-                                <i class="fas fa-check"></i>
-                            </a>
-                            
-                        {% endif %}
-                                                    
-                            {% if alquiler.estado_alquiler != 'finalizado' and alquiler.estado_alquiler != 'cancelado' %}
-                                <a href="{% url 'alquiler:cancelar_alquiler' alquiler.id %}" class="btn btn-sm btn-secondary" title="Cancelar">
-                                    <i class="fas fa-times"></i>
-                                </a>
-                            {% endif %}
-                            
-                        
-                            {% if alquiler.estado_alquiler == 'finalizado' %}
-                                <a href="{% url 'alquiler:generar_acta_devolucion' alquiler.id %}" class="btn btn-sm btn-info" title="Acta Devolución">
-                                    <i class="fas fa-file-download"></i>
-                                </a>
-                            {% endif %}
-                            
+        {# --- Acciones principales según estado --- #}
+        {% if alquiler.estado_alquiler == 'activo' %}
+            <a href="{% url 'alquiler:finalizar_alquiler' alquiler.id %}" class="btn btn-sm btn-danger" title="Finalizar">
+                <i class="fas fa-stop-circle"></i>
+            </a>
+            <a href="{% url 'alquiler:editar_alquiler' alquiler.id %}" class="btn btn-sm btn-warning" title="Editar">
+                <i class="fas fa-edit"></i>
+            </a>
+            <a href="{% url 'alquiler:renovar_alquiler' alquiler.id %}" class="btn btn-sm btn-warning" title="Renovar">
+                <i class="fas fa-sync-alt"></i>
+            </a>
+        {% elif alquiler.estado_alquiler == 'reservado' or alquiler.estado_alquiler == 'pendiente_aprobacion' %}
+            <a href="{% url 'alquiler:aprobar_alquiler' alquiler.id %}" class="btn btn-sm btn-success" title="Aprobar Reserva"
+               onclick="return confirm('¿Está seguro que desea aprobar esta reserva y convertirla en alquiler activo?')">
+                <i class="fas fa-check"></i>
+            </a>
+        {% endif %}
 
-                            <a href="{% url 'alquiler:detalle_alquiler' alquiler.id %}" class="btn btn-sm btn-primary" title="Detalles">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            
-                            {% if alquiler.contrato %}
-                                {% if not alquiler.contrato.fecha_firma %}
-                                    <a href="{% url 'alquiler:firmar_contrato' alquiler.id %}" class="btn btn-sm btn-primary" title="Firmar Contrato">
-                                        <i class="fas fa-signature"></i>
-                                    </a>
-                                {% else %}
-                                    <a href="{{ alquiler.contrato.documento_contrato.url }}" target="_blank" class="btn btn-sm btn-info" title="Ver Contrato">
-                                        <i class="fas fa-file-contract"></i>
-                                    </a>
-                                {% endif %}
-                            {% else %}
-                                <a href="{% url 'alquiler:crear_contrato' alquiler.id %}" class="btn btn-sm btn-primary" title="Generar Contrato">
-                                    <i class="fas fa-file-signature"></i>
-                                </a>
-                            {% endif %}
-                            
+        {# --- Cancelar si no está finalizado ni cancelado --- #}
+        {% if alquiler.estado_alquiler != 'finalizado' and alquiler.estado_alquiler != 'cancelado' %}
+            <a href="{% url 'alquiler:cancelar_alquiler' alquiler.id %}" class="btn btn-sm btn-secondary" title="Cancelar">
+                <i class="fas fa-times"></i>
+            </a>
+        {% endif %}
 
-                        </div>
-                    </td>
+        {# --- Acta de devolución si finalizado --- #}
+        {% if alquiler.estado_alquiler == 'finalizado' %}
+            <a href="{% url 'alquiler:generar_acta_devolucion' alquiler.id %}" class="btn btn-sm btn-info" title="Acta Devolución">
+                <i class="fas fa-file-download"></i>
+            </a>
+        {% endif %}
+
+        {# --- Siempre mostrar detalle --- #}
+        <a href="{% url 'alquiler:detalle_alquiler' alquiler.id %}" class="btn btn-sm btn-primary" title="Detalles">
+            <i class="fas fa-eye"></i>
+        </a>
+
+        {# --- Contrato --- #}
+        {% if alquiler.contrato %}
+            {% if not alquiler.contrato.fecha_firma %}
+                <a href="{% url 'alquiler:firmar_contrato' alquiler.id %}" class="btn btn-sm btn-primary" title="Firmar Contrato">
+                    <i class="fas fa-signature"></i>
+                </a>
+            {% else %}
+                <a href="{{ alquiler.contrato.documento_contrato.url }}" target="_blank" class="btn btn-sm btn-info" title="Ver Contrato">
+                    <i class="fas fa-file-contract"></i>
+                </a>
+            {% endif %}
+        {% else %}
+            <a href="{% url 'alquiler:crear_contrato' alquiler.id %}" class="btn btn-sm btn-primary" title="Generar Contrato">
+                <i class="fas fa-file-signature"></i>
+            </a>
+        {% endif %}
+
+    </div>
+</td>
+
                 </tr>
                 {% empty %}
                 <tr>

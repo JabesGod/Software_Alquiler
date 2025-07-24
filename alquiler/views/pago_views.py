@@ -455,6 +455,8 @@ def cambiar_estado_pago(request, pago_id, nuevo_estado):
     
     return redirect('alquiler:detalle_pago', pago_id=pago.id)
 
+
+
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)
 def pagos_proximos_vencer(request):

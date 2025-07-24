@@ -31,6 +31,8 @@ from django.contrib.auth import update_session_auth_hash
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.conf import settings
+from django.http import HttpResponse
+from django.urls import reverse
 
 import logging
 
@@ -65,11 +67,16 @@ def registro_usuario(request):
                 'uid': urlsafe_base64_encode(force_bytes(usuario.pk)),
                 'token': token,
             })
-
+            activation_url = request.build_absolute_uri(
+    reverse('alquiler:activar_cuenta', kwargs={
+        'uidb64': urlsafe_base64_encode(force_bytes(usuario.pk)),
+        'token': token
+    })
+)
             plain_message = f"""
 Nuevo usuario registrado: {usuario.nombre_usuario}
 Activa su cuenta aquí:
-http://{current_site.domain}/activar/{urlsafe_base64_encode(force_bytes(usuario.pk))}/{token}/
+{activation_url}
 """
 
             # Enviar correo al administrador
@@ -83,7 +90,7 @@ http://{current_site.domain}/activar/{urlsafe_base64_encode(force_bytes(usuario.
             )
 
             messages.success(request, '¡Registro exitoso! Por favor revisa tu correo para activar la cuenta desde el panel de administración.')
-            return redirect('inicio_sesion')
+            return redirect('alquiler:inicio_sesion')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -95,6 +102,7 @@ http://{current_site.domain}/activar/{urlsafe_base64_encode(force_bytes(usuario.
         'form_type': 'registro',
         'form': form
     })
+
 
 def activar_cuenta(request, uidb64, token):
     try:
@@ -111,13 +119,37 @@ def activar_cuenta(request, uidb64, token):
             usuario.activation_token = None
             usuario.activation_token_created = None
             usuario.save()
-            messages.success(request, '¡Tu cuenta ha sido activada! Ahora puedes iniciar sesión.')
+            
+            # Respuesta simple para el admin sin redirección
+            return HttpResponse("""
+                <div style="font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #f0f8ff;">
+                    <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block;">
+                        <h2 style="color: #28a745; margin-bottom: 15px;">✅ Cuenta Activada Exitosamente</h2>
+                        <p style="color: #333; font-size: 16px;">El usuario <strong>{}</strong> ha sido activado correctamente.</p>
+                        <p style="color: #666; font-size: 14px; margin-top: 20px;">Puedes cerrar esta pestaña.</p>
+                    </div>
+                </div>
+            """.format(usuario.nombre_usuario))
         else:
-            messages.error(request, 'El enlace de activación ha expirado.')
+            return HttpResponse("""
+                <div style="font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #fff5f5;">
+                    <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block;">
+                        <h2 style="color: #dc3545; margin-bottom: 15px;">⏰ Enlace Expirado</h2>
+                        <p style="color: #333; font-size: 16px;">El enlace de activación ha expirado.</p>
+                        <p style="color: #666; font-size: 14px; margin-top: 20px;">Contacta al usuario para que se registre nuevamente.</p>
+                    </div>
+                </div>
+            """)
     else:
-        messages.error(request, 'El enlace de activación es inválido.')
-
-    return redirect('alquiler:inicio_sesion')
+        return HttpResponse("""
+            <div style="font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #fff5f5;">
+                <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block;">
+                    <h2 style="color: #dc3545; margin-bottom: 15px;">❌ Enlace Inválido</h2>
+                    <p style="color: #333; font-size: 16px;">El enlace de activación es inválido.</p>
+                    <p style="color: #666; font-size: 14px; margin-top: 20px;">Verifica que el enlace esté completo y correcto.</p>
+                </div>
+            </div>
+        """)
 
 def inicio_sesion(request):
     if request.user.is_authenticated:

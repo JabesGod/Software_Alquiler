@@ -44,6 +44,7 @@ class RegistroForm(forms.Form):
 
         return cleaned_data
     
+    
 class UsuarioEditForm(forms.ModelForm):
     rol = forms.ModelChoiceField(
         queryset=Rol.objects.all().prefetch_related('permisos'),
@@ -90,7 +91,6 @@ class UsuarioEditForm(forms.ModelForm):
                 perm.codename for perm in self.instance.rol.permisos.all()
             ] if self.instance.rol else []
 
-
 class CambiarContrasenaForm(forms.Form):
     nueva_contrasena = forms.CharField(
         label="Nueva contraseña",
@@ -124,8 +124,6 @@ class CambiarContrasenaForm(forms.Form):
         
         return cleaned_data
     
-
-
 class RolForm(forms.ModelForm):
     permisos = forms.ModelMultipleChoiceField(
         queryset=Permission.objects.all(),

@@ -1,50 +1,433 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="es">
 <head>
-    <meta charset="utf-8">
-    <title>Nuevo usuario registrado</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Usuario Registrado - TecnoNacho</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .email-container {
+            max-width: 650px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            position: relative;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            animation: float 20s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        .logo-section {
+            position: relative;
+            z-index: 2;
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .logo img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+        
+        .header h1 {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            font-weight: 400;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .notification-badge {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .notification-badge i {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        
+        .user-info {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 5px solid #4f46e5;
+            position: relative;
+        }
+        
+        .user-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(79, 70, 229, 0.1) 0%, transparent 70%);
+            border-radius: 0 15px 0 100px;
+        }
+        
+        .info-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+        }
+        
+        .info-content {
+            flex: 1;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-value {
+            font-size: 16px;
+            color: #1e293b;
+            font-weight: 600;
+        }
+        
+        .action-section {
+            text-align: center;
+            margin: 35px 0;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+            border-radius: 15px;
+            border: 2px dashed rgba(79, 70, 229, 0.2);
+        }
+        
+        .action-text {
+            color: #374151;
+            font-size: 16px;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+        
+        .activate-button {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .activate-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .activate-button:hover::before {
+            left: 100%;
+        }
+        
+        .activate-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(16, 185, 129, 0.4);
+        }
+        
+        .activate-button i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .security-note {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+        
+        .security-note-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .security-note-header i {
+            color: #d97706;
+            margin-right: 8px;
+            font-size: 18px;
+        }
+        
+        .security-note-header span {
+            color: #92400e;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .security-note p {
+            color: #a16207;
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 0;
+        }
+        
+        .footer {
+            background: #f8fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .footer-text {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .company-info {
+            color: #4f46e5;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .divider {
+            height: 2px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            margin: 30px 0;
+            border-radius: 1px;
+        }
+        
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header, .content, .footer {
+                padding: 25px 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .user-info {
+                padding: 20px;
+            }
+            
+            .action-section {
+                padding: 25px 15px;
+            }
+            
+            .activate-button {
+                padding: 14px 28px;
+                font-size: 15px;
+            }
+        }
+    </style>
 </head>
-
-<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-
-    <div
-        style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <h2 style="color: #2d3748; margin-bottom: 10px;">📥 Nuevo usuario registrado</h2>
-
-        <p style="color: #4a5568; font-size: 15px;">
-            Se ha registrado un nuevo usuario en el sistema.
-        </p>
-
-        <table style="width: 100%; font-size: 14px; margin: 20px 0;">
-            <tr>
-                <td style="padding: 8px 0;"><strong>👤 Nombre de usuario:</strong></td>
-                <td>{{ user.nombre_usuario }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 8px 0;"><strong>🕒 Fecha de registro:</strong></td>
-                <td>{{ user.date_joined|default:"N/A" }}</td>
-            </tr>
-        </table>
-
-        <p style="margin: 20px 0; font-size: 14px; color: #2d3748;">
-            Para aprobar su cuenta, haz clic en el siguiente botón:
-        </p>
-
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="http://{{ domain }}{% url 'activar_cuenta' uidb64=uid token=token %}"
-                style="background-color: #3182ce; color: white; padding: 12px 25px; border-radius: 5px; text-decoration: none; font-weight: bold;">
-                ✅ Activar cuenta
-            </a>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-section">
+                <div class="logo">
+                    <img src="http://{{ domain }}/static/media/tecnonacho.png" alt="TecnoNacho Logo">
+                </div>
+                <h1><i class="fas fa-rocket"></i> TecnoNacho</h1>
+                <p>Sistema de Gestión de Usuarios</p>
+            </div>
         </div>
-
-        <p style="color: #718096; font-size: 12px; margin-top: 30px;">
-            Si no esperabas este registro, puedes ignorar este mensaje.
-        </p>
-
-        <p style="color: #4a5568; font-size: 13px;">Gracias,<br>El sistema de gestión de usuarios</p>
+        
+        <!-- Content -->
+        <div class="content">
+            <div class="notification-badge">
+                <i class="fas fa-user-plus"></i>
+                Nuevo Usuario Registrado
+            </div>
+            
+            <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+                ¡Hola Administrador! Se ha registrado un nuevo usuario en el sistema y está esperando tu aprobación para acceder a la plataforma.
+            </p>
+            
+            <!-- User Information -->
+            <div class="user-info">
+                <div class="info-row">
+                    <div class="info-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">Nombre de Usuario</div>
+                        <div class="info-value">{{ user.nombre_usuario }}</div>
+                    </div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">Fecha de Registro</div>
+                        <div class="info-value">{{ user.date_joined|date:"d/m/Y H:i" }}</div>
+                    </div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">Estado Actual</div>
+                        <div class="info-value">
+                            <span style="color: #f59e0b; font-weight: 600;">
+                                <i class="fas fa-hourglass-half"></i> Pendiente de Activación
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <!-- Action Section -->
+            <div class="action-section">
+                <p class="action-text">
+                    <i class="fas fa-shield-alt" style="color: #4f46e5; margin-right: 8px;"></i>
+                    Para aprobar y activar esta cuenta, haz clic en el siguiente botón:
+                </p>
+                
+                <a href="http://{{ domain }}{% url 'alquiler:activar_cuenta' uidb64=uid token=token %}" class="activate-button">
+                    <i class="fas fa-check-circle"></i>
+                    Activar Cuenta Ahora
+                </a>
+            </div>
+            
+            <!-- Security Note -->
+            <div class="security-note">
+                <div class="security-note-header">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Nota de Seguridad</span>
+                </div>
+                <p>
+                    Este enlace de activación expirará en <strong>10 minutos</strong> por motivos de seguridad. 
+                    Si no reconoces este registro o crees que es spam, puedes ignorar este mensaje de forma segura.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                Este es un mensaje automático del sistema de gestión de usuarios.<br>
+                Por favor, no respondas a este correo electrónico.
+            </p>
+            <div class="company-info">
+                <i class="fas fa-cog"></i> Sistema TecnoNacho
+            </div>
+        </div>
     </div>
-
 </body>
-
 </html>

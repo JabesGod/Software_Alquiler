@@ -60,12 +60,16 @@
                         <i class="fas fa-chevron-down submenu-icon"></i>
                     </a>
                     <ul class="submenu">
+                        {% if user.is_staff %}
                         <li><a href="{% url 'alquiler:listar_equipos' %}"><i class="fas fa-list"></i> Listado</a></li>
+                        {% endif %}
                         {% if user.is_staff %}
                         <li><a href="{% url 'alquiler:crear_equipo' %}"><i class="fas fa-plus"></i> Nuevo</a></li>
                         {% endif %}
+                        {% if user.is_staff %}
                         <li><a href="{% url 'alquiler:equipos_disponibles' %}"><i class="fas fa-check-circle"></i>
                                 Disponibles</a></li>
+                                {% endif %}
                         {% if user.is_staff %}
                         <li><a href="{% url 'alquiler:equipos_mas_alquilados' %}"><i class="fas fa-chart-bar"></i>
                                 Estadísticas</a></li>

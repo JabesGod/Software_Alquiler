@@ -221,6 +221,7 @@ class UnidadEquipo(models.Model):
         on_delete=models.CASCADE
     )
 
+
 class FotoEquipo(models.Model):
     equipo = models.ForeignKey(
         'Equipo',  # en caso de que se defina más abajo

@@ -81,6 +81,7 @@ def listar_alquileres(request):
     
     return render(request, 'lista_alquileres.html', context)
 
+
 @login_required
 @permission_required('alquiler.export_alquiler', raise_exception=True)
 def generar_pdf_acta(alquiler, request):
@@ -101,6 +102,7 @@ def generar_pdf_acta(alquiler, request):
     result.seek(0)
     return result.getvalue()
 
+
 @login_required
 @permission_required('alquiler.add_alquiler', raise_exception=True)
 def crear_alquiler(request):
@@ -108,7 +110,7 @@ def crear_alquiler(request):
     cliente = None
 
     if cliente_id:
-        cliente = get_object_or_404(Cliente, id=cliente_id)
+        cliente = get_object_or_404(Cliente, uuid_id=cliente_id)
         print(f" Cliente: {cliente.nombre}, Moroso: {cliente.moroso}, Verificación: {cliente.estado_verificacion}")
 
         if cliente.moroso and not request.user.has_perm('alquiler.override_moroso'):
@@ -225,16 +227,16 @@ def crear_alquiler(request):
         'form': form,
         'formset': formset,
         'equipos_disponibles': equipos_disponibles,
-        'cliente_moroso': Cliente.objects.get(id=cliente_id).moroso if cliente_id else False
+        'cliente_moroso': Cliente.objects.get(uuid_id=cliente_id).moroso if cliente_id else False
     })
-
 
 
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)
 def editar_alquiler(request, id):
     print(f"[INFO] Iniciando edición del alquiler ID: {id}")
-    alquiler = get_object_or_404(Alquiler, id=id)
+    alquiler = get_object_or_404(Alquiler, uuid_id=id)
+
     print(f"[INFO] Alquiler cargado: Cliente={alquiler.cliente}, Fecha Fin={alquiler.fecha_fin}")
 
     equipos_disponibles = Equipo.objects.filter(
@@ -278,7 +280,7 @@ def editar_alquiler(request, id):
                             continue
 
                         equipo_id = request.POST.get(f'{prefix}-equipo')
-                        equipo = get_object_or_404(Equipo, id=equipo_id)
+                        equipo = get_object_or_404(Equipo, uuid_id=equipo_id)
                         print(f"[DEBUG] Detalle #{i} -> Equipo ID: {equipo_id}")
 
                         numeros_serie = request.POST.get(f'{prefix}-numeros_serie', '[]')
@@ -350,7 +352,7 @@ def editar_alquiler(request, id):
 
                     print(f"[INFO] Actualizando disponibilidad de {len(equipos_afectados)} equipos.")
                     for equipo in equipos_afectados:
-                        print(f"[DEBUG] Actualizando equipo ID: {equipo.id}")
+                        print(f"[DEBUG] Actualizando equipo UUID: {equipo.uuid_id}")
                         equipo.actualizar_disponibilidad()
 
                     alquiler_actualizado.calcular_precio_total()
@@ -386,7 +388,7 @@ def editar_alquiler(request, id):
     equipos_json = json.dumps([
         {
             "id": detalle.id,
-            "equipoId": detalle.equipo.id,
+            "equipoId": str(detalle.equipo.uuid_id),
             "equipoTexto": f"{detalle.equipo.marca} {detalle.equipo.modelo}",
             "series": [s for s in (detalle.numeros_serie if isinstance(detalle.numeros_serie, list) else []) if s],
             "periodo": detalle.periodo_alquiler,
@@ -409,6 +411,7 @@ def editar_alquiler(request, id):
         'equipos_json': mark_safe(equipos_json)
     })
 
+
 @login_required
 @permission_required('alquiler.add_alquiler', raise_exception=True)
 def reservar_alquiler(request):
@@ -428,7 +431,7 @@ def reservar_alquiler(request):
         formset = DetalleAlquilerFormSet(request.POST, prefix='detalles')
 
         cliente_id = request.POST.get('cliente')
-        cliente = Cliente.objects.get(pk=cliente_id) if cliente_id else None
+        cliente = get_object_or_404(Cliente, uuid_id=cliente_id) if cliente_id else None
 
         # Validación: moroso y no verificado
         if cliente:
@@ -516,11 +519,10 @@ def reservar_alquiler(request):
     })
 
 
-
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)
 def aprobar_alquiler(request, id):
-    alquiler = get_object_or_404(Alquiler, id=id)
+    alquiler = get_object_or_404(Alquiler, uuid_id=id)
 
     if alquiler.estado_alquiler in ['reservado', 'pendiente_aprobacion']:
         try:
@@ -580,11 +582,10 @@ def aprobar_alquiler(request, id):
     return redirect('alquiler:listar_alquileres')
 
 
-
 @login_required
 @permission_required('alquiler.view_equipo', raise_exception=True)
 def series_disponibles(request, equipo_id):
-    equipo = get_object_or_404(Equipo, id=equipo_id)
+    equipo = get_object_or_404(Equipo, uuid_id=equipo_id)
     series = equipo.numeros_serie_lista()
     
     return JsonResponse({
@@ -602,7 +603,8 @@ def series_disponibles(request, equipo_id):
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)
 def finalizar_alquiler(request, id):
-    alquiler = get_object_or_404(Alquiler, id=id)
+    alquiler = get_object_or_404(Alquiler, uuid_id=id)
+
     
     if alquiler.estado_alquiler in ['finalizado', 'cancelado']:
         messages.warning(request, f"Este alquiler ya está {alquiler.get_estado_alquiler_display().lower()}.")
@@ -647,7 +649,7 @@ def finalizar_alquiler(request, id):
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)
 def renovar_alquiler(request, id):
-    alquiler = get_object_or_404(Alquiler, id=id)
+    alquiler = get_object_or_404(Alquiler, uuid_id=id)
     if request.method == 'POST':
         nueva_fecha_fin = request.POST.get('nueva_fecha_fin')
         alquiler.fecha_fin = nueva_fecha_fin
@@ -661,8 +663,7 @@ def renovar_alquiler(request, id):
 @login_required
 @permission_required('alquiler.view_acta', raise_exception=True)
 def generar_acta_entrega(request, id):
-    alquiler = get_object_or_404(Alquiler, id=id)
-    
+    alquiler = get_object_or_404(Alquiler, uuid_id=id)    
     # Renderizar template con el contexto necesario
     html = render_to_string('acta_entrega.html', {
         'alquiler': alquiler,
@@ -689,7 +690,7 @@ def generar_acta_entrega(request, id):
 @login_required
 @permission_required('alquiler.view_acta', raise_exception=True)
 def generar_acta_devolucion(request, id):
-    alquiler = get_object_or_404(Alquiler, id=id)
+    alquiler = get_object_or_404(Alquiler, uuid_id=id)
     
     # Renderizar template
     html = render_to_string('acta_devolucion.html', {
@@ -744,7 +745,7 @@ def alertas_devoluciones_proximas():
 @login_required
 @permission_required('alquiler.view_alquiler', raise_exception=True)
 def detalle_alquiler(request, id):
-    alquiler = get_object_or_404(Alquiler, id=id)
+    alquiler = get_object_or_404(Alquiler, uuid_id=id)
     
     # Obtener historial de actas (usando el modelo unificado)
     historial_entregas = Acta.objects.filter(
@@ -825,7 +826,7 @@ def calendario_alquileres(request):
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)
 def cancelar_alquiler(request, id):
-    alquiler = get_object_or_404(Alquiler, id=id)
+    alquiler = get_object_or_404(Alquiler, uuid_id=id)
     if alquiler.estado_alquiler != 'cancelado':
         alquiler.estado_alquiler = 'cancelado'
         alquiler.save()
@@ -842,7 +843,7 @@ def cancelar_alquiler(request, id):
 @login_required
 @permission_required('alquiler.add_contrato', raise_exception=True)
 def crear_contrato(request, id):
-    alquiler = get_object_or_404(Alquiler, id=id)
+    alquiler = get_object_or_404(Alquiler, uuid_id=id)
 
     if hasattr(alquiler, 'contrato'):
         messages.warning(request, "Este alquiler ya tiene un contrato generado.")
@@ -865,7 +866,7 @@ def crear_contrato(request, id):
 @login_required
 @permission_required('alquiler.change_contrato', raise_exception=True)
 def firmar_contrato(request, id):
-    alquiler = get_object_or_404(Alquiler, id=id)
+    alquiler = get_object_or_404(Alquiler, uuid_id=id)
     contrato = get_object_or_404(Contrato, alquiler=alquiler)
 
     if request.method == 'POST':
@@ -1126,7 +1127,7 @@ def renovar_contrato(request, id):
 @login_required
 @permission_required('alquiler.delete_alquiler', raise_exception=True)
 def eliminar_alquiler(request, id):
-    alquiler = get_object_or_404(Alquiler, id=id)
+    alquiler = get_object_or_404(Alquiler, uuid_id=id)
 
     if request.method == 'POST':
         alquiler.delete()

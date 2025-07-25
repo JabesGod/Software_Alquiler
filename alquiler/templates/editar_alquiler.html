@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Editar Alquiler #{{ alquiler.id }}{% endblock %}
+{% block title %}Editar Alquiler de {{ alquiler.cliente }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
     <h2 class="mb-4">
         <i class="fas fa-edit"></i> 
-        Editar {{ alquiler.es_reserva|yesno:"Reserva,Alquiler" }} #{{ alquiler.id }}
+        Editar {{ alquiler.es_reserva|yesno:"Reserva,Alquiler" }} de {{ alquiler.cliente }}
         <span class="badge bg-{{ alquiler.estado_alquiler|default:'secondary' }}">
             {{ alquiler.get_estado_alquiler_display }}
         </span>
@@ -253,8 +253,9 @@
 </script>
 
 <script>
-    window.SERIES_DISPONIBLES_URL = "{% url 'alquiler:series_disponibles' equipo_id=0 %}".replace('0', '{equipoId}');
+    window.SERIES_DISPONIBLES_URL = "{% url 'alquiler:series_disponibles' equipo_id='00000000-0000-0000-0000-000000000000' %}".replace('00000000-0000-0000-0000-000000000000', '{equipoId}');
 </script>
+
 
 {% endblock %}
 

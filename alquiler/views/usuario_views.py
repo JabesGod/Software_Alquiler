@@ -313,7 +313,7 @@ def asignar_rol(request, usuario_uuid):
                 usuario.groups.add(rol.grupo)
             
             messages.success(request, f'Rol "{rol.nombre_rol}" asignado correctamente a {usuario.nombre_usuario}')
-            return redirect('alquiler:editar_usuario', usuario_id=usuario.id)
+            return redirect('alquiler:editar_usuario', usuario_uuid=usuario.uuid_id)
     
     return render(request, 'asignar_rol.html', {
         'usuario': usuario,

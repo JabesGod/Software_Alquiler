@@ -131,6 +131,7 @@ core_patterns = [
     path('inicio/', pagina_principal, name='pagina_principal'),
     path('usuarios/', lista_usuarios, name='lista_usuarios'),
     path('usuarios/editar/<uuid:usuario_uuid>/', editar_usuario, name='editar_usuario'),
+    path('usuarios/<uuid:usuario_uuid>/asignar-rol/', asignar_rol, name='asignar_rol'),
     path('usuarios/cambiar-estado/<uuid:usuario_uuid>/', cambiar_estado_usuario, name='cambiar_estado_usuario'),
     path('usuarios/cambiar-contrasena/<uuid:usuario_uuid>/', cambiar_contrasena, name='cambiar_contrasena'),
     path('usuarios/eliminar/<uuid:usuario_uuid>/', confirmar_eliminar_usuario, name='confirmar_eliminar_usuario'),

@@ -52,7 +52,9 @@
                         <input type="color" id="navColorPicker" class="color-picker" value="#2c3e50">
                     </div>
                 </li>
+                
                 <!-- Equipos -->
+                {% if perms.alquiler.view_equipo %}
                 <li class="menu-item has-submenu">
                     <a href="#" class="menu-link">
                         <i class="fas fa-laptop"></i>
@@ -60,31 +62,30 @@
                         <i class="fas fa-chevron-down submenu-icon"></i>
                     </a>
                     <ul class="submenu">
-                        {% if user.is_staff %}
+                        {% if perms.alquiler.view_equipo %}
                         <li><a href="{% url 'alquiler:listar_equipos' %}"><i class="fas fa-list"></i> Listado</a></li>
                         {% endif %}
-                        {% if user.is_staff %}
+                        {% if perms.alquiler.add_equipo %}
                         <li><a href="{% url 'alquiler:crear_equipo' %}"><i class="fas fa-plus"></i> Nuevo</a></li>
                         {% endif %}
-                        {% if user.is_staff %}
-                        <li><a href="{% url 'alquiler:equipos_disponibles' %}"><i class="fas fa-check-circle"></i>
-                                Disponibles</a></li>
-                                {% endif %}
-                        {% if user.is_staff %}
-                        <li><a href="{% url 'alquiler:equipos_mas_alquilados' %}"><i class="fas fa-chart-bar"></i>
-                                Estadísticas</a></li>
+                        {% if perms.alquiler.view_equipo %}
+                        <li><a href="{% url 'alquiler:equipos_disponibles' %}"><i class="fas fa-check-circle"></i> Disponibles</a></li>
                         {% endif %}
-                        {% if user.is_staff %}
-                        <li><a href="{% url 'alquiler:actualizar_estados_masivo' %}"><i class="fas fa-sync-alt"></i>
-                                Actualización Masiva</a></li>
+                        {% if perms.alquiler.view_report %}
+                        <li><a href="{% url 'alquiler:equipos_mas_alquilados' %}"><i class="fas fa-chart-bar"></i> Estadísticas</a></li>
                         {% endif %}
-                        {% if user.is_staff %}
+                        {% if perms.alquiler.change_equipo %}
+                        <li><a href="{% url 'alquiler:actualizar_estados_masivo' %}"><i class="fas fa-sync-alt"></i> Actualización Masiva</a></li>
+                        {% endif %}
+                        {% if perms.alquiler.export_data %}
                         <li><a href="{% url 'alquiler:exportar_equipos_csv' %}"><i class="fas fa-file-csv"></i> Exportar</a></li>
                         {% endif %}
                     </ul>
                 </li>
+                {% endif %}
 
                 <!-- Clientes -->
+                {% if perms.alquiler.view_cliente %}
                 <li class="menu-item has-submenu">
                     <a href="#" class="menu-link">
                         <i class="fas fa-users"></i>
@@ -92,20 +93,21 @@
                         <i class="fas fa-chevron-down submenu-icon"></i>
                     </a>
                     <ul class="submenu">
-                        {% if user.is_staff %}
+                        {% if perms.alquiler.view_cliente %}
                         <li><a href="{% url 'alquiler:listar_clientes' %}"><i class="fas fa-list"></i> Listado</a></li>
                         {% endif %}
-                        {% if user.is_staff %}
+                        {% if perms.alquiler.add_cliente %}
                         <li><a href="{% url 'alquiler:crear_cliente' %}"><i class="fas fa-user-plus"></i> Nuevo</a></li>
                         {% endif %}
-                        {% if user.is_staff %}
-                        <li><a href="{% url 'alquiler:clientes_morosos' %}"><i class="fas fa-exclamation-triangle"></i>
-                                Morosos</a></li>
+                        {% if perms.alquiler.view_morosos %}
+                        <li><a href="{% url 'alquiler:clientes_morosos' %}"><i class="fas fa-exclamation-triangle"></i> Morosos</a></li>
                         {% endif %}
                     </ul>
                 </li>
+                {% endif %}
 
                 <!-- Alquileres -->
+                {% if perms.alquiler.view_alquiler %}
                 <li class="menu-item has-submenu">
                     <a href="#" class="menu-link">
                         <i class="fas fa-handshake"></i>
@@ -113,22 +115,24 @@
                         <i class="fas fa-chevron-down submenu-icon"></i>
                     </a>
                     <ul class="submenu">
-                        {% if user.is_staff %}
+                        {% if perms.alquiler.view_alquiler %}
                         <li><a href="{% url 'alquiler:listar_alquileres' %}"><i class="fas fa-list"></i> Listado</a></li>
                         {% endif %}
-                        {% if user.is_staff %}
+                        {% if perms.alquiler.add_alquiler %}
                         <li><a href="{% url 'alquiler:crear_alquiler' %}"><i class="fas fa-plus-circle"></i> Nuevo</a></li>
                         {% endif %}
-                        {% if user.is_staff %}
-                        <li><a href="{% url 'alquiler:calendario_alquileres' %}"><i class="fas fa-calendar-alt"></i>
-                                Calendario</a></li>
+                        {% if perms.alquiler.view_calendar %}
+                        <li><a href="{% url 'alquiler:calendario_alquileres' %}"><i class="fas fa-calendar-alt"></i> Calendario</a></li>
                         {% endif %}
-                        {% if user.is_staff %}
-                        <li><a href="{% url 'alquiler:reservar_alquiler' %}"><i class="fas fa-calendar-check"></i> Reservas</a>
-                        </li>
+                        {% if perms.alquiler.add_reserva %}
+                        <li><a href="{% url 'alquiler:reservar_alquiler' %}"><i class="fas fa-calendar-check"></i> Reservas</a></li>
                         {% endif %}
                     </ul>
                 </li>
+                {% endif %}
+                
+                <!-- Pagos -->
+                {% if perms.alquiler.view_pago %}
                 <li class="menu-item has-submenu">
                     <a href="#" class="menu-link">
                         <i class="fas fa-money-bill-wave"></i>
@@ -136,31 +140,40 @@
                         <i class="fas fa-chevron-down submenu-icon"></i>
                     </a>
                     <ul class="submenu">
-                        {% if user.is_staff %}
+                        {% if perms.alquiler.view_pago %}
                         <li><a href="{% url 'alquiler:lista_pagos' %}"><i class="fas fa-list"></i> Ver Todos los Pagos</a></li>
-                        <li><a href="{% url 'alquiler:registrar_pago' %}"><i class="fas fa-cash-register"></i> Registrar Pago</a>
-                        </li>
-                        <li><a href="{% url 'alquiler:pagos_parciales' %}"><i class="fas fa-percentage"></i> Pagos Parciales</a>
-                        </li>
-                        <li><a href="{% url 'alquiler:pagos_vencidos' %}"><i class="fas fa-exclamation-circle"></i> Pagos
-                                Vencidos</a></li>
-                        <li><a href="{% url 'alquiler:pagos_proximos' %}"><i class="fas fa-hourglass-half"></i> Próximos a
-                                Vencer</a></li>
+                        {% endif %}
+                        {% if perms.alquiler.add_pago %}
+                        <li><a href="{% url 'alquiler:registrar_pago' %}"><i class="fas fa-cash-register"></i> Registrar Pago</a></li>
+                        {% endif %}
+                        {% if perms.alquiler.view_parciales %}
+                        <li><a href="{% url 'alquiler:pagos_parciales' %}"><i class="fas fa-percentage"></i> Pagos Parciales</a></li>
+                        {% endif %}
+                        {% if perms.alquiler.view_vencidos %}
+                        <li><a href="{% url 'alquiler:pagos_vencidos' %}"><i class="fas fa-exclamation-circle"></i> Pagos Vencidos</a></li>
+                        {% endif %}
+                        {% if perms.alquiler.view_proximos %}
+                        <li><a href="{% url 'alquiler:pagos_proximos' %}"><i class="fas fa-hourglass-half"></i> Próximos a Vencer</a></li>
+                        {% endif %}
+                        {% if perms.alquiler.view_report %}
                         <li><a href="{% url 'alquiler:reportes_pagos' %}"><i class="fas fa-chart-line"></i> Reportes</a></li>
                         {% endif %}
                     </ul>
                 </li>
+                {% endif %}
 
-                {% if user.is_staff %}
                 <!-- Admin -->
+                {% if perms.alquiler.view_admin %}
                 <li class="menu-item">
                     <a href="{% url 'alquiler:dashboard_admin' %}" class="menu-link">
                         <i class="fas fa-cog"></i>
                         <span class="link-text">Admin</span>
                     </a>
                 </li>
+                {% endif %}
 
-                <!-- Nuevo ítem para Gestión de Usuarios -->
+                <!-- Gestión de Usuarios -->
+                {% if perms.auth.view_user %}
                 <li class="menu-item">
                     <a href="{% url 'alquiler:lista_usuarios' %}" class="menu-link">
                         <i class="fas fa-users-cog"></i>
@@ -249,7 +262,7 @@
 </body>
 {% if not user.is_authenticated and request.path|slice:":8" != '/static/' %}
     <script>
-        window.location.href = "{% url 'inicio_sesion' %}?next={{ request.path }}";
+        window.location.href = "{% url 'alquiler:inicio_sesion' %}?next={{ request.path }}";
     </script>
 {% endif %}
 

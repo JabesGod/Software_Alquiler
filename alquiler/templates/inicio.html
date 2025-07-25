@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
- <title>{% block title %}Home {% endblock %}</title>
-
+<title>{% block title %}Home {% endblock %}</title>
 
 {% block content %}
 <div class="inicio-container">
@@ -9,11 +8,10 @@
     
     <div class="paneles-container">
         <!-- Sección Equipos -->
+        {% if perms.alquiler.view_equipo %}
         <div class="panel-categoria">
-            
             <h2>Gestión de Equipos</h2>
             <div class="panel-grid">
-                {% if user.is_staff %}
                 <a href="{% url 'alquiler:listar_equipos' %}" class="panel-item">
                     <i class="fas fa-laptop"></i>
                     <span>Ver todos los equipos</span>
@@ -23,22 +21,25 @@
                     <span>Equipos disponibles</span>
                 </a>
                 
-                {% if user.is_staff %}
+                {% if perms.alquiler.add_equipo %}
                 <a href="{% url 'alquiler:crear_equipo' %}" class="panel-item admin">
                     <i class="fas fa-plus-circle"></i>
                     <span>Agregar nuevo equipo</span>
                 </a>
+                {% endif %}
+                
+                {% if perms.alquiler.view_report %}
                 <a href="{% url 'alquiler:equipos_mas_alquilados' %}" class="panel-item admin">
                     <i class="fas fa-chart-line"></i>
                     <span>Estadísticas de equipos</span>
                 </a>
                 {% endif %}
-                {% endif %}
             </div>
         </div>
+        {% endif %}
         
         <!-- Sección Alquileres -->
-        {% if user.is_staff %}
+        {% if perms.alquiler.view_alquiler %}
         <div class="panel-categoria">
             <h2>Gestión de Alquileres</h2>
             <div class="panel-grid">
@@ -47,26 +48,32 @@
                     <span>Ver todos los alquileres</span>
                 </a>
                 
-                {% if user.is_staff %}
+                {% if perms.alquiler.add_alquiler %}
                 <a href="{% url 'alquiler:crear_alquiler' %}" class="panel-item admin">
                     <i class="fas fa-cart-plus"></i>
                     <span>Crear nuevo alquiler</span>
                 </a>
+                {% endif %}
+                
+                {% if perms.alquiler.view_calendar %}
                 <a href="{% url 'alquiler:calendario_alquileres' %}" class="panel-item admin">
                     <i class="fas fa-calendar-alt"></i>
                     <span>Calendario de alquileres</span>
                 </a>
+                {% endif %}
+                
+                {% if perms.alquiler.add_reserva %}
                 <a href="{% url 'alquiler:reservar_alquiler' %}" class="panel-item admin">
                     <i class="fas fa-clock"></i>
                     <span>Reservar equipo</span>
                 </a>
                 {% endif %}
             </div>
-            {% endif %}
         </div>
+        {% endif %}
         
-        {% if user.is_staff %}
-
+        <!-- Sección Clientes -->
+        {% if perms.alquiler.view_cliente %}
         <div class="panel-categoria">
             <h2>Gestión de Clientes</h2>
             <div class="panel-grid">
@@ -75,22 +82,25 @@
                     <span>Ver todos los clientes</span>
                 </a>
                 
-                {% if user.is_staff %}
+                {% if perms.alquiler.add_cliente %}
                 <a href="{% url 'alquiler:crear_cliente' %}" class="panel-item admin">
                     <i class="fas fa-user-plus"></i>
                     <span>Agregar nuevo cliente</span>
                 </a>
+                {% endif %}
+                
+                {% if perms.alquiler.view_morosos %}
                 <a href="{% url 'alquiler:clientes_morosos' %}" class="panel-item admin">
                     <i class="fas fa-exclamation-triangle"></i>
                     <span>Clientes morosos</span>
                 </a>
                 {% endif %}
             </div>
-            {% endif %}
         </div>
+        {% endif %}
         
-        <!-- Sección Administración (solo visible para admin) -->
-        {% if user.is_staff %}
+        <!-- Sección Administración -->
+        {% if perms.alquiler.view_admin %}
         <div class="panel-categoria">
             <h2>Administración</h2>
             <div class="panel-grid">
@@ -98,18 +108,27 @@
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard Admin</span>
                 </a>
+                
+                {% if perms.alquiler.export_data %}
                 <a href="{% url 'alquiler:exportar_equipos_csv' %}" class="panel-item admin">
                     <i class="fas fa-file-export"></i>
                     <span>Exportar equipos</span>
                 </a>
+                {% endif %}
+                
+                {% if perms.alquiler.change_equipo %}
                 <a href="{% url 'alquiler:actualizar_estados_masivo' %}" class="panel-item admin">
                     <i class="fas fa-sync-alt"></i>
                     <span>Actualización masiva</span>
                 </a>
+                {% endif %}
+                
+                {% if perms.alquiler.send_alerts %}
                 <a href="{% url 'alquiler:enviar_alertas_vencimiento' %}" class="panel-item admin">
                     <i class="fas fa-bell"></i>
                     <span>Alertas de vencimiento</span>
                 </a>
+                {% endif %}
             </div>
         </div>
         {% endif %}

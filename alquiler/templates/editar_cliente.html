@@ -4,7 +4,7 @@
 {% block title %}{% if cliente %}Editar{% else %}Crear{% endif %} Cliente | Sistema de Alquiler{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'alquiler/css/equipos.css' %}">
+<link rel="stylesheet" href="{% static 'alquiler/css/crear_cliente.css' %}">
 <style>
     /* Estilos para el formulario de cliente */
     .client-form-container {
@@ -243,7 +243,14 @@
             <h3 class="form-section-title">
                 <i class="fas fa-id-card"></i> Información Básica
             </h3>
+
             <div class="form-grid">
+                <div class="form-group">
+                    <label for="id_estado_verificacion">Estado de Verificación</label>
+                    {{ form.estado_verificacion }}
+                    {{ form.estado_verificacion.errors }}
+                </div>
+
                 <div class="form-group">
                     <label for="id_nombre">Nombre Completo</label>
                     {{ form.nombre }}

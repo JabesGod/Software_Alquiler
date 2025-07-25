@@ -35,16 +35,30 @@ def crear_cliente(request):
 
 # Editar cliente existente
 def editar_cliente(request, id):
-    cliente = get_object_or_404(Cliente, id=id)
+    try:
+        cliente = get_object_or_404(Cliente, uuid_id=id)
+    except Exception as e:
+        raise
+
     form = ClienteForm(request.POST or None, request.FILES or None, instance=cliente)
-    if form.is_valid():
-        form.save()
-        return redirect('alquiler:listar_clientes')
-    return render(request, 'editar_cliente.html', {'form': form, 'cliente': cliente})
+
+    if request.method == 'POST':
+        print("[DEBUG] Método POST recibido")
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Cliente actualizado correctamente")
+            return redirect('alquiler:listar_clientes')
+        else:
+            print(form.errors)
+
+    return render(request, 'editar_cliente.html', {
+        'form': form,
+        'cliente': cliente
+    })
 
 # Detalle del cliente con historial completo
 def detalle_cliente(request, id):
-    cliente = get_object_or_404(Cliente, id=id)
+    cliente = get_object_or_404(Cliente, uuid_id=id)
     historial_alquileres = Alquiler.objects.filter(cliente=cliente)
     pagos_pendientes = Pago.objects.filter(alquiler__cliente=cliente, estado_pago='pendiente')
 
@@ -57,17 +71,19 @@ def detalle_cliente(request, id):
 
 # Cambiar estado de verificación
 def cambiar_estado_verificacion(request, id, nuevo_estado):
-    cliente = get_object_or_404(Cliente, id=id)
+    cliente = get_object_or_404(Cliente, uuid_id=id)
     cliente.estado_verificacion = nuevo_estado
     cliente.save()
-    return redirect('alquiler:detalle_cliente', id=id)
+    return redirect('alquiler:detalle_cliente', id=cliente.uuid_id)
 
-# Bloquear cliente
+@login_required
+@permission_required('alquiler.change_cliente', raise_exception=True)
 def bloquear_cliente(request, id):
-    cliente = get_object_or_404(Cliente, id=id)
+    cliente = get_object_or_404(Cliente, uuid_id=id)
     cliente.estado_verificacion = 'rechazado'
     cliente.save()
-    return redirect('alquiler:detalle_cliente', id=id)
+    messages.warning(request, f'El cliente {cliente.nombre} ha sido bloqueado.')
+    return redirect('alquiler:detalle_cliente', id=cliente.uuid_id)
 
 def clientes_morosos(request):
     actualizar_morosidad_clientes()
@@ -98,7 +114,7 @@ def clientes_morosos(request):
 
 @login_required
 def marcar_como_moroso(request, cliente_id):
-    cliente = get_object_or_404(Cliente, id=cliente_id)
+    cliente = get_object_or_404(Cliente, uuid_id=cliente_id)
     
     if request.method == 'POST':
         cliente.moroso = True
@@ -106,7 +122,7 @@ def marcar_como_moroso(request, cliente_id):
         cliente.save()
         
         messages.warning(request, f'{cliente.nombre} ha sido marcado como moroso')
-        return redirect('alquiler:detalle_cliente', cliente_id=cliente.id)
+        return redirect('alquiler:detalle_cliente', id=cliente.uuid_id)
     
     return render(request, 'confirmar_moroso.html', {'cliente': cliente})
 
@@ -158,7 +174,7 @@ def actualizar_morosidad_clientes():
         cliente.save()
 
 def validar_documentos_cliente(request, id):
-    cliente = get_object_or_404(Cliente, id=id)
+    cliente = get_object_or_404(Cliente, uuid_id=id)
     documentos_completos = cliente.documento_rut and cliente.documento_cedula
 
     if documentos_completos:
@@ -168,7 +184,9 @@ def validar_documentos_cliente(request, id):
     else:
         messages.error(request, "Faltan documentos por subir.")
 
-    return redirect('alquiler:detalle_cliente', id=id)
+    return redirect('alquiler:detalle_cliente', id=cliente.uuid_id)
+
+
 
 
 
@@ -183,7 +201,7 @@ def registrar_pago_parcial(request, id_alquiler):
             pago.estado_pago = 'parcial'
             pago.save()
             messages.success(request, "Pago parcial registrado.")
-            return redirect('alquiler:detalle_cliente', id=alquiler.cliente.id)
+            return redirect('alquiler:detalle_cliente', id=alquiler.cliente.uuid_id)
     else:
         form = PagoForm()
 

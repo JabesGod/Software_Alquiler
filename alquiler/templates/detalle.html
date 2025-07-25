@@ -22,7 +22,7 @@
             <div class="img-container-wrapper">
                 {% if user.is_staff %}
                 <div class="edit-btn-top-right">
-                    <a href="{% url 'alquiler:editar_equipo' equipo.id %}" class="btn btn-warning">
+                    <a href="{% url 'alquiler:editar_equipo' equipo.uuid_id %}" class="btn btn-warning">
                         <i class="fas fa-edit me-2"></i>Editar Equipo
                     </a>
                 </div>
@@ -153,7 +153,7 @@
                 <div class="similares-list-horizontal">
                     {% for similar in equipos_similares %}
                     <div class="equipo-similar-horizontal">
-                        <a href="{% url 'alquiler:detalle_equipo' similar.id %}" class="text-decoration-none">
+                        <a href="{% url 'alquiler:detalle_equipo' similar.uuid_id %}" class="text-decoration-none">
                             <div class="similar-img-container">
                                 <img src="{{ similar.obtener_foto_principal }}"
                                     alt="{{ similar.marca }} {{ similar.modelo }}"

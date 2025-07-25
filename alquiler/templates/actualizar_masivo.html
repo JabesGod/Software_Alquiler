@@ -67,7 +67,7 @@
                     <tr class="equipo-fila" data-disponible="{% if equipo.cantidad_disponible > 0 %}true{% else %}false{% endif %}"
                         data-alquilado="{% if equipo.tiene_alquiler_activo %}true{% else %}false{% endif %}">
                         <td>
-                            <input type="checkbox" name="ids_equipos" value="{{ equipo.id }}" 
+                            <input type="checkbox" name="ids_equipos" value="{{ equipo.uuid_id }}"
                                    class="check-equipo" id="equipo-{{ equipo.id }}"
                                    {% if equipo.tiene_alquiler_activo %}disabled{% endif %}>
                             <label for="equipo-{{ equipo.id }}"></label>

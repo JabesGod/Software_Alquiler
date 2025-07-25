@@ -71,7 +71,7 @@
                 <img src="{{ equipo.obtener_foto_principal }}" class="equipo-imagen"
                     alt="{{ equipo.marca }} {{ equipo.modelo }}"
                     onerror="this.onerror=null; this.src='{% static 'img/default-equipo.png' %}'">
-                <button class="quick-view-btn" data-equipo-id="{{ equipo.id }}">
+                <button class="quick-view-btn" data-equipo-id="{{ equipo.uuid_id }}">
                     <i class="fas fa-search"></i> Vista Rápida
                 </button>
             </div>
@@ -118,11 +118,12 @@
                         <i class="fas fa-{{ equipo.estado_icono }} me-1"></i>
                         {{ equipo.get_estado_display }}
                     </span>
-                    <a href="{% url 'alquiler:detalle_equipo' equipo.id %}" class="btn-action btn-detalle">
+                    <a href="{% url 'alquiler:detalle_equipo' equipo.uuid_id %}" class="btn-action btn-detalle">
                         <i class="fas fa-eye me-1"></i>Ver
                     </a>
                     {% if request.user.is_staff %}
-                    <a href="{% url 'alquiler:proxima_disponibilidad' equipo.id %}" class="btn-action btn-disponibilidad">
+                    <a href="{% url 'alquiler:proxima_disponibilidad' equipo.uuid_id %}" class="btn-action btn-disponibilidad">
+
                         <i class="fas fa-calendar me-1"></i> Disponibilidad
                     </a>
                     {% endif %}
@@ -131,7 +132,7 @@
         </div>
 
         <!-- Modal de Vista Rápida (oculto inicialmente) -->
-        <div class="quick-view-modal" id="quickViewModal-{{ equipo.id }}">
+        <div class="quick-view-modal" id="quickViewModal-{{ equipo.uuid_id }}">
             <div class="quick-view-content">
                 <span class="close-quick-view">&times;</span>
 
@@ -174,7 +175,7 @@
                 </div>
 
                 <div class="quick-view-footer">
-                    <a href="{% url 'alquiler:detalle_equipo' equipo.id %}" class="btn-action btn-detalle">
+                    <a href="{% url 'alquiler:detalle_equipo' equipo.uuid_id %}" class="btn-action btn-detalle">
                         <i class="fas fa-eye me-1"></i> Ver detalle completo
                     </a>
                     <button class="btn-action btn-secondary close-quick-view-btn">

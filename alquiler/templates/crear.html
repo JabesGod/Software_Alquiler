@@ -12,7 +12,8 @@
     <div class="form-header">
         <h2><i class="fas fa-laptop-code me-2"></i>{{ titulo }}</h2>
         <div class="header-actions">
-            <a href="{% if equipo %}{% url 'alquiler:detalle_equipo' equipo.pk %}{% else %}{% url 'alquiler:listar_equipos' %}{% endif %}"
+            <a href="{% if equipo %}{% url 'alquiler:detalle_equipo' equipo.uuid %}{% else %}{% url 'alquiler:listar_equipos' %}{% endif %}"
+
                 class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-1"></i> Volver
             </a>
@@ -242,7 +243,7 @@
 
         <div class="form-footer">
             <button type="button" class="btn btn-outline-secondary"
-                onclick="location.href='{% if equipo %}{% url 'alquiler:detalle_equipo' equipo.pk %}{% else %}{% url 'alquiler:listar_equipos' %}{% endif %}'">
+                onclick="location.href='{% if equipo %}{% url 'alquiler:detalle_equipo' equipo.uuid %}{% else %}{% url 'alquiler:listar_equipos' %}{% endif %}'">
                 <i class="fas fa-arrow-left me-1"></i> Cancelar
             </button>
 

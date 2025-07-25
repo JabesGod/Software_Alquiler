@@ -49,16 +49,7 @@ from alquiler.views.base_views import(
     BusquedaGlobalView, sugerencias_busqueda
 )
 
-# Puedes definir un convertidor de ruta para UUIDs si no quieres usar el predefinido
-# o si necesitas una lógica específica, aunque Django ya tiene uno:
-# class UUIDConverter:
-#     regex = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
-#     def to_python(self, value):
-#         return uuid.UUID(value)
-#     def to_url(self, value):
-#         return str(value)
-#
-# register_converter(UUIDConverter, 'uuid') # Si usas tu propio convertidor
+
 
 core_patterns = [
     path('admin/', admin.site.urls),
@@ -67,7 +58,7 @@ core_patterns = [
     path('buscar/', BusquedaGlobalView.as_view(), name='busqueda_global'),
     path('buscar/sugerencias/', sugerencias_busqueda, name='sugerencias_busqueda'),
 
-    # Urls de Equipos (cambiando <int:id> por <uuid:id>)
+    # Urls de Equipos 
     path('equipos/', listar_equipos, name='listar_equipos'),
     path('equipos/nuevo/', crear_equipo, name='crear_equipo'),
     path('equipos/<uuid:id>/', detalle_equipo, name='detalle_equipo'),
@@ -85,7 +76,7 @@ core_patterns = [
     path('pagos/pendientes/', pagos_pendientes_admin, name='pagos_pendientes_admin'),
     path('alertas/vencimiento/manual/', ejecutar_alertas_vencimiento, name='enviar_alertas_vencimiento'),
 
-    #Urls clientes (cambiando <int:id> por <uuid:id>)
+    #Urls clientes 
     path('clientes/', listar_clientes, name='listar_clientes'),
     path('clientes/crear/', crear_cliente, name='crear_cliente'),
     path('clientes/<uuid:id>/editar/', editar_cliente, name='editar_cliente'),
@@ -95,10 +86,11 @@ core_patterns = [
     path('clientes-morosos/', clientes_morosos, name='clientes_morosos'),
     path('clientes/<uuid:id>/validar-documentos/', validar_documentos_cliente, name='validar_documentos_cliente'),
 
-    #Urls Alquileres (cambiando <int:id> por <uuid:id>)
+    #Urls Alquileres 
     path('alquiler/<uuid:id_alquiler>/pago-parcial/', registrar_pago_parcial, name='registrar_pago_parcial'),
     path('alquileres/', listar_alquileres, name='listar_alquileres'),
     path('alquileres/crear/', crear_alquiler, name='crear_alquiler'),
+
     # Asumo que equipo_id también podría ser un UUID en el futuro
     path('equipos/<uuid:equipo_id>/series-disponibles/', series_disponibles, name='series_disponibles'),
     path('alquileres/<uuid:id>/finalizar/', finalizar_alquiler, name='finalizar_alquiler'),
@@ -117,21 +109,22 @@ core_patterns = [
     path('alquileres/<uuid:id>/acta-devolucion/', generar_acta_devolucion, name='generar_acta_devolucion'),
     path('alquileres/<uuid:id>/crear-contrato/', crear_contrato, name='crear_contrato'),
 
-    #Pagos (cambiando <int:pago_id> por <uuid:pago_id>)
+    #Pagos 
     path('pagos/', listar_pagos, name='lista_pagos'),
     path('pagos/registrar/', registrar_pago, name='registrar_pago'),
-    path('pagos/<uuid:pago_id>/', detalle_pago, name='detalle_pago'),
-    path('pagos/<uuid:pago_id>/editar/', editar_pago, name='editar_pago'),
-    path('pagos/<uuid:pago_id>/factura/', generar_factura_pdf, name='generar_factura_pdf'),
+    path('pagos/<uuid:pago_uuid>/', detalle_pago, name='detalle_pago'),
+    path('pagos/<uuid:pago_uuid>/editar/', editar_pago, name='editar_pago'),
+    path('pagos/<uuid:pago_uuid>/factura/', generar_factura_pdf, name='generar_factura_pdf'), 
     path('pagos/vencidos/', pagos_vencidos, name='pagos_vencidos'),
     path('pagos/proximos/', pagos_proximos_vencer, name='pagos_proximos'),
-    path('pagos/<uuid:pago_id>/cambiar-estado/<str:nuevo_estado>/', cambiar_estado_pago, name='cambiar_estado_pago'),
-    path('pagos/<uuid:pago_id>/eliminar/', eliminar_pago, name='eliminar_pago'),
+    path('pagos/<uuid:pago_uuid>/cambiar-estado/<str:nuevo_estado>/', cambiar_estado_pago, name='cambiar_estado_pago'),
+    path('pagos/<uuid:pago_uuid>/eliminar/', eliminar_pago, name='eliminar_pago'), 
     path('pagos/reportes/', reportes_pagos, name='reportes_pagos'),
     path('pagos/parciales/', pagos_parciales, name='pagos_parciales'),
-    path('pagos/<uuid:pago_id>/registrar/', registrar_pago_contra_obligacion, name='registrar_pago_contra_obligacion'),
 
-    #Urls Usuario (cambiando <int:usuario_id> por <uuid:usuario_id>)
+    path('pagos/<uuid:pago_uuid>/registrar-obligacion/', registrar_pago_contra_obligacion, name='registrar_pago_contra_obligacion'), # Renombrado pago_id a pago_uuid y añadido '-obligacion' para claridad
+
+    #Urls Usuario 
     path('', inicio_sesion, name='inicio_sesion'),
     path('registro/', registro_usuario, name='registro'),
     path('salir/', salir_sesion, name='salir'),

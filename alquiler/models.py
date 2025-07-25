@@ -38,7 +38,7 @@ def equipo_foto_upload_path(instance, filename):
 
 
 class Equipo(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     ESTADOS = [
         ('disponible', 'Disponible'),
         ('alquilado', 'En alquiler'),

@@ -438,8 +438,8 @@ def pagos_vencidos(request):
 
 @login_required
 @permission_required('alquiler.change_pago', raise_exception=True)
-def cambiar_estado_pago(request, pago_id, nuevo_estado):
-    pago = get_object_or_404(Pago, id=pago_id)
+def cambiar_estado_pago(request, pago_uuid, nuevo_estado):
+    pago = get_object_or_404(Pago, id=pago_uuid)
     
     if nuevo_estado in dict(Pago.ESTADO_PAGO):
         pago.estado_pago = nuevo_estado
@@ -453,7 +453,9 @@ def cambiar_estado_pago(request, pago_id, nuevo_estado):
     else:
         messages.error(request, 'Estado inválido')
     
-    return redirect('alquiler:detalle_pago', pago_id=pago.id)
+    redirect('alquiler:detalle_pago', pago_uuid=pago.uuid_id)
+
+
 
 
 
@@ -476,8 +478,8 @@ def pagos_proximos_vencer(request):
 
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)
-def detalle_pago(request, pago_id):
-    pago = get_object_or_404(Pago, id=pago_id)
+def detalle_pago(request, pago_uuid):
+    pago = get_object_or_404(Pago, uuid_id=pago_uuid)
     
     if hasattr(pago.aprobado_por, 'get_full_name') and pago.aprobado_por.get_full_name():
         nombre_aprobador = pago.aprobado_por.get_full_name()
@@ -510,7 +512,7 @@ def registrar_pago(request):
                 pago.alquiler.estado_alquiler = 'finalizado'
                 pago.alquiler.save()
             
-            return redirect('alquiler:detalle_pago', pago_id=pago.id)
+            return redirect('alquiler:detalle_pago', pago_uuid=pago.uuid_id)
     else:
         form = PagoForm()
     
@@ -518,9 +520,9 @@ def registrar_pago(request):
 
 @login_required
 @permission_required('alquiler.change_pago', raise_exception=True)
-def editar_pago(request, pago_id):
-    print(f"===> Ingresando a editar_pago con ID: {pago_id}")
-    pago = get_object_or_404(Pago, id=pago_id)
+def editar_pago(request, pago_uuid):
+    print(f"===> Ingresando a editar_pago con ID: {pago_uuid}")
+    get_object_or_404(Pago, uuid_id=pago_uuid)
     print(f"Pago obtenido: {pago}")
 
     if request.method == 'POST':
@@ -552,7 +554,7 @@ def editar_pago(request, pago_id):
             pago.save()
             print(f"Pago actualizado y guardado: {pago}")
             messages.success(request, 'Pago actualizado correctamente')
-            return redirect('alquiler:detalle_pago', pago_id=pago.id)
+            return redirect('alquiler:detalle_pago', pago_uuid=pago.uuid_id)
         else:
             print("Formulario inválido")
             print("Errores del formulario:", form.errors)
@@ -563,29 +565,29 @@ def editar_pago(request, pago_id):
     context = {
         'form': form,
         'pago': pago,
-        'titulo': f'Editar Pago #{pago.id}'
+        'titulo': f'Editar Pago #{pago.uuid_id}'
     }
     return render(request, 'editar_pago.html', context)
 
 
 @login_required
 @permission_required('alquiler.delete_pago', raise_exception=True)
-def eliminar_pago(request, pago_id):
-    print(f"===> Entrando a eliminar_pago con ID: {pago_id}")
-    pago = get_object_or_404(Pago, id=pago_id)
+def eliminar_pago(request, pago_uuid):
+    print(f"===> Entrando a eliminar_pago con ID: {pago_uuid}")
+    pago = get_object_or_404(Pago, id=pago_uuid)
     print(f"Pago obtenido: {pago}")
 
     if request.method == 'POST':
         print("Método: POST - eliminando pago...")
         pago.delete()
-        print(f"Pago #{pago_id} eliminado.")
-        messages.success(request, f'Pago #{pago_id} eliminado correctamente.')
+        print(f"Pago #{pago_uuid} eliminado.")
+        messages.success(request, f'Pago #{pago_uuid} eliminado correctamente.')
         return redirect('alquiler:lista_pagos')
     
     print("Método: GET - mostrando plantilla de confirmación")
     context = {
         'pago': pago,
-        'titulo': f'Confirmar eliminación del Pago #{pago.id}'
+        'titulo': f'Confirmar eliminación del Pago #{pago.uuid}'
     }
     return render(request, 'eliminar_pago.html', context)
 
@@ -593,8 +595,8 @@ def eliminar_pago(request, pago_id):
 
 @login_required
 @permission_required('alquiler.view_factura', raise_exception=True)
-def generar_factura_pdf(request, pago_id):
-    pago = get_object_or_404(Pago, id=pago_id)
+def generar_factura_pdf(request, pago_uuid):
+    pago = get_object_or_404(Pago, id=pago_uuid)
     
     # Renderizar template
     template = get_template('factura_pdf.html')
@@ -615,14 +617,14 @@ def generar_factura_pdf(request, pago_id):
         pago.save()
         
         response = HttpResponse(result.getvalue(), content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="factura_{pago.id}.pdf"'
+        response['Content-Disposition'] = f'attachment; filename="factura_{pago.uuid_id}.pdf"'
         return response
     
     return HttpResponse("Error al generar el PDF", status=400)
 
 # Funciones de utilidad
-def verificar_morosidad_cliente(cliente_id):
-    cliente = get_object_or_404(Cliente, id=cliente_id)
+def verificar_morosidad_cliente(cliente_uuid):
+    cliente = get_object_or_404(Cliente, id=cliente_uuid)
     pagos_vencidos = Pago.objects.filter(
         alquiler__cliente=cliente,
         estado_pago__in=['pendiente', 'parcial'],
@@ -662,6 +664,7 @@ def pagos_parciales(request):
     
     return render(request, 'pagos_parciales.html', context)
 
+
 @login_required
 @permission_required('alquiler.add_pago', raise_exception=True)
 def registrar_pago_parcial(request):
@@ -671,34 +674,32 @@ def registrar_pago_parcial(request):
             pago = form.save(commit=False)
             pago.estado_pago = 'parcial'  # Forzar estado parcial
             pago.save()
-            
+
             messages.success(request, f'Pago parcial #{pago.id} registrado correctamente.')
-            return redirect('alquiler:detalle_pago', pago_id=pago.id)
+            return redirect('alquiler:detalle_pago', pago_uuid=pago.uuid_id) # CAMBIO: pago_id a pago_uuid
     else:
         # Si viene con alquiler_id en los parámetros GET
-        alquiler_id = request.GET.get('alquiler_id')
+        alquiler_uuid = request.GET.get('alquiler_id') # CAMBIO: alquiler_id a alquiler_uuid (si es un UUID)
         initial = {}
-        
-        if alquiler_id:
+
+        if alquiler_uuid:
             try:
-                alquiler = Alquiler.objects.get(id=alquiler_id)
+                alquiler = Alquiler.objects.get(uuid_id=alquiler_uuid) # CAMBIO: id=alquiler_id a uuid_id=alquiler_uuid
                 initial = {
                     'alquiler': alquiler,
                     'monto': alquiler.saldo_pendiente * Decimal('0.5'),  # Sugerir 50% del saldo
                 }
             except Alquiler.DoesNotExist:
                 messages.error(request, 'El alquiler especificado no existe.')
-        
+
         form = PagoParcialForm(initial=initial)
-    
+
     context = {
         'form': form,
-        'alquiler': Alquiler.objects.get(id=initial.get('alquiler')) if initial.get('alquiler') else None,
+        'alquiler': Alquiler.objects.get(uuid_id=initial.get('alquiler')) if initial.get('alquiler') else None, # CAMBIO: id a uuid_id
     }
-    
+
     return render(request, 'registrar_pago_parcial.html', context)
-
-
 
 
 def verificar_estado_pago_alquiler(alquiler):
@@ -712,18 +713,19 @@ def verificar_estado_pago_alquiler(alquiler):
         return True
     return False
 
+
 @login_required
 @permission_required('alquiler.change_pago', raise_exception=True)
-def registrar_pago_contra_obligacion(request, pago_id):
-    pago_obligacion = get_object_or_404(Pago, id=pago_id)
-    
+def registrar_pago_contra_obligacion(request, pago_uuid): # CAMBIO: pago_id a pago_uuid
+    pago_obligacion = get_object_or_404(Pago, uuid_id=pago_uuid) # CAMBIO: id=pago_id a uuid_id=pago_uuid
+
     if request.method == 'POST':
         form = PagoForm(request.POST, request.FILES)
         if form.is_valid():
             # Crear el nuevo pago
             nuevo_pago = form.save(commit=False)
             nuevo_pago.aprobado_por = request.user
-            
+
             # Actualizar la obligación original
             if pago_obligacion.monto == nuevo_pago.monto:
                 # Pago completo - actualizar la obligación existente
@@ -734,34 +736,33 @@ def registrar_pago_contra_obligacion(request, pago_id):
                 pago_obligacion.estado_pago = 'pagado' if nuevo_pago.estado_pago == 'pagado' else 'parcial'
                 pago_obligacion.aprobado_por = request.user
                 pago_obligacion.save()
-                
+
                 messages.success(request, 'Pago registrado correctamente actualizando la obligación existente')
-                return redirect('alquiler:detalle_pago', pago_id=pago_obligacion.id)
+                return redirect('alquiler:detalle_pago', pago_uuid=pago_obligacion.uuid_id) # CAMBIO: pago_id a pago_uuid
             else:
                 # Pago parcial - crear nuevo registro y ajustar obligación
                 pago_obligacion.monto -= nuevo_pago.monto
                 if pago_obligacion.monto > 0:
                     pago_obligacion.estado_pago = 'parcial'
                 pago_obligacion.save()
-                
+
                 nuevo_pago.alquiler = pago_obligacion.alquiler
                 nuevo_pago.save()
-                
+
                 messages.success(request, 'Pago parcial registrado correctamente')
-                return redirect('alquiler:detalle_pago', pago_id=nuevo_pago.id)
+                return redirect('alquiler:detalle_pago', pago_uuid=nuevo_pago.uuid_id) # CAMBIO: pago_id a pago_uuid
     else:
         form = PagoForm(initial={
             'alquiler': pago_obligacion.alquiler,
             'monto': pago_obligacion.monto,
         })
-    
+
     context = {
         'form': form,
         'pago_obligacion': pago_obligacion,
-        'titulo': f'Registrar Pago para Obligación #{pago_obligacion.id}'
+        'titulo': f'Registrar Pago para Obligación #{pago_obligacion.uuid_id}' # CAMBIO: pago.id a pago.uuid_id
     }
     return render(request, 'registrar_pago_contra_obligacion.html', context)
-
 class RegistrarPagoView(APIView):
     permission_classes = [IsAuthenticated]
 

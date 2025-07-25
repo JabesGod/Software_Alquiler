@@ -54,10 +54,10 @@
                             </td>
                             <td class="actions-cell">
                                 <div class="action-buttons">
-                                    <a href="{% url 'alquiler:editar_rol' rol.id %}" class="action-button edit" title="Editar">
+                                    <a href="{% url 'alquiler:editar_rol' rol.uuid_id %}" class="action-button edit" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="{% url 'alquiler:eliminar_rol' rol.id %}" class="action-button delete"
+                                    <a href="{% url 'alquiler:eliminar_rol' rol.uuid_id %}" class="action-button delete"
                                         title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                     </a>

@@ -91,7 +91,7 @@
                     <select name="replacement_role" id="replacement_role" class="form-select">
                         <option value="">--- No asignar nuevo rol ---</option>
                         {% for other_role in other_roles %}
-                        <option value="{{ other_role.id }}">{{ other_role.nombre_rol }}</option>
+                        <option value="{{ other_role.uuid_id }}">{{ other_role.nombre_rol }}</option>
                         {% endfor %}
                     </select>
                     <div class="form-text">

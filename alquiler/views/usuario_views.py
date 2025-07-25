@@ -13,6 +13,7 @@ from django.db.models.functions import TruncMonth
 from django.db.models import Q
 from django.views.decorators.http import require_GET
 import json
+import csv
 from django.http import JsonResponse
 from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
@@ -33,6 +34,7 @@ from django.core.paginator import Paginator
 from django.conf import settings
 from django.http import HttpResponse
 from django.urls import reverse
+from django.db import transaction
 
 import logging
 
@@ -212,51 +214,90 @@ def crear_rol(request):
     return render(request, 'crear_rol.html', {'form': form})
 
 @login_required
-@permission_required('usuarios.change_rol', raise_exception=True)  # o @staff_member_required si preferís
-def editar_rol(request, rol_id):
-    rol = get_object_or_404(Rol, id=rol_id)
+@permission_required('usuarios.change_rol', raise_exception=True)
+def editar_rol(request, rol_uuid):
+    rol = get_object_or_404(Rol, uuid_id=rol_uuid)
 
     if request.method == 'POST':
         form = RolForm(request.POST, instance=rol)
         if form.is_valid():
             rol = form.save(commit=False)
-            rol.save()  # Esto ejecuta la lógica de sincronización con el grupo
-            form.save_m2m()  # Guarda permisos (many-to-many)
+            rol.save()
+            form.save_m2m()
             messages.success(request, 'Rol actualizado exitosamente')
             return redirect('alquiler:lista_roles')
+
     else:
         form = RolForm(instance=rol)
 
     return render(request, 'editar_rol.html', {'form': form, 'rol': rol})
 
 @login_required
-@permission_required('usuarios.delete_rol', raise_exception=True)  # o el decorador que uses
-def eliminar_rol(request, rol_id):
-    rol = get_object_or_404(Rol, id=rol_id)
-    other_roles = Rol.objects.exclude(id=rol.id)
+@permission_required('usuarios.delete_rol', raise_exception=True)
+def eliminar_rol(request, rol_uuid):
+    rol = get_object_or_404(Rol, uuid_id=rol_uuid)
+    other_roles = Rol.objects.exclude(uuid_id=rol.uuid_id)
 
     if request.method == 'POST':
         replacement_id = request.POST.get('replacement_role')
-        if rol.usuario_set.exists():
-            if replacement_id:
-                replacement_role = get_object_or_404(Rol, id=replacement_id)
-                for usuario in rol.usuario_set.all():
-                    usuario.rol = replacement_role
-                    usuario.save()
-        rol.delete()
-        messages.success(request, 'Rol eliminado exitosamente')
-        return redirect('alquiler:lista_roles')
 
+        try:
+            with transaction.atomic():
+                if rol.usuarios.exists():
+                    if replacement_id:
+                        replacement_role = get_object_or_404(Rol, uuid_id=replacement_id)
+                        rol.usuarios.update(rol=replacement_role)
+                    else:
+                        # Si no seleccionaron nuevo rol, no se puede eliminar si hay usuarios
+                        messages.error(request, 'Debes asignar un nuevo rol a los usuarios antes de eliminar este.')
+                        return redirect('alquiler:eliminar_rol', rol_uuid=rol.uuid_id)
+
+                rol.delete()
+                messages.success(request, 'Rol eliminado exitosamente')
+                return redirect('alquiler:lista_roles')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar el rol: {e}')
+    
+    return render(request, 'eliminar_rol.html', {
+        'rol': rol,
+        'other_roles': other_roles
+    })@login_required
+@permission_required('usuarios.delete_rol', raise_exception=True)
+def eliminar_rol(request, rol_uuid):
+    rol = get_object_or_404(Rol, uuid_id=rol_uuid)
+    other_roles = Rol.objects.exclude(uuid_id=rol.uuid_id)
+
+    if request.method == 'POST':
+        replacement_id = request.POST.get('replacement_role')
+
+        try:
+            with transaction.atomic():
+                if rol.usuarios.exists():
+                    if replacement_id:
+                        replacement_role = get_object_or_404(Rol, uuid_id=replacement_id)
+                        rol.usuarios.update(rol=replacement_role)
+                    else:
+                        # Si no seleccionaron nuevo rol, no se puede eliminar si hay usuarios
+                        messages.error(request, 'Debes asignar un nuevo rol a los usuarios antes de eliminar este.')
+                        return redirect('alquiler:eliminar_rol', rol_uuid=rol.uuid_id)
+
+                rol.delete()
+                messages.success(request, 'Rol eliminado exitosamente')
+                return redirect('alquiler:lista_roles')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar el rol: {e}')
+    
     return render(request, 'eliminar_rol.html', {
         'rol': rol,
         'other_roles': other_roles
     })
 
 
+
 @login_required
 @permission_required('usuarios.change_usuario', raise_exception=True)
-def asignar_rol(request, usuario_id):
-    usuario = get_object_or_404(Usuario, id=usuario_id)
+def asignar_rol(request, usuario_uuid):
+    usuario = get_object_or_404(Usuario, uuid_id=usuario_uuid)
     roles = Rol.objects.all()
     
     if request.method == 'POST':
@@ -312,17 +353,20 @@ def lista_usuarios(request):
         'rol_seleccionado': int(rol_id) if rol_id else ''
     })
 
+
 @login_required
 @permission_required('usuarios.view_usuario', raise_exception=True)
-def detalle_usuario(request, usuario_id):
-    usuario = get_object_or_404(Usuario, id=usuario_id)
+def detalle_usuario(request, usuario_uuid):
+    usuario = get_object_or_404(Usuario, uuid_id=usuario_uuid)
+
     return render(request, 'detalle_usuario.html', {'usuario': usuario})
 
 
 @login_required
 @permission_required('usuarios.change_usuario', raise_exception=True)
-def editar_usuario(request, usuario_id):
-    usuario = get_object_or_404(Usuario, id=usuario_id)
+def editar_usuario(request, usuario_uuid):
+    usuario = get_object_or_404(Usuario, uuid_id=usuario_uuid)
+
     
     if request.method == 'POST':
         form = UsuarioEditForm(request.POST, instance=usuario)
@@ -342,7 +386,8 @@ def editar_usuario(request, usuario_id):
                 update_session_auth_hash(request, usuario)
                 messages.info(request, 'Tus datos de sesión han sido actualizados')
             
-            return redirect('alquiler:detalle_usuario', usuario_id=usuario.id)
+            return redirect('alquiler:detalle_usuario', usuario_uuid=usuario.uuid_id)
+
     else:
         form = UsuarioEditForm(instance=usuario)
     
@@ -362,10 +407,12 @@ def editar_usuario(request, usuario_id):
         'roles_data': roles_data
     })
 
+
 @login_required
 @permission_required('usuarios.change_usuario', raise_exception=True)
-def cambiar_contrasena(request, usuario_id):
-    usuario = get_object_or_404(Usuario, id=usuario_id)
+def cambiar_contrasena(request, usuario_uuid):
+    usuario = get_object_or_404(Usuario, uuid_id=usuario_uuid)
+
     
     if request.method == 'POST':
         form = CambiarContrasenaForm(request.POST)
@@ -380,7 +427,7 @@ def cambiar_contrasena(request, usuario_id):
             else:
                 messages.success(request, 'Contraseña cambiada correctamente')
             
-            return redirect('alquiler:detalle_usuario', usuario_id=usuario.id)
+            return redirect('alquiler:detalle_usuario', usuario_uuid=usuario.uuid_id)
     else:
         form = CambiarContrasenaForm()
     
@@ -392,11 +439,11 @@ def cambiar_contrasena(request, usuario_id):
 
 @login_required
 @permission_required('usuarios.change_usuario', raise_exception=True)
-def cambiar_estado_usuario(request, usuario_id):
-    usuario = get_object_or_404(Usuario, id=usuario_id)
+def cambiar_estado_usuario(request, usuario_uuid):
+    usuario = get_object_or_404(Usuario, uuid_id=usuario_uuid)
     
     # No permitir desactivarse a sí mismo
-    if usuario.id == request.user.id:
+    if usuario.uuid_id == request.user.uuid_id:
         messages.error(request, 'No puedes desactivar tu propia cuenta')
         return redirect('alquiler:lista_usuarios')
     
@@ -407,11 +454,11 @@ def cambiar_estado_usuario(request, usuario_id):
     messages.success(request, f'Usuario {usuario.nombre_usuario} {action} correctamente')
     return redirect('alquiler:lista_usuarios')
 
-
 @login_required
 @permission_required('usuarios.delete_usuario', raise_exception=True)
-def confirmar_eliminar_usuario(request, usuario_id):
-    usuario = get_object_or_404(Usuario, id=usuario_id)
+def confirmar_eliminar_usuario(request, usuario_uuid):
+    usuario = get_object_or_404(Usuario, uuid_id=usuario_uuid)
+
     
     # No permitir eliminarse a sí mismo
     if usuario.id == request.user.id:
@@ -425,9 +472,10 @@ def confirmar_eliminar_usuario(request, usuario_id):
 @permission_required('usuarios.delete_usuario', raise_exception=True)
 @require_POST
 @csrf_protect
-def eliminar_usuario(request, usuario_id):
+def eliminar_usuario(request, usuario_uuid):
     try:
-        usuario = get_object_or_404(Usuario, id=usuario_id)
+        usuario = get_object_or_404(Usuario, uuid_id=usuario_uuid)
+
         
         # Validación: No puede eliminar su propia cuenta
         if usuario.id == request.user.id:
@@ -511,7 +559,7 @@ def eliminar_usuario(request, usuario_id):
         
     except Exception as e:
         error_message = f'Error al eliminar el usuario: {str(e)}'
-        logger.error(f"Error al eliminar usuario {usuario_id}: {str(e)}")
+        logger.error(f"Error al eliminar usuario {usuario_uuid}: {str(e)}")
         messages.error(request, 'Ocurrió un error al eliminar el usuario')
         
         # Registrar error en auditoría
@@ -527,7 +575,7 @@ def eliminar_usuario(request, usuario_id):
                 status='failed',
                 details={
                     'error': str(e),
-                    'target_user_id': usuario_id,
+                    'target_user_id': usuario_uuid,
                     'attempted_by': request.user.nombre_usuario
                 }
             )
@@ -542,29 +590,46 @@ def eliminar_usuario(request, usuario_id):
         
         return redirect('alquiler:lista_usuarios')
 
+ 
 
 @login_required
 @permission_required('usuarios.view_auditoria', raise_exception=True)
-def auditoria_usuario(request, usuario_id):
-    usuario = get_object_or_404(Usuario, id=usuario_id)
-    
-    # 1. Filtrar logs del usuario con búsqueda si existe
+def auditoria_usuario(request, usuario_uuid):
+    usuario = get_object_or_404(Usuario, uuid_id=usuario_uuid)
+
     query = request.GET.get('q', '')
     logs = UserAuditLog.objects.filter(user=usuario)
-    
+
     if query:
         logs = logs.filter(
-            Q(action__icontains=query) | 
+            Q(action__icontains=query) |
             Q(details__icontains=query) |
             Q(ip_address__icontains=query)
         )
-    
-    logs = logs.order_by('-timestamp')[:100]  # Limitar a 100 registros
-    
-    # 2. Estadísticas para el gráfico (últimos 6 meses)
+
+    logs = logs.order_by('-timestamp')[:100]
+
+    # ✅ Exportar CSV si se solicitó
+    if request.GET.get('export') == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="auditoria_{usuario.nombre_usuario}.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(['Fecha/Hora', 'Acción', 'Estado', 'IP', 'Detalles'])
+
+        for log in logs:
+            writer.writerow([
+                log.timestamp.strftime('%d/%m/%Y %H:%M'),
+                log.get_action_display(),
+                log.get_status_display(),
+                log.ip_address,
+                log.get_details_display()
+            ])
+
+        return response
+
+    # 📊 Estadísticas de acceso últimos 6 meses
     six_months_ago = timezone.now() - timedelta(days=180)
-    
-    # Consulta compatible con múltiples bases de datos
     stats = UserAuditLog.objects.filter(
         user=usuario,
         timestamp__gte=six_months_ago
@@ -573,34 +638,39 @@ def auditoria_usuario(request, usuario_id):
     ).values('month', 'status').annotate(
         count=Count('id')
     ).order_by('month')
-    
-    # Preparar datos para el gráfico
+
     months = []
     success_data = []
     failed_data = []
-    
-    # Generar los últimos 6 meses
+
     current_month = six_months_ago.replace(day=1)
     while current_month <= timezone.now():
         month_str = current_month.strftime('%b %Y')
         months.append(month_str)
-        
-        # Buscar datos para este mes
-        month_stats = [s for s in stats if s['month'] and s['month'].month == current_month.month and s['month'].year == current_month.year]
-        
+
+        month_stats = [
+            s for s in stats if s['month'] and
+            s['month'].month == current_month.month and
+            s['month'].year == current_month.year
+        ]
         success = sum(s['count'] for s in month_stats if s['status'] == 'success')
         failed = sum(s['count'] for s in month_stats if s['status'] == 'failed')
-        
+
         success_data.append(success)
         failed_data.append(failed)
-        
+
         # Avanzar al siguiente mes
         if current_month.month == 12:
-            current_month = current_month.replace(year=current_month.year+1, month=1)
+            current_month = current_month.replace(year=current_month.year + 1, month=1)
         else:
-            current_month = current_month.replace(month=current_month.month+1)
-    
-    # 3. Dispositivos conocidos (procesamiento mejorado)
+            current_month = current_month.replace(month=current_month.month + 1)
+
+    stats_data = {
+        'months': months,
+        'success': success_data,
+        'failed': failed_data
+    }
+
     devices_raw = UserAuditLog.objects.filter(
         user=usuario,
         user_agent__isnull=False
@@ -608,26 +678,23 @@ def auditoria_usuario(request, usuario_id):
         last_used=Max('timestamp'),
         count=Count('id')
     ).order_by('-last_used')[:5]
-    
 
     devices = []
     for device in devices_raw:
-
         user_agent = device['user_agent']
-
         browser = 'Desconocido'
         os = 'Desconocido'
         is_mobile = False
-        
+
         if 'Chrome' in user_agent:
             browser = 'Chrome'
         elif 'Firefox' in user_agent:
             browser = 'Firefox'
-        elif 'Safari' in user_agent:
+        elif 'Safari' in user_agent and 'Chrome' not in user_agent:
             browser = 'Safari'
         elif 'Edge' in user_agent:
             browser = 'Edge'
-        
+
         if 'Windows' in user_agent:
             os = 'Windows'
         elif 'Mac' in user_agent:
@@ -640,10 +707,10 @@ def auditoria_usuario(request, usuario_id):
         elif 'iOS' in user_agent:
             os = 'iOS'
             is_mobile = True
-        
+
         if 'Mobile' in user_agent or 'mobile' in user_agent:
             is_mobile = True
-        
+
         devices.append({
             'browser': browser,
             'os': os,
@@ -651,20 +718,14 @@ def auditoria_usuario(request, usuario_id):
             'ip_address': device['ip_address'],
             'last_used': device['last_used'],
             'count': device['count'],
-            'is_current': False  
+            'is_current': False
         })
 
-    stats_data = {
-        'months': months,
-        'success': success_data,
-        'failed': failed_data
-    }
-    
     return render(request, 'auditoria_usuario.html', {
         'usuario': usuario,
         'logs': logs,
         'devices': devices,
         'stats_data': stats_data,
-        'stats_data_json': json.dumps(stats_data),  
+        'stats_data_json': json.dumps(stats_data),
         'query': query
     })

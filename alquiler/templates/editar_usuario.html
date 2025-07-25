@@ -54,7 +54,7 @@
                         </label>
                         <div class="role-select-container">
                             {{ form.rol }}
-                            <a href="{% url 'alquiler:asignar_rol' usuario.id %}" class="btn-role-details" title="Ver detalles del rol">
+                            <a href="{% url 'alquiler:asignar_rol' usuario.uuid_id %}" class="btn-role-details" title="Ver detalles del rol">
                                 <i class="fas fa-info-circle"></i>
                             </a>
                         </div>
@@ -128,7 +128,7 @@
                 <a href="{% url 'alquiler:lista_usuarios' %}" class="btn btn-secondary">
                     <i class="fas fa-times"></i> Cancelar
                 </a>
-                <a href="{% url 'alquiler:asignar_rol' usuario.id %}" class="btn btn-info">
+                <a href="{% url 'alquiler:asignar_rol' usuario.uuid_id %}" class="btn btn-info">
                     <i class="fas fa-user-tag"></i> Cambiar Rol Avanzado
                 </a>
             </div>

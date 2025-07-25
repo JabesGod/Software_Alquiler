@@ -33,7 +33,7 @@
         </div>
     </div>
     <div class="card-footer">
-        <form method="post" action="{% url 'alquiler:eliminar_usuario' usuario.id %}">
+        <form method="post" action="{% url 'alquiler:eliminar_usuario' usuario.uuid_id %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger">
                 <i class="fas fa-trash"></i> Confirmar Eliminación

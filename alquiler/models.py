@@ -27,7 +27,7 @@ import json
 from django.db.models import F
 import re
 from django.core.serializers.json import DjangoJSONEncoder
-
+import uuid
 
 def equipo_foto_upload_path(instance, filename):
     """Función para definir la ruta de subida de fotos"""
@@ -38,6 +38,7 @@ def equipo_foto_upload_path(instance, filename):
 
 
 class Equipo(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     ESTADOS = [
         ('disponible', 'Disponible'),
         ('alquilado', 'En alquiler'),
@@ -262,6 +263,8 @@ class FotoEquipo(models.Model):
 
 
 class Cliente(models.Model):
+    uuid_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
     ESTADO_VERIFICACION = [
         ('pendiente', 'Pendiente'),
         ('verificado', 'Verificado'),
@@ -339,6 +342,8 @@ class Cliente(models.Model):
     
     
 class Alquiler(models.Model):
+    uuid_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
     ESTADO_ALQUILER = [
         ('activo', 'Activo'),
         ('finalizado', 'Finalizado'),
@@ -520,6 +525,7 @@ class DetalleAlquiler(models.Model):
 
 
 class Acta(models.Model):
+    uuid_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     TIPO_ACTA = [
         ('entrega', 'Acta de Entrega'),
         ('devolucion', 'Acta de Devolución'),
@@ -551,6 +557,7 @@ class Acta(models.Model):
 
 
 class Pago(models.Model):
+    uuid_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     ESTADO_PAGO = [
         ('pendiente', 'Pendiente'),
         ('pagado', 'Pagado'),
@@ -614,6 +621,7 @@ class Pago(models.Model):
 
 
 class Contrato(models.Model):
+    uuid_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     alquiler = models.OneToOneField('Alquiler', on_delete=models.CASCADE, related_name='contrato')
     fecha_contratacion = models.DateField(auto_now_add=True)
     fecha_firma = models.DateField(blank=True, null=True)
@@ -689,6 +697,7 @@ class Contrato(models.Model):
 
 
 class Rol(models.Model):
+    uuid_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     nombre_rol = models.CharField(max_length=50, unique=True, verbose_name="Nombre del Rol")
     descripcion = models.TextField(blank=True, verbose_name="Descripción")
     permisos = models.ManyToManyField(
@@ -811,6 +820,7 @@ class UsuarioManager(BaseUserManager):
 
 
 class Usuario(AbstractBaseUser, PermissionsMixin):
+    uuid_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     nombre_usuario = models.CharField(
         max_length=100, 
         unique=True,

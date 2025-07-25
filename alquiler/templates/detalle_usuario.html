@@ -29,14 +29,14 @@
         </div>
         
         <div class="user-actions">
-            <a href="{% url 'alquiler:editar_usuario' usuario.id %}" class="btn btn-secondary">
+            <a href="{% url 'alquiler:editar_usuario' usuario.uuid_id %}" class="btn btn-secondary">
                 <i class="fas fa-edit"></i> Editar
             </a>
-            <a href="{% url 'alquiler:cambiar_contrasena' usuario.id %}" class="btn btn-secondary">
+            <a href="{% url 'alquiler:cambiar_contrasena' usuario.uuid_id %}" class="btn btn-secondary">
                 <i class="fas fa-key"></i> Contraseña
             </a>
             {% if usuario.id != request.user.id %}
-            <a href="{% url 'alquiler:cambiar_estado_usuario' usuario.id %}" 
+            <a href="{% url 'alquiler:cambiar_estado_usuario' usuario.uuid_id%}" 
                class="btn {% if usuario.is_active %}btn-warning{% else %}btn-success{% endif %}">
                 <i class="fas fa-{% if usuario.is_active %}times{% else %}check{% endif %}"></i> 
                 {% if usuario.is_active %}Desactivar{% else %}Activar{% endif %}
@@ -106,11 +106,11 @@
                 <h3>Acciones Rápidas</h3>
             </div>
             <div class="info-block-content actions">
-                <a href="{% url 'alquiler:auditoria_usuario' usuario.id %}" class="action-link">
+                <a href="{% url 'alquiler:auditoria_usuario' usuario.uuid_id %}" class="action-link">
                     <i class="fas fa-history"></i> Ver historial de auditoría
                 </a>
                 {% if usuario.id != request.user.id %}
-                <a href="{% url 'alquiler:confirmar_eliminar_usuario' usuario.id %}" class="action-link text-danger">
+                <a href="{% url 'alquiler:confirmar_eliminar_usuario' usuario.uuid_id %}" class="action-link text-danger">
                     <i class="fas fa-trash"></i> Eliminar usuario
                 </a>
                 {% endif %}
@@ -128,7 +128,7 @@
                     <i class="fas fa-info-circle"></i> 
                     Módulo de actividad en desarrollo. Próximamente se mostrará el historial completo.
                 </div>
-                <a href="{% url 'alquiler:auditoria_usuario' usuario.id %}" class="btn btn-secondary">
+                <a href="{% url 'alquiler:auditoria_usuario' usuario.uuid_id %}" class="btn btn-secondary">
                     <i class="fas fa-history mt-5"></i> Ver historial completo
                 </a>
             </div>

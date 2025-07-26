@@ -6,16 +6,17 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'css/renovar_alquiler.css' %}">
+
 {% endblock %}
 
 {% block content %}
 <div class="renovar-container">
     <div class="renovar-header">
         <i class="fas fa-sync-alt renovar-icon"></i>
-        <h2>Renovar Alquiler #{{ alquiler.id }}</h2>
+        <h2>Renovar Alquiler #{{ alquiler.numero_factura }}</h2>
         <p class="cliente-info">Cliente: {{ alquiler.cliente.nombre }}</p>
     </div>
-    
+
     <div class="info-alquiler">
         <div class="info-item">
             <i class="fas fa-calendar-day"></i>
@@ -30,35 +31,36 @@
             <span>Equipos: {{ alquiler.detalles.count }}</span>
         </div>
     </div>
-    
+
     <div class="renovar-card">
         <form method="post" class="renovar-form">
             {% csrf_token %}
-            
+
             <div class="form-group">
                 <label for="{{ form.nueva_fecha_fin.id_for_label }}">
                     <i class="far fa-calendar-alt"></i> {{ form.nueva_fecha_fin.label }}:
                 </label>
                 {{ form.nueva_fecha_fin }}
                 {% if form.nueva_fecha_fin.errors %}
-                    <div class="error-message">
-                        {{ form.nueva_fecha_fin.errors.as_text }}
-                    </div>
+                <div class="error-message">
+                    {{ form.nueva_fecha_fin.errors.as_text }}
+                </div>
                 {% endif %}
             </div>
-            
+
+
             <div class="equipos-list">
                 <h4><i class="fas fa-laptop"></i> Equipos incluidos:</h4>
                 <ul>
                     {% for detalle in alquiler.detalles.all %}
-                        <li>
-                            {{ detalle.equipo.marca }} {{ detalle.equipo.modelo }} 
-                            ({{ detalle.cantidad }} unidad{{ detalle.cantidad|pluralize:"es" }})
-                        </li>
+                    <li>
+                        {{ detalle.equipo.marca }} {{ detalle.equipo.modelo }}
+                        ({{ detalle.cantidad }} unidad{{ detalle.cantidad|pluralize:"es" }})
+                    </li>
                     {% endfor %}
                 </ul>
             </div>
-            
+
             <div class="form-actions">
                 <button type="submit" class="btn-renovar">
                     <i class="fas fa-check-circle"></i> Confirmar Renovación

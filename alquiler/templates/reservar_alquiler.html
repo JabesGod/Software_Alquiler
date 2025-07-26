@@ -64,12 +64,13 @@
                         <select class="form-control select2" id="equipo-selector">
                             <option value="">Seleccione un equipo...</option>
                             {% for equipo in equipos_disponibles %}
-                            <option value="{{ equipo.id }}" data-precio-dia="{{ equipo.precio_dia|default:0 }}"
-                                data-precio-semana="{{ equipo.precio_semana|default:0 }}"
-                                data-precio-mes="{{ equipo.precio_mes|default:0 }}"
-                                data-precio-trimestre="{{ equipo.precio_trimestre|default:0 }}"
-                                data-precio-semestre="{{ equipo.precio_semestre|default:0 }}"
-                                data-precio-anio="{{ equipo.precio_anio|default:0 }}">
+                            <option value="{{ equipo.uuid_id }}" data-precio-dia="{{ equipo.precio_dia|default:0 }}"
+                                    data-precio-semana="{{ equipo.precio_semana|default:0 }}"
+                                    data-precio-mes="{{ equipo.precio_mes|default:0 }}"
+                                    data-precio-trimestre="{{ equipo.precio_trimestre|default:0 }}"
+                                    data-precio-semestre="{{ equipo.precio_semestre|default:0 }}"
+                                    data-precio-anio="{{ equipo.precio_anio|default:0 }}"
+                                    data-requiere-serie="{{ equipo.requiere_serie|yesno:'True,False' }}">
                                 {{ equipo.marca }} {{ equipo.modelo }} (Disponibles: {{ equipo.cantidad_disponible }})
                             </option>
                             {% endfor %}
@@ -179,7 +180,7 @@
 
 <!-- Series dinámicas -->
 <script>
-    window.SERIES_DISPONIBLES_URL = "{% url 'alquiler:series_disponibles' equipo_id=0 %}".replace('0', '{equipoId}');
+    window.SERIES_DISPONIBLES_URL = "{% url 'alquiler:series_disponibles' equipo_id='00000000-0000-0000-0000-000000000000' %}".replace('00000000-0000-0000-0000-000000000000', '{equipoId}');
 </script>
 {% endblock %}
 

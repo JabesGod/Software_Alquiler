@@ -8,7 +8,8 @@ from alquiler.forms.alquiler_forms import (
     FirmarContratoForm,
     DetalleAlquilerFormSet,
     DetalleAlquilerForm,
-    ConvertirReservaForm
+    ConvertirReservaForm, 
+    RenovarAlquilerForm
 )
 from django.db.models import Q
 from django.utils import timezone
@@ -431,7 +432,8 @@ def reservar_alquiler(request):
         formset = DetalleAlquilerFormSet(request.POST, prefix='detalles')
 
         cliente_id = request.POST.get('cliente')
-        cliente = get_object_or_404(Cliente, uuid_id=cliente_id) if cliente_id else None
+        cliente = get_object_or_404(Cliente, pk=cliente_id)
+
 
         # Validación: moroso y no verificado
         if cliente:
@@ -650,14 +652,27 @@ def finalizar_alquiler(request, id):
 @permission_required('alquiler.change_alquiler', raise_exception=True)
 def renovar_alquiler(request, id):
     alquiler = get_object_or_404(Alquiler, uuid_id=id)
+
     if request.method == 'POST':
-        nueva_fecha_fin = request.POST.get('nueva_fecha_fin')
-        alquiler.fecha_fin = nueva_fecha_fin
-        alquiler.renovacion = True
-        alquiler.save()
-        messages.success(request, "Alquiler renovado exitosamente.")
-        return redirect('alquiler:listar_alquileres')
-    return render(request, 'renovar_alquiler.html', {'alquiler': alquiler})
+        form = RenovarAlquilerForm(request.POST)
+        if form.is_valid():
+            alquiler.fecha_fin = form.cleaned_data['nueva_fecha_fin']
+            alquiler.renovacion = True
+            alquiler.save()
+            messages.success(request, "Alquiler renovado exitosamente.")
+            return redirect('alquiler:listar_alquileres')
+        else:
+            messages.error(request, "Corrige los errores del formulario.")
+    else:
+        form = RenovarAlquilerForm(initial={
+            'nueva_fecha_fin': alquiler.fecha_fin + timedelta(days=7),
+        })
+
+    return render(request, 'renovar_alquiler.html', {
+        'form': form,
+        'alquiler': alquiler,
+    })
+
 
 
 @login_required
@@ -797,14 +812,14 @@ def calendario_alquileres(request):
             "title": f"{equipos_str} - {alquiler.cliente.nombre} - INICIO",
             "start": alquiler.fecha_inicio.strftime("%Y-%m-%d"),
             "color": "#28a745",
-            "url": f"/alquileres/{alquiler.id}/detalle/"
+            "url": f"/alquileres/{alquiler.uuid_id}/detalle/"
         })
 
         eventos.append({
             "title": f"{equipos_str} - {alquiler.cliente.nombre} - FIN",
             "start": alquiler.fecha_fin.strftime("%Y-%m-%d"),
             "color": "#dc3545",
-            "url": f"/alquileres/{alquiler.id}/detalle/"
+            "url": f"/alquileres/{alquiler.uuid_id}/detalle/"
         })
 
         # Evento de aviso por vencer (3 días antes)
@@ -813,7 +828,7 @@ def calendario_alquileres(request):
             "title": f"{equipos_str} - {alquiler.cliente.nombre} - POR VENCER",
             "start": fecha_aviso.strftime("%Y-%m-%d"),
             "color": "#ffc107",
-            "url": f"/alquileres/{alquiler.id}/detalle/"
+            "url": f"/alquileres/{alquiler.uuid_id}/detalle/"
         })
 
     eventos_json = json.dumps(eventos)
@@ -822,6 +837,7 @@ def calendario_alquileres(request):
         "current_year": datetime.now().year,
         "es_superusuario": request.user.is_superuser, # Pasa esta variable al template
     })
+
 
 @login_required
 @permission_required('alquiler.change_alquiler', raise_exception=True)
@@ -1003,7 +1019,7 @@ def firmar_contrato(request, id):
             # Generar documento PDF con las firmas
             if contrato.generar_documento_contrato():
                 messages.success(request, "¡Contrato firmado y generado correctamente!")
-                return redirect('alquiler:detalle_alquiler', id=alquiler.id)
+                return redirect('alquiler:detalle_alquiler', id=alquiler.uuid_id)
             else:
                 messages.error(request, "Error al generar el documento PDF del contrato")
                 return render(request, 'firmar_contrato.html', {'alquiler': alquiler, 'contrato': contrato})

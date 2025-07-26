@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 import json
 import pytz
 from decimal import Decimal, InvalidOperation
+from datetime import date
 
 
 def validate_fecha_fin(value):
@@ -236,21 +237,19 @@ class ConvertirReservaForm(forms.ModelForm):
         return alquiler
     
 
+
 class RenovarAlquilerForm(forms.Form):
-    numero_factura = forms.CharField(
-        label="Número de Factura",
-        max_length=20,
-        required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+    nueva_fecha_fin = forms.DateField(
+        label="Nueva fecha de finalización",
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        required=True
     )
 
-    def clean_numero_factura(self):
-        numero_factura = self.cleaned_data['numero_factura']
-        if Alquiler.objects.filter(numero_factura=numero_factura).exists():
-            raise ValidationError("Este número de factura ya está en uso")
-        return numero_factura
-
-
+    def clean_nueva_fecha_fin(self):
+        nueva_fecha = self.cleaned_data['nueva_fecha_fin']
+        if nueva_fecha < date.today():
+            raise forms.ValidationError("La nueva fecha de finalización no puede estar en el pasado.")
+        return nueva_fecha
 
 
 class DocumentosAlquilerForm(forms.ModelForm):

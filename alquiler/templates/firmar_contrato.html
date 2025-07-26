@@ -11,7 +11,7 @@
 {% block content %}
 <div class="container">
     <h2 class="page-title">
-        <i class="fas fa-file-signature icon"></i>Firmar Contrato - Alquiler #{{ alquiler.id }}
+        <i class="fas fa-file-signature icon"></i>Firmar Contrato - Alquiler #{{ alquiler.numero_factura }}
     </h2>
 
     <form method="post" enctype="multipart/form-data" id="firmaForm" novalidate>
@@ -76,7 +76,7 @@
         </div>
 
         <div class="form-actions">
-            <a href="{% url 'alquiler:detalle_alquiler' alquiler.id %}" class="btn btn-secondary">
+            <a href="{% url 'alquiler:detalle_alquiler' alquiler.uuid_id %}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left icon"></i>Volver al detalle
             </a>
             <button type="submit" class="btn btn-primary">

@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factura #{{ pago.id }}</title>
+    <title>Factura #{{ pago.alquiler.numero_factura }}</title>
     <style>
         @page {
             size: A4;
@@ -161,9 +161,9 @@
             <div class="info-legal">Email: info@tecnonacho.com</div>
         </div>
         <div class="invoice-info">
-            <h2>FACTURA #{{ pago.id }}</h2>
+            <h2>FACTURA #{{ pago.alquiler.numero_factura }}</h2>
             <p><strong>Fecha:</strong> {{ pago.fecha_pago|date:"d/m/Y" }}</p>
-            <p><strong>Alquiler:</strong> #{{ pago.alquiler.id }}</p>
+            <p><strong>Alquiler:</strong> #{{ pago.alquiler.numero_factura }}</p>
             <div class="payment-status {% if pago.estado_pago == 'pagado' %}status-pagado{% else %}status-pendiente{% endif %}">
                 {{ pago.get_estado_pago_display|upper }}
             </div>
@@ -190,7 +190,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>Pago por alquiler #{{ pago.alquiler.id }}</td>
+                    <td>Pago por alquiler #{{ pago.alquiler.numero_factura }}</td>
                     <td>${{ pago.monto }}</td>
                 </tr>
                 <tr>

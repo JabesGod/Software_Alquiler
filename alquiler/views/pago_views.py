@@ -449,6 +449,7 @@ def pagos_vencidos(request):
 def cambiar_estado_pago(request, pago_uuid, nuevo_estado):
     pago = get_object_or_404(Pago, uuid_id=pago_uuid)
 
+
     
     if nuevo_estado in dict(Pago.ESTADO_PAGO):
         pago.estado_pago = nuevo_estado
@@ -529,7 +530,7 @@ def registrar_pago(request):
 @permission_required('alquiler.change_pago', raise_exception=True)
 def editar_pago(request, pago_uuid):
     print(f"===> Ingresando a editar_pago con ID: {pago_uuid}")
-    get_object_or_404(Pago, uuid_id=pago_uuid)
+    pago = get_object_or_404(Pago, uuid_id=pago_uuid)
     print(f"Pago obtenido: {pago}")
 
     if request.method == 'POST':
@@ -602,7 +603,8 @@ def eliminar_pago(request, pago_uuid):
 @login_required
 @permission_required('alquiler.view_factura', raise_exception=True)
 def generar_factura_pdf(request, pago_uuid):
-    pago = get_object_or_404(Pago, id=pago_uuid)
+    pago = get_object_or_404(Pago, uuid_id=pago_uuid)
+
     
     # Renderizar template
     template = get_template('factura_pdf.html')

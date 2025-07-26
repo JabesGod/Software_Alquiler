@@ -314,7 +314,6 @@ def asignar_rol(request, usuario_uuid):
             
             messages.success(request, f'Rol "{rol.nombre_rol}" asignado correctamente a {usuario.nombre_usuario}')
             return redirect('alquiler:editar_usuario', usuario_uuid=usuario.uuid_id)
-    
     return render(request, 'asignar_rol.html', {
         'usuario': usuario,
         'roles': roles

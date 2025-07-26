@@ -23,7 +23,7 @@
         {% for resultado in resultados %}
             <div class="result-card" 
                  data-type="{{ resultado.tipo_resultado|lower }}"
-                 onclick="window.location.href='{% if resultado.tipo_resultado == 'Equipo' %}{% url 'alquiler:detalle_equipo' resultado.id %}{% elif resultado.tipo_resultado == 'Cliente' %}{% url 'alquiler:detalle_cliente' resultado.id %}{% elif resultado.tipo_resultado == 'Alquiler' %}{% url 'alquiler:detalle_alquiler' resultado.id %}{% elif resultado.tipo_resultado == 'Pago' %}{% url 'alquiler:detalle_pago' resultado.id %}{% elif resultado.tipo_resultado == 'Usuario' %}{% url 'alquiler:detalle_usuario' resultado.id %}{% elif resultado.tipo_resultado == 'Rol' %}{% url 'alquiler:editar_rol' resultado.id %}{% endif %}'">
+                 onclick="window.location.href='{% if resultado.tipo_resultado == 'Equipo' %}{% url 'alquiler:detalle_equipo' resultado.uuid_id %}{% elif resultado.tipo_resultado == 'Cliente' %}{% url 'alquiler:detalle_cliente' resultado.uuid_id %}{% elif resultado.tipo_resultado == 'Alquiler' %}{% url 'alquiler:detalle_alquiler' resultado.uuid_id %}{% elif resultado.tipo_resultado == 'Pago' %}{% url 'alquiler:detalle_pago' resultado.uuid_id%}{% elif resultado.tipo_resultado == 'Usuario' %}{% url 'alquiler:detalle_usuario' resultado.uuid_id %}{% elif resultado.tipo_resultado == 'Rol' %}{% url 'alquiler:editar_rol' resultado.uuid_id %}{% endif %}'">
                 {% if resultado.imagen_url %}
                     <img src="{{ resultado.imagen_url }}" alt="{{ resultado.tipo_resultado }}" class="result-image">
                 {% else %}
@@ -47,7 +47,7 @@
                             {% elif resultado.tipo_resultado == 'Rol' %}
                                 {{ resultado.nombre_rol }}
                             {% elif resultado.tipo_resultado == 'Pago' %}
-                                Pago #{{ resultado.id }} - ${{ resultado.monto }}
+                                Pago #{{ resultado.uuid_id }} - ${{ resultado.monto }}
                             {% else %}
                                 {{ resultado }}
                             {% endif %}

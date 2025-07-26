@@ -19,6 +19,8 @@ def listar_clientes(request):
     return render(request, 'lista_clientes.html', {'clientes': clientes})
 
 
+@login_required
+@permission_required('alquiler.add_cliente', raise_exception=True)
 def crear_cliente(request):
     if request.method == 'POST':
         form = ClienteForm(request.POST, request.FILES)
@@ -33,7 +35,8 @@ def crear_cliente(request):
     return render(request, 'crear_cliente.html', {'form': form})
 
 
-# Editar cliente existente
+@login_required
+@permission_required('alquiler.change_cliente', raise_exception=True)
 def editar_cliente(request, id):
     try:
         cliente = get_object_or_404(Cliente, uuid_id=id)
@@ -56,7 +59,9 @@ def editar_cliente(request, id):
         'cliente': cliente
     })
 
-# Detalle del cliente con historial completo
+
+@login_required
+@permission_required('alquiler.view_cliente', raise_exception=True)
 def detalle_cliente(request, id):
     cliente = get_object_or_404(Cliente, uuid_id=id)
     historial_alquileres = Alquiler.objects.filter(cliente=cliente)
@@ -69,12 +74,15 @@ def detalle_cliente(request, id):
     }
     return render(request, 'detalle_cliente.html', context)
 
-# Cambiar estado de verificación
+
+@login_required
+@permission_required('alquiler.change_cliente', raise_exception=True)
 def cambiar_estado_verificacion(request, id, nuevo_estado):
     cliente = get_object_or_404(Cliente, uuid_id=id)
     cliente.estado_verificacion = nuevo_estado
     cliente.save()
     return redirect('alquiler:detalle_cliente', id=cliente.uuid_id)
+
 
 @login_required
 @permission_required('alquiler.change_cliente', raise_exception=True)
@@ -85,6 +93,8 @@ def bloquear_cliente(request, id):
     messages.warning(request, f'El cliente {cliente.nombre} ha sido bloqueado.')
     return redirect('alquiler:detalle_cliente', id=cliente.uuid_id)
 
+@login_required
+@permission_required('alquiler.view_cliente', raise_exception=True)
 def clientes_morosos(request):
     actualizar_morosidad_clientes()
 
@@ -113,6 +123,7 @@ def clientes_morosos(request):
 
 
 @login_required
+@permission_required('alquiler.change_cliente', raise_exception=True)
 def marcar_como_moroso(request, cliente_id):
     cliente = get_object_or_404(Cliente, uuid_id=cliente_id)
     
@@ -125,6 +136,7 @@ def marcar_como_moroso(request, cliente_id):
         return redirect('alquiler:detalle_cliente', id=cliente.uuid_id)
     
     return render(request, 'confirmar_moroso.html', {'cliente': cliente})
+
 
 def actualizar_morosidad_clientes():
     # Fecha límite para considerar moroso (15 días de gracia)
@@ -173,6 +185,8 @@ def actualizar_morosidad_clientes():
         cliente.fecha_marcado_moroso = None
         cliente.save()
 
+@login_required
+@permission_required('alquiler.change_cliente', raise_exception=True)
 def validar_documentos_cliente(request, id):
     cliente = get_object_or_404(Cliente, uuid_id=id)
     documentos_completos = cliente.documento_rut and cliente.documento_cedula
@@ -186,10 +200,8 @@ def validar_documentos_cliente(request, id):
 
     return redirect('alquiler:detalle_cliente', id=cliente.uuid_id)
 
-
-
-
-
+@login_required
+@permission_required('alquiler.add_pago', raise_exception=True)
 def registrar_pago_parcial(request, id_alquiler):
     alquiler = get_object_or_404(Alquiler, id=id_alquiler)
 

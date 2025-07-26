@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>CONTRATO DE ALQUILER - TECNO NACHO S.A.S</title>
+    <title>CONTRATO DE ALQUILER # {{alquiler.numero_factura}} - TECNO NACHO S.A.S</title>
     <style type="text/css">
         /* Estilos generales */
         * {
@@ -194,7 +194,7 @@
                 <th colspan="4">DATOS DEL CONTRATO</th>
             </tr>
             <tr>
-                <td class="etiqueta">No. Contrato:</td>
+                <td class="etiqueta">No. Factura:</td>
                 <td>{{ alquiler.numero_factura|default:"Pendiente" }}</td>
                 <td class="etiqueta">Fecha:</td>
                 <td>{{ alquiler.fecha_inicio|date:"d/m/Y" }}</td>

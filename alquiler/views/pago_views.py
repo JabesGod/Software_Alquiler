@@ -138,6 +138,7 @@ def calcular_metricas_pagos(pagos):
         'tasa_cumplimiento': round(tasa_cumplimiento, 2),
     }
 
+
 def obtener_datos_graficas(pagos, periodo, fecha_inicio, fecha_fin):
     """Obtiene datos para las gráficas según el período seleccionado"""
 
@@ -205,6 +206,7 @@ def obtener_datos_graficas(pagos, periodo, fecha_inicio, fecha_fin):
         }
     }
 
+
 def analizar_tendencias(pagos, fecha_inicio, fecha_fin):
     """Analiza tendencias de pagos comparando con períodos anteriores"""
 
@@ -246,6 +248,7 @@ def analizar_tendencias(pagos, fecha_inicio, fecha_fin):
         'variacion_cantidad': round(variacion_cantidad, 2),
     }
 
+
 def obtener_top_clientes(pagos):
     """Obtiene los clientes con más pagos/montos"""
     # Se agrega .distinct() si un cliente puede tener múltiples alquileres y quieres sumarlos una vez
@@ -260,6 +263,7 @@ def obtener_top_clientes(pagos):
     ).order_by('-total_pagado')[:10])
 
     return top_clientes_list
+
 
 def exportar_csv_pagos(pagos, fecha_inicio, fecha_fin):
     """Exporta los pagos filtrados a CSV"""
@@ -289,6 +293,7 @@ def exportar_csv_pagos(pagos, fecha_inicio, fecha_fin):
         ])
     
     return response
+
 
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)
@@ -381,6 +386,8 @@ def listar_pagos(request):
     }
     
     return render(request, 'lista_pagos.html', context)
+
+
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)
 def api_datos_graficas(request):
@@ -418,6 +425,7 @@ def api_datos_graficas(request):
     
     return JsonResponse({'error': 'Tipo de gráfica no válido'}, status=400)
 
+
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)
 def pagos_vencidos(request):
@@ -439,7 +447,8 @@ def pagos_vencidos(request):
 @login_required
 @permission_required('alquiler.change_pago', raise_exception=True)
 def cambiar_estado_pago(request, pago_uuid, nuevo_estado):
-    pago = get_object_or_404(Pago, id=pago_uuid)
+    pago = get_object_or_404(Pago, uuid_id=pago_uuid)
+
     
     if nuevo_estado in dict(Pago.ESTADO_PAGO):
         pago.estado_pago = nuevo_estado
@@ -453,10 +462,7 @@ def cambiar_estado_pago(request, pago_uuid, nuevo_estado):
     else:
         messages.error(request, 'Estado inválido')
     
-    redirect('alquiler:detalle_pago', pago_uuid=pago.uuid_id)
-
-
-
+    return redirect('alquiler:detalle_pago', pago_uuid=pago.uuid_id)
 
 
 @login_required
@@ -517,6 +523,7 @@ def registrar_pago(request):
         form = PagoForm()
     
     return render(request, 'registrar_pago.html', {'form': form})
+
 
 @login_required
 @permission_required('alquiler.change_pago', raise_exception=True)
@@ -592,7 +599,6 @@ def eliminar_pago(request, pago_uuid):
     return render(request, 'eliminar_pago.html', context)
 
 
-
 @login_required
 @permission_required('alquiler.view_factura', raise_exception=True)
 def generar_factura_pdf(request, pago_uuid):
@@ -622,7 +628,7 @@ def generar_factura_pdf(request, pago_uuid):
     
     return HttpResponse("Error al generar el PDF", status=400)
 
-# Funciones de utilidad
+
 def verificar_morosidad_cliente(cliente_uuid):
     cliente = get_object_or_404(Cliente, id=cliente_uuid)
     pagos_vencidos = Pago.objects.filter(
@@ -763,6 +769,10 @@ def registrar_pago_contra_obligacion(request, pago_uuid): # CAMBIO: pago_id a pa
         'titulo': f'Registrar Pago para Obligación #{pago_obligacion.uuid_id}' # CAMBIO: pago.id a pago.uuid_id
     }
     return render(request, 'registrar_pago_contra_obligacion.html', context)
+
+
+
+
 class RegistrarPagoView(APIView):
     permission_classes = [IsAuthenticated]
 

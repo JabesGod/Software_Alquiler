@@ -674,7 +674,6 @@ def renovar_alquiler(request, id):
     })
 
 
-
 @login_required
 @permission_required('alquiler.view_acta', raise_exception=True)
 def generar_acta_entrega(request, id):
@@ -701,6 +700,7 @@ def generar_acta_entrega(request, id):
         return HttpResponse("Error al generar el PDF", status=500)
     
     return response
+
 
 @login_required
 @permission_required('alquiler.view_acta', raise_exception=True)
@@ -741,7 +741,7 @@ def generar_acta_devolucion(request, id):
     response['Content-Disposition'] = f'attachment; filename="acta_devolucion_{alquiler.id}.pdf"'
     return response
 
-
+#esta funcion debe de ser una tare cron o automatizada
 def alertas_devoluciones_proximas():
     proximos = Alquiler.objects.filter(
         fecha_fin=timezone.now().date() + timedelta(days=1),
@@ -756,6 +756,7 @@ def alertas_devoluciones_proximas():
             [alquiler.cliente.email],
             fail_silently=False,
         )
+
 
 @login_required
 @permission_required('alquiler.view_alquiler', raise_exception=True)
@@ -863,20 +864,20 @@ def crear_contrato(request, id):
 
     if hasattr(alquiler, 'contrato'):
         messages.warning(request, "Este alquiler ya tiene un contrato generado.")
-        return redirect('alquiler:detalle_alquiler', id=alquiler.id)
+        return redirect('alquiler:detalle_alquiler', id=alquiler.uuid_id)
 
     if not alquiler.detalles.exists():
         messages.error(request, "No hay equipos asociados a este alquiler.")
-        return redirect('alquiler:detalle_alquiler', id=alquiler.id)
+        return redirect('alquiler:detalle_alquiler', id=alquiler.uuid_id)
 
     # Validar que el alquiler tenga un número de factura
     if not alquiler.numero_factura:
         messages.error(request, "No se puede crear el contrato: el número de factura está vacío.")
-        return redirect('alquiler:detalle_alquiler', id=alquiler.id)
+        return redirect('alquiler:detalle_alquiler', id=alquiler.uuid_id)
 
     contrato = Contrato.objects.create(alquiler=alquiler)
     messages.success(request, "Contrato creado correctamente. Ahora debe ser firmado.")
-    return redirect('alquiler:firmar_contrato', id=alquiler.id)
+    return redirect('alquiler:firmar_contrato', id=alquiler.uuid_id)
 
 
 @login_required

@@ -53,7 +53,6 @@ from alquiler.views.base_views import(
 
 core_patterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('alquiler.api_urls')),
     #Buscador
     path('buscar/', BusquedaGlobalView.as_view(), name='busqueda_global'),
     path('buscar/sugerencias/', sugerencias_busqueda, name='sugerencias_busqueda'),
@@ -114,15 +113,18 @@ core_patterns = [
     path('pagos/registrar/', registrar_pago, name='registrar_pago'),
     path('pagos/<uuid:pago_uuid>/', detalle_pago, name='detalle_pago'),
     path('pagos/<uuid:pago_uuid>/editar/', editar_pago, name='editar_pago'),
-    path('pagos/<uuid:pago_uuid>/factura/', generar_factura_pdf, name='generar_factura_pdf'), 
+    path('pagos/<uuid:pago_uuid>/factura/', generar_factura_pdf, name='generar_factura_pdf'),
+    path('pagos/<uuid:pago_uuid>/cambiar-estado/<str:nuevo_estado>/', cambiar_estado_pago, name='cambiar_estado_pago'),
+    path('pagos/<uuid:pago_uuid>/eliminar/', eliminar_pago, name='eliminar_pago'),
+    path('pagos/reportes/', reportes_pagos, name='reportes_pagos'),
     path('pagos/vencidos/', pagos_vencidos, name='pagos_vencidos'),
     path('pagos/proximos/', pagos_proximos_vencer, name='pagos_proximos'),
-    path('pagos/<uuid:pago_uuid>/cambiar-estado/<str:nuevo_estado>/', cambiar_estado_pago, name='cambiar_estado_pago'),
-    path('pagos/<uuid:pago_uuid>/eliminar/', eliminar_pago, name='eliminar_pago'), 
-    path('pagos/reportes/', reportes_pagos, name='reportes_pagos'),
-    path('pagos/parciales/', pagos_parciales, name='pagos_parciales'),
 
-    path('pagos/<uuid:pago_uuid>/registrar-obligacion/', registrar_pago_contra_obligacion, name='registrar_pago_contra_obligacion'), # Renombrado pago_id a pago_uuid y añadido '-obligacion' para claridad
+    path('pagos/parcial/', pagos_parciales, name='pagos_parciales'),  # Versión con GET
+    path('alquiler/<uuid:alquiler_uuid>/pago-parcial/', registrar_pago_parcial, name='registrar_pago_parcial_alquiler'),  # Con alquiler directo en URL
+
+    path('pagos/<uuid:pago_uuid>/registrar-obligacion/', registrar_pago_contra_obligacion, name='registrar_pago_contra_obligacion'),
+
 
     #Urls Usuario 
     path('', inicio_sesion, name='inicio_sesion'),

@@ -203,7 +203,8 @@ def validar_documentos_cliente(request, id):
 @login_required
 @permission_required('alquiler.add_pago', raise_exception=True)
 def registrar_pago_parcial(request, id_alquiler):
-    alquiler = get_object_or_404(Alquiler, id=id_alquiler)
+    alquiler = get_object_or_404(Alquiler, uuid_id=id_alquiler)
+
 
     if request.method == 'POST':
         form = PagoForm(request.POST)

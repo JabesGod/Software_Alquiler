@@ -507,6 +507,7 @@ def detalle_pago(request, pago_uuid):
 @login_required
 @permission_required('alquiler.add_pago', raise_exception=True)
 def registrar_pago(request):
+    
     if request.method == 'POST':
         form = PagoForm(request.POST, request.FILES)
         if form.is_valid():
@@ -672,7 +673,6 @@ def pagos_parciales(request):
     
     return render(request, 'pagos_parciales.html', context)
 
-
 @login_required
 @permission_required('alquiler.add_pago', raise_exception=True)
 def registrar_pago_parcial(request):
@@ -684,18 +684,18 @@ def registrar_pago_parcial(request):
             pago.save()
 
             messages.success(request, f'Pago parcial #{pago.id} registrado correctamente.')
-            return redirect('alquiler:detalle_pago', pago_uuid=pago.uuid_id) # CAMBIO: pago_id a pago_uuid
+            return redirect('alquiler:detalle_pago', pago_uuid=pago.uuid_id)
     else:
-        # Si viene con alquiler_id en los parámetros GET
-        alquiler_uuid = request.GET.get('alquiler_id') # CAMBIO: alquiler_id a alquiler_uuid (si es un UUID)
+        alquiler_uuid = request.GET.get('alquiler_id')
         initial = {}
+        alquiler = None
 
         if alquiler_uuid:
             try:
-                alquiler = Alquiler.objects.get(uuid_id=alquiler_uuid) # CAMBIO: id=alquiler_id a uuid_id=alquiler_uuid
+                alquiler = Alquiler.objects.get(uuid_id=alquiler_uuid)
                 initial = {
                     'alquiler': alquiler,
-                    'monto': alquiler.saldo_pendiente * Decimal('0.5'),  # Sugerir 50% del saldo
+                    'monto': alquiler.saldo_pendiente * Decimal('0.5'),
                 }
             except Alquiler.DoesNotExist:
                 messages.error(request, 'El alquiler especificado no existe.')
@@ -704,7 +704,7 @@ def registrar_pago_parcial(request):
 
     context = {
         'form': form,
-        'alquiler': Alquiler.objects.get(uuid_id=initial.get('alquiler')) if initial.get('alquiler') else None, # CAMBIO: id a uuid_id
+        'alquiler': alquiler  # Ya tienes la instancia
     }
 
     return render(request, 'registrar_pago_parcial.html', context)

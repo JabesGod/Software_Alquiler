@@ -7,7 +7,7 @@ from ..models import Pago, Alquiler, Cliente
 class PagoForm(forms.ModelForm):
     class Meta:
         model = Pago
-        exclude = ['alquiler']
+        
         fields = [
             'alquiler', 'monto', 'metodo_pago', 'estado_pago',
             'referencia_transaccion', 'fecha_vencimiento',

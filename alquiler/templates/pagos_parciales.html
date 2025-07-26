@@ -16,9 +16,15 @@
             <a href="{% url 'alquiler:lista_pagos' %}" class="btn btn-outline-primary">
                 <i class="fas fa-arrow-left"></i> Volver
             </a>
-            <a href="{% url 'alquiler:registrar_pago_parcial' %}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Registrar Pago Parcial
-            </a>
+            {% if pago.alquiler and pago.alquiler.uuid_id %}
+  <a href="{% url 'alquiler:registrar_pago_parcial_alquiler' pago.alquiler.uuid_id %}" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Registrar Pago Parcial
+  </a>
+{% else %}
+{% endif %}
+
+
+
         </div>
     </div>
 
@@ -88,9 +94,12 @@
             </div>
             <h3>No hay pagos parciales</h3>
             <p>No se encontraron pagos marcados como parciales.</p>
-            <a href="{% url 'alquiler:registrar_pago_parcial' %}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Registrar Pago Parcial
-            </a>
+            {% if pago.alquiler and pago.alquiler.uuid_id %}
+    <a href="{% url 'alquiler:registrar_pago_parcial' pago.alquiler.uuid_id %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Registrar Pago Parcial
+    </a>
+{% endif %}
+
         </div>
         {% endif %}
     </div>

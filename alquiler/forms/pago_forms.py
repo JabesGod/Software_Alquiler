@@ -2,12 +2,12 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from ..models import Pago, Alquiler, Cliente
+from decimal import Decimal
 
 
 class PagoForm(forms.ModelForm):
     class Meta:
         model = Pago
-        
         fields = [
             'alquiler', 'monto', 'metodo_pago', 'estado_pago',
             'referencia_transaccion', 'fecha_vencimiento',
@@ -19,31 +19,37 @@ class PagoForm(forms.ModelForm):
             'metodo_pago': forms.Select(attrs={'class': 'form-control'}),
             'estado_pago': forms.Select(attrs={'class': 'form-control'}),
             'referencia_transaccion': forms.TextInput(attrs={'class': 'form-control'}),
-            'fecha_vencimiento': forms.DateInput(attrs={
-                'class': 'form-control',
-                'type': 'date'
-            }),
-            'notas': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3
-            }),
+            'fecha_vencimiento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'notas': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'comprobante_pago': forms.FileInput(attrs={'class': 'form-control'}),
         }
-    
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        alquiler = self.initial.get('alquiler') or self.instance.alquiler
+        if alquiler:
+            # Asegura que max_saldo sea un Decimal
+            max_saldo = alquiler.saldo_pendiente if alquiler.saldo_pendiente is not None else Decimal('0.00')
+            self.fields['monto'].widget.attrs.update({'max': max_saldo})
+
+    def clean_monto(self):
+        monto = self.cleaned_data.get('monto')
+        alquiler = self.instance.alquiler
+        if alquiler:
+            # Asegura que saldo_pendiente_val sea un Decimal
+            saldo_pendiente_val = alquiler.saldo_pendiente if alquiler.saldo_pendiente is not None else Decimal('0.00')
+            if monto is not None and monto > saldo_pendiente_val:
+                raise forms.ValidationError(f"El monto no puede ser mayor al saldo pendiente (${saldo_pendiente_val})")
+        return monto
+
 
 class PagoParcialForm(PagoForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['monto'].widget.attrs.update({
-            'max': self.instance.alquiler.saldo_pendiente if self.instance.alquiler else ''
-        })
+        if self.instance and self.instance.alquiler:
+            max_saldo = self.instance.alquiler.saldo_pendiente if self.instance.alquiler.saldo_pendiente is not None else Decimal('0.00')
+            self.fields['monto'].widget.attrs.update({'max': max_saldo})
 
-    def clean_monto(self):
-        monto = super().clean_monto()
-        alquiler = self.instance.alquiler
-        if alquiler and monto > alquiler.saldo_pendiente:
-            raise ValidationError(f"El monto no puede ser mayor al saldo pendiente (${alquiler.saldo_pendiente})")
-        return monto
 
 class AprobarPagoForm(forms.ModelForm):
     class Meta:

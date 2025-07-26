@@ -344,28 +344,18 @@ class Cliente(models.Model):
     
 class Alquiler(models.Model):
     uuid_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-
     ESTADO_ALQUILER = [
-        ('activo', 'Activo'),
-        ('finalizado', 'Finalizado'),
-        ('cancelado', 'Cancelado'),
-        ('reservado', 'Reservado'),
-        ('pendiente_aprobacion', 'Pendiente de Aprobación'),
+        ('activo', 'Activo'), ('finalizado', 'Finalizado'), ('cancelado', 'Cancelado'),
+        ('reservado', 'Reservado'), ('pendiente_aprobacion', 'Pendiente de Aprobación'),
     ]
-    creado_por = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL, # Si el usuario se elimina, el campo se pone a NULL
-        null=True,
-        blank=True,
-        related_name='alquileres_creados',
-        verbose_name="Creado por"
-    )
+    creado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='alquileres_creados', verbose_name="Creado por")
     cliente = models.ForeignKey('Cliente', on_delete=models.CASCADE, related_name='alquileres')
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
-    precio_subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    iva = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    precio_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    # Asegúrate de que los valores por defecto sean Decimal
+    precio_subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    iva = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    precio_total = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     fecha_vencimiento = models.DateField(blank=True, null=True)
     estado_alquiler = models.CharField(max_length=20, choices=ESTADO_ALQUILER, default='pendiente_aprobacion')
     renovacion = models.BooleanField(default=False)
@@ -380,10 +370,11 @@ class Alquiler(models.Model):
 
     def __str__(self):
         return f"{'Reserva' if self.es_reserva else 'Alquiler'} #{self.id} - {self.cliente}"
-    
+
     def get_absolute_url(self):
+        from django.urls import reverse
         return reverse('detalle_alquiler', args=[str(self.id)])
-    
+
     def clean(self):
         if not self.es_reserva and not self.numero_factura:
             raise ValidationError("Debe ingresar un número de factura para alquileres activos.")
@@ -391,20 +382,14 @@ class Alquiler(models.Model):
             self.numero_factura = None
 
     def save(self, *args, **kwargs):
-        # Si no es reserva y no tiene número de factura, generarlo
         if not self.es_reserva and not self.numero_factura and not self.renovacion:
-            last = Alquiler.objects.filter(
-                es_reserva=False,
-                numero_factura__isnull=False
-            ).exclude(numero_factura='').order_by('-fecha_creacion').first()
-
+            last = Alquiler.objects.filter(es_reserva=False, numero_factura__isnull=False).exclude(numero_factura='').order_by('-fecha_creacion').first()
             last_number = 0
             if last and last.numero_factura:
                 match = re.search(r'FACT[-]?(\d+)', last.numero_factura)
                 if match:
                     last_number = int(match.group(1))
 
-            # Buscar el siguiente número disponible
             while True:
                 nuevo_codigo = f"FACT-{last_number + 1:04d}"
                 if not Alquiler.objects.filter(numero_factura=nuevo_codigo).exists():
@@ -412,7 +397,6 @@ class Alquiler(models.Model):
                     break
                 last_number += 1
 
-        # Siempre validar antes de guardar
         self.full_clean()
         super().save(*args, **kwargs)
 
@@ -423,35 +407,28 @@ class Alquiler(models.Model):
             return self.precio_total
 
         total = Decimal('0.00')
-        dias = (self.fecha_fin - self.fecha_inicio).days + 0
-
         for detalle in self.detalles.all():
-            if detalle.precio_total:
+            if detalle.precio_total is not None:
                 total += detalle.precio_total
-            elif detalle.precio_unitario and detalle.precio_unitario > 0:
+            elif detalle.precio_unitario is not None and detalle.precio_unitario > 0:
                 precio = detalle.precio_unitario * detalle.cantidad
                 precio_con_iva = (precio * Decimal('1.19')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
                 total += precio_con_iva
-            else:
-                continue
 
         self.precio_total = total.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         self.save(update_fields=['precio_total'])
         return self.precio_total
 
     def total_pagado(self):
-        return sum(pago.monto for pago in self.pagos.all())
-    
-    @property
-    def total_pagos_vencidos(self):
-        return self.pagos.filter(
-            estado_pago__in=['pendiente', 'parcial'],
-            fecha_vencimiento__lt=timezone.now().date()
-        ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+        # Asegura que siempre se retorne un Decimal, incluso si no hay pagos.
+        return self.pagos.all().aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
     @property
     def saldo_pendiente(self):
-        return Decimal(self.precio_total) - Decimal(self.total_pagado())
-
+        # Asegura que precio_total_val sea Decimal, y que total_pagado() también lo sea.
+        precio_total_val = self.precio_total if self.precio_total is not None else Decimal('0.00')
+        return precio_total_val - self.total_pagado()
+    
 
 class DetalleAlquiler(models.Model):
     PERIODO_CHOICES = [
@@ -560,24 +537,17 @@ class Acta(models.Model):
 class Pago(models.Model):
     uuid_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     ESTADO_PAGO = [
-        ('pendiente', 'Pendiente'),
-        ('pagado', 'Pagado'),
-        ('parcial', 'Parcial'),
-        ('vencido', 'Vencido'),
-        ('rechazado', 'Rechazado'),
+        ('pendiente', 'Pendiente'), ('pagado', 'Pagado'), ('parcial', 'Parcial'),
+        ('vencido', 'Vencido'), ('rechazado', 'Rechazado'),
     ]
-
     METODOS = [
-        ('tarjeta', 'Tarjeta de crédito/débito'),
-        ('transferencia', 'Transferencia bancaria'),
-        ('efectivo', 'Efectivo'),
-        ('nequi', 'Nequi'),
-        ('daviplata', 'Daviplata'),
+        ('tarjeta', 'Tarjeta de crédito/débito'), ('transferencia', 'Transferencia bancaria'),
+        ('efectivo', 'Efectivo'), ('nequi', 'Nequi'), ('daviplata', 'Daviplata'),
         ('otros', 'Otro método electrónico'),
     ]
 
-    alquiler = models.ForeignKey(Alquiler, on_delete=models.CASCADE, related_name='pagos', null=True, blank=True)
-    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    alquiler = models.ForeignKey('Alquiler', on_delete=models.CASCADE, related_name='pagos', null=True, blank=True)
+    monto = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00')) # Añadir default
     fecha_pago = models.DateField(auto_now_add=True)
     fecha_vencimiento = models.DateField(null=True, blank=True)
     metodo_pago = models.CharField(max_length=20, choices=METODOS)
@@ -586,7 +556,7 @@ class Pago(models.Model):
     referencia_transaccion = models.CharField(max_length=100, blank=True, null=True)
     comprobante_pago = models.FileField(upload_to='comprobantes/', blank=True, null=True)
     notas = models.TextField(blank=True, null=True)
-    aprobado_por = models.ForeignKey('Usuario', on_delete=models.SET_NULL, null=True, blank=True)
+    aprobado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         ordering = ['-fecha_pago']
@@ -597,28 +567,39 @@ class Pago(models.Model):
         return f"Pago #{self.id} - {self.alquiler} - ${self.monto}"
 
     def clean(self):
-        if self.estado_pago == 'parcial' and self.monto >= self.alquiler.saldo_pendiente:
-            raise ValidationError("Un pago parcial no puede cubrir el saldo pendiente completo. Use estado 'pagado' en su lugar.")
-    
+        super().clean()
+
+        monto_value = self.monto if self.monto is not None else Decimal('0.00')
+        saldo_pendiente_value = Decimal('0.00')
+
+        if self.alquiler and hasattr(self.alquiler, 'saldo_pendiente'):
+            saldo_pendiente_value = self.alquiler.saldo_pendiente if self.alquiler.saldo_pendiente is not None else Decimal('0.00')
+
+        if self.estado_pago == 'parcial' and monto_value >= saldo_pendiente_value and saldo_pendiente_value > Decimal('0.00'):
+            raise ValidationError({'monto': "Un pago parcial no puede cubrir el saldo pendiente completo. Use estado 'pagado' en su lugar."})
+
     def save(self, *args, **kwargs):
-        if not self.pk:  
-            if self.estado_pago == 'parcial' and self.monto == self.alquiler.saldo_pendiente:
+        if not self.pk:
+            if self.estado_pago == 'parcial' and self.alquiler and \
+               self.alquiler.saldo_pendiente is not None and \
+               self.monto == self.alquiler.saldo_pendiente:
                 self.estado_pago = 'pagado'
         super().save(*args, **kwargs)
 
     def actualizar_estado_alquiler(self):
         alquiler = self.alquiler
-        total_pagado = alquiler.pagos.filter(
-            estado_pago__in=['pagado', 'parcial']
-        ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+        if not alquiler:
+            return
+
+        total_pagado = alquiler.pagos.filter(estado_pago__in=['pagado', 'parcial']).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
 
         if total_pagado >= alquiler.precio_total:
             alquiler.estado_alquiler = 'finalizado'
-            alquiler.save()
+            alquiler.save(update_fields=['estado_alquiler'])
             alquiler.pagos.filter(estado_pago='parcial').update(estado_pago='pagado')
         elif total_pagado > 0:
             alquiler.estado_alquiler = 'activo'
-            alquiler.save()
+            alquiler.save(update_fields=['estado_alquiler'])
 
 
 class Contrato(models.Model):

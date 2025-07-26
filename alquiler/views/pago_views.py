@@ -721,44 +721,61 @@ def verificar_estado_pago_alquiler(alquiler):
         return True
     return False
 
-
 @login_required
 @permission_required('alquiler.change_pago', raise_exception=True)
-def registrar_pago_contra_obligacion(request, pago_uuid): # CAMBIO: pago_id a pago_uuid
-    pago_obligacion = get_object_or_404(Pago, uuid_id=pago_uuid) # CAMBIO: id=pago_id a uuid_id=pago_uuid
+def registrar_pago_contra_obligacion(request, pago_uuid):
+    print("[DEBUG] Vista: registrar_pago_contra_obligacion - UUID recibido:", pago_uuid)
+
+    pago_obligacion = get_object_or_404(Pago, uuid_id=pago_uuid)
+    print(f"[DEBUG] Pago obligación encontrado: ID={pago_obligacion.id}, Monto={pago_obligacion.monto}")
 
     if request.method == 'POST':
-        form = PagoForm(request.POST, request.FILES)
+        print("[DEBUG] Método POST detectado")
+
+        post_data = request.POST.copy()
+        post_data['alquiler'] = str(pago_obligacion.alquiler.id)
+
+        form = PagoForm(post_data, request.FILES)
+        form.instance.alquiler = pago_obligacion.alquiler
+
         if form.is_valid():
-            # Crear el nuevo pago
             nuevo_pago = form.save(commit=False)
             nuevo_pago.aprobado_por = request.user
 
-            # Actualizar la obligación original
             if pago_obligacion.monto == nuevo_pago.monto:
-                # Pago completo - actualizar la obligación existente
+                print("[DEBUG] Monto coincide - registrando como pago completo")
                 pago_obligacion.metodo_pago = nuevo_pago.metodo_pago
                 pago_obligacion.referencia_transaccion = nuevo_pago.referencia_transaccion
                 pago_obligacion.comprobante_pago = nuevo_pago.comprobante_pago
                 pago_obligacion.notas = nuevo_pago.notas
+                # Ensure estado_pago is 'pagado' if new payment is 'pagado', otherwise 'parcial'
                 pago_obligacion.estado_pago = 'pagado' if nuevo_pago.estado_pago == 'pagado' else 'parcial'
                 pago_obligacion.aprobado_por = request.user
                 pago_obligacion.save()
 
                 messages.success(request, 'Pago registrado correctamente actualizando la obligación existente')
-                return redirect('alquiler:detalle_pago', pago_uuid=pago_obligacion.uuid_id) # CAMBIO: pago_id a pago_uuid
+                return redirect('alquiler:detalle_pago', pago_uuid=pago_obligacion.uuid_id)
             else:
-                # Pago parcial - crear nuevo registro y ajustar obligación
-                pago_obligacion.monto -= nuevo_pago.monto
+                print("[DEBUG] Monto parcial - registrando nuevo pago")
+                # Ensure pago_obligacion.monto is a Decimal before subtraction
+                # If monto can be None in your model, you should handle that.
+                # For example, if None implies 0:
+                original_monto = pago_obligacion.monto if pago_obligacion.monto is not None else Decimal('0.00')
+                pago_obligacion.monto = original_monto - nuevo_pago.monto
+
                 if pago_obligacion.monto > 0:
                     pago_obligacion.estado_pago = 'parcial'
+                else:
+                    # If remaining monto is 0 or less, consider it fully paid or overpaid
+                    pago_obligacion.estado_pago = 'pagado'
                 pago_obligacion.save()
 
-                nuevo_pago.alquiler = pago_obligacion.alquiler
                 nuevo_pago.save()
 
                 messages.success(request, 'Pago parcial registrado correctamente')
-                return redirect('alquiler:detalle_pago', pago_uuid=nuevo_pago.uuid_id) # CAMBIO: pago_id a pago_uuid
+                return redirect('alquiler:detalle_pago', pago_uuid=nuevo_pago.uuid_id)
+        else:
+            print("[DEBUG] Formulario inválido:", form.errors)
     else:
         form = PagoForm(initial={
             'alquiler': pago_obligacion.alquiler,
@@ -768,11 +785,9 @@ def registrar_pago_contra_obligacion(request, pago_uuid): # CAMBIO: pago_id a pa
     context = {
         'form': form,
         'pago_obligacion': pago_obligacion,
-        'titulo': f'Registrar Pago para Obligación #{pago_obligacion.uuid_id}' # CAMBIO: pago.id a pago.uuid_id
+        'titulo': f'Registrar Pago para Obligación #{pago_obligacion.uuid_id}'
     }
     return render(request, 'registrar_pago_contra_obligacion.html', context)
-
-
 
 
 class RegistrarPagoView(APIView):

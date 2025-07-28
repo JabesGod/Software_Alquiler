@@ -105,7 +105,8 @@
             <img src="cid:logo_tecnonacho" alt="Logo Tecnonacho" class="logo">
         </center>
 
-        <h2> Factura #{{ numero_factura }}, de Alquiler por vencer en <span class="highlight">{{ dias_restantes }} día(s)</span></h2>
+        <h2> Factura #{{ numero_factura }}, de Alquiler por vencer en <span class="highlight">{{ dias_restantes }}
+                día(s)</span></h2>
 
         <p>Estimado/a <strong>{{ nombre_cliente }}</strong>,</p>
 
@@ -127,6 +128,16 @@
             <tr>
                 <th>Días restantes</th>
                 <td><span class="highlight">{{ dias_restantes }}</span></td>
+            </tr>
+            <tr>
+                <th>Equipos:</th>
+                <td>
+                    <ul class="mb-0">
+                        {% for equipo in equipos_info %}
+                        {{ equipo.nombre }} <strong>(SKU: {{ equipo.sku }})</strong>
+                        {% endfor %}
+                    </ul>
+                </td>
             </tr>
             <tr>
                 <th>Cantidad de equipos</th>

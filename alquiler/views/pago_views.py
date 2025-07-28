@@ -27,9 +27,18 @@ from django.utils import timezone
 from datetime import timedelta, datetime
 import csv
 import json
+import os
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from email.mime.image import MIMEImage
+import traceback
 from django.core.paginator import Paginator
 from calendar import monthrange
 from django.db.models.functions import TruncMonth, TruncDay, TruncWeek
+import logging
+logger = logging.getLogger(__name__)
 
 @login_required
 @permission_required('alquiler.view_pago', raise_exception=True)
@@ -448,22 +457,62 @@ def pagos_vencidos(request):
 @permission_required('alquiler.change_pago', raise_exception=True)
 def cambiar_estado_pago(request, pago_uuid, nuevo_estado):
     pago = get_object_or_404(Pago, uuid_id=pago_uuid)
-
-
+    estado_anterior = pago.estado_pago
     
-    if nuevo_estado in dict(Pago.ESTADO_PAGO):
-        pago.estado_pago = nuevo_estado
-        pago.aprobado_por = request.user
-        pago.save()
-        
-        # Verificar si completa el alquiler
-        verificar_estado_pago_alquiler(pago.alquiler)
-        
-        messages.success(request, f'Estado del pago actualizado a {pago.get_estado_pago_display()}')
-    else:
+    if nuevo_estado not in dict(Pago.ESTADO_PAGO):
         messages.error(request, 'Estado inválido')
+        return redirect('alquiler:detalle_pago', pago_uuid=pago.uuid_id)
+    
+    # Actualizar estado del pago
+    pago.estado_pago = nuevo_estado
+    pago.aprobado_por = request.user
+    pago.save()
+    
+    # Verificar estado del alquiler relacionado
+    verificar_estado_pago_alquiler(pago.alquiler)
+    
+    # Notificación solo para pagos aprobados
+    if nuevo_estado == 'pagado' and estado_anterior != 'pagado':
+        enviar_confirmacion_pago(pago)
+        messages.success(request, 'Pago aprobado y notificación enviada al cliente')
+    else:
+        messages.success(request, f'Estado del pago actualizado a {pago.get_estado_pago_display()}')
     
     return redirect('alquiler:detalle_pago', pago_uuid=pago.uuid_id)
+
+
+def enviar_confirmacion_pago(pago):
+    try:
+        cliente = pago.alquiler.cliente
+        contexto = {
+            'nombre_cliente': cliente.nombre,
+            'numero_factura': pago.alquiler.numero_factura,
+            'fecha_pago': pago.fecha_pago.strftime("%d/%m/%Y"),
+            'monto_pagado': pago.monto,
+            'fecha_vencimiento': pago.alquiler.fecha_fin.strftime("%d/%m/%Y"),
+            'equipos': [f"{d.equipo.marca} {d.equipo.modelo}" for d in pago.alquiler.detalles.all()]
+        }
+
+        # Renderizar contenido
+        html_content = render_to_string('confirmacion_pago.html', contexto)
+        text_content = strip_tags(html_content)
+
+        # Configurar y enviar email
+        email = EmailMultiAlternatives(
+            subject=f'Confirmación de pago #{pago.alquiler.numero_factura}',
+            body=text_content,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[cliente.email]
+        )
+        email.attach_alternative(html_content, "text/html")
+        email.send(fail_silently=False)
+        
+        # Registrar el envío (opcional)
+        pago.notificacion_enviada = True
+        pago.save()
+
+    except Exception as e:
+        logger.error(f"Error enviando confirmación de pago {pago.id}: {str(e)}")
 
 
 @login_required

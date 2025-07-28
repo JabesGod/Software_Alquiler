@@ -1,0 +1,196 @@
+/* Estilos corporativos para Alquileres a Vencer */
+:root {
+    --primary-color: #1a3a5f;
+    --secondary-color: #2c5282;
+    --accent-color: #3182ce;
+    --light-bg: #f7fafc;
+    --dark-text: #2d3748;
+    --danger-color: #e53e3e;
+    --success-color: #38a169;
+    --border-color: #e2e8f0;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+.alquileres-vencer-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--dark-text);
+}
+
+.alquileres-vencer-title {
+    color: var(--primary-color);
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+}
+
+.alquileres-vencer-title i {
+    margin-right: 0.75rem;
+    color: var(--accent-color);
+}
+
+.table-responsive {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+}
+
+.alquileres-vencer-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+}
+
+.alquileres-vencer-table thead {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.alquileres-vencer-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.alquileres-vencer-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.alquileres-vencer-table tbody tr {
+    transition: var(--transition);
+}
+
+.alquileres-vencer-table tbody tr:hover {
+    background-color: var(--light-bg);
+}
+
+.equipo-multiple {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid var(--accent-color);
+}
+
+.equipo-seriales {
+    display: block;
+    color: #718096;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.dias-criticos {
+    font-weight: 600;
+    color: var(--danger-color);
+    background-color: #fff5f5;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.sin-alquileres {
+    text-align: center;
+    padding: 2rem !important;
+    color: #718096;
+    font-style: italic;
+    background-color: var(--light-bg);
+}
+
+.alquileres-vencer-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.btn-enviar-notificaciones {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-enviar-notificaciones:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(49, 130, 206, 0.3);
+}
+
+.btn-volver {
+    background-color: #e2e8f0;
+    color: var(--dark-text);
+}
+
+.btn-volver:hover {
+    background-color: #cbd5e0;
+    transform: translateY(-2px);
+}
+
+.btn i {
+    margin-right: 0.5rem;
+}
+
+.form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+    accent-color: var(--accent-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .alquileres-vencer-title {
+        font-size: 1.5rem;
+    }
+
+    .alquileres-vencer-table th,
+    .alquileres-vencer-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .alquileres-vencer-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn {
+        justify-content: center;
+    }
+}
+
+@media print {
+
+    .alquileres-vencer-actions,
+    .form-check-input {
+        display: none;
+    }
+
+    .alquileres-vencer-table {
+        box-shadow: none;
+    }
+}

@@ -29,7 +29,7 @@ from alquiler.views.alquiler_views import (
 listar_alquileres,crear_alquiler,finalizar_alquiler, renovar_alquiler,
 generar_acta_entrega, aprobar_alquiler,calendario_alquileres,
 detalle_alquiler, cancelar_alquiler,reservar_alquiler,generar_acta_devolucion, crear_contrato, firmar_contrato,
-renovar_contrato,eliminar_alquiler, series_disponibles, editar_alquiler
+renovar_contrato,eliminar_alquiler, series_disponibles, editar_alquiler, alquileres_a_vencer
 )
 
 from alquiler.views.pago_views import (
@@ -74,6 +74,7 @@ core_patterns = [
     path('equipos/<uuid:id>/proxima-disponibilidad/', proxima_disponibilidad, name='proxima_disponibilidad'),
     path('pagos/pendientes/', pagos_pendientes_admin, name='pagos_pendientes_admin'),
     path('alertas/vencimiento/manual/', ejecutar_alertas_vencimiento, name='enviar_alertas_vencimiento'),
+    path('alquileres/a-vencer/', alquileres_a_vencer, name='alquileres_a_vencer'),
 
     #Urls clientes 
     path('clientes/', listar_clientes, name='listar_clientes'),

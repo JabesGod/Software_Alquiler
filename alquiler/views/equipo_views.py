@@ -627,6 +627,7 @@ def ejecutar_alertas_vencimiento(request):
     messages.success(request, "Se han procesado las alertas de vencimiento (7 días antes).")
     return redirect('alquiler:dashboard_admin')  # cambia al nombre de tu vista de inicio
 
+
 @login_required
 @permission_required('alquiler.view_equipo', raise_exception=True)
 def equipos_mas_alquilados(request):

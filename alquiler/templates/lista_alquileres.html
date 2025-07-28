@@ -18,6 +18,7 @@
     <div class="alquileres-header">
         <h1><i class="fas fa-box-open"></i> Listado de Alquileres</h1>
 
+        <!-- En la sección de alquileres-actions -->
         <div class="alquileres-actions">
             <a href="{% url 'alquiler:crear_alquiler' %}" class="btn btn-secondary">
                 <i class="fas fa-plus"></i> Nuevo Alquiler
@@ -25,6 +26,11 @@
             <a href="{% url 'alquiler:reservar_alquiler' %}" class="btn btn-secondary">
                 <i class="fas fa-calendar-alt"></i> Reservar Equipo
             </a>
+            {% if show_alquileres_vencer_button %}
+            <a href="{% url 'alquiler:alquileres_a_vencer' %}" class="btn btn-warning">
+                <i class="fas fa-bell"></i> Alquileres a Vencer
+            </a>
+            {% endif %}
         </div>
     </div>
 

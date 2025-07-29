@@ -11,18 +11,22 @@
 
 {% block content %}
 <div class="clientes-container">
-    <a href="{% url 'alquiler:crear_cliente' %}" class="btn-add-client btn-secondary">
-        <i class="fas fa-user-plus"></i> Registrar Cliente
-    </a>
-    <div class="search-container">
-        <form action="{% url 'alquiler:listar_clientes' %}" method="get" class="search-form">
-            <input type="text" name="q" placeholder="Buscar clientes..." value="{{ request.GET.q }}"
-                aria-label="Buscar clientes">
-            <button type="submit" aria-label="Ejecutar búsqueda"><i class="fas fa-search"></i></button>
-        </form>
-        {# Las sugerencias de búsqueda se manejarían con JavaScript si las quisieras implementar #}
-        {# <div class="search-suggestions"></div> #}
+    <div class="header-and-search"> {# Nuevo contenedor para alinear el botón y el buscador #}
+        <a href="{% url 'alquiler:crear_cliente' %}" class="btn-add-client btn-secondary">
+            <i class="fas fa-user-plus"></i> Registrar Cliente
+        </a>
+
+        <div class="search-container">
+            <form action="{% url 'alquiler:listar_clientes' %}" method="get" class="search-form">
+                <input type="text" name="q" placeholder="Buscar clientes..." value="{{ request.GET.q }}"
+                    aria-label="Buscar clientes">
+                <button type="submit" aria-label="Ejecutar búsqueda"><i class="fas fa-search"></i></button>
+            </form>
+            {# Las sugerencias de búsqueda se manejarían con JavaScript si las quisieras implementar #}
+            {# <div class="search-suggestions"></div> #}
+        </div>
     </div>
+
     {% if clientes %}
     <div class="table-responsive">
         <table class="clientes-table">
@@ -68,7 +72,7 @@
                         <a href="{% url 'alquiler:detalle_cliente' cliente.uuid_id %}" class="btn-action btn-view"
                             onclick="event.stopPropagation();">
                             <i class="fas fa-eye"></i> Ver
-                        </a>
+                    </a>
                     </td>
                 </tr>
                 {% endfor %}

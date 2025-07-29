@@ -16,8 +16,20 @@ def es_admin(user):
 @permission_required('alquiler.view_cliente', raise_exception=True)
 def listar_clientes(request):
     clientes = Cliente.objects.all()
-    return render(request, 'lista_clientes.html', {'clientes': clientes})
+    query = request.GET.get('q') 
 
+    if query:
+
+        clientes = clientes.filter(
+            Q(nombre__icontains=query) |
+            Q(numero_documento__icontains=query) |
+            Q(email__icontains=query) |
+            Q(telefono__icontains=query) |
+            Q(ciudad__icontains=query) |
+            Q(nit__icontains=query) 
+        ).distinct() 
+
+    return render(request, 'lista_clientes.html', {'clientes': clientes})
 
 @login_required
 @permission_required('alquiler.add_cliente', raise_exception=True)

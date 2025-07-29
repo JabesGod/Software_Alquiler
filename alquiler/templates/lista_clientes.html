@@ -11,38 +11,38 @@
 
 {% block content %}
 <div class="clientes-container">
-    <a href="{% url 'alquiler:crear_cliente' %}" class="btn-add-client btn-cliente">
+    <a href="{% url 'alquiler:crear_cliente' %}" class="btn-add-client btn-secondary">
         <i class="fas fa-user-plus"></i> Registrar Cliente
     </a>
 
-    <div class="clientes-table-responsive">
+    {% if clientes %}
+    <div class="table-responsive"> {# Opcional: para mejor manejo del overflow en tablas #}
         <table class="clientes-table">
             <thead>
                 <tr>
-                    <th>Foto</th>
-                    <th>Nombre del Cliente</th>
+                    <th>Cliente</th>
                     <th>Documento</th>
-                    <th>Identificación</th>
+                    <th>Número de Identificación</th>
                     <th>NIT</th>
                     <th>Email</th>
                     <th>Teléfono</th>
                     <th>Ciudad</th>
-                    <th>Tipo Cliente</th>
-                    <th>Verificación</th>
+                    <th>Tipo</th>
+                    <th>Estado Verificación</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for cliente in clientes %}
                 <tr>
-                    <td class="client-photo-cell">
+                    <td>
                         {% if cliente.foto %}
                         <img src="{{ cliente.foto.url }}" alt="Foto de {{ cliente.nombre }}">
                         {% else %}
-                        <img src="{% static 'img/default-user.png' %}" alt="Olvidaste la foto, coloca alguna">
+                        <img src="{% static 'img/default-user.png' %}" alt="Foto por defecto">
                         {% endif %}
+                        {{ cliente.nombre }}
                     </td>
-                    <td>{{ cliente.nombre }}</td>
                     <td>{{ cliente.get_tipo_documento_display }}</td>
                     <td>{{ cliente.numero_documento }}</td>
                     <td>{{ cliente.nit }}</td>
@@ -51,7 +51,7 @@
                     <td>{{ cliente.ciudad }}</td>
                     <td>{{ cliente.get_tipo_cliente_display }}</td>
                     <td>
-                        <span class="verificacion-badge {{ cliente.estado_verificacion }}">
+                        <span class="status-badge {{ cliente.estado_verificacion }}">
                             {{ cliente.get_estado_verificacion_display }}
                         </span>
                     </td>
@@ -59,15 +59,17 @@
                         <a href="{% url 'alquiler:detalle_cliente' cliente.uuid_id %}" class="btn-action btn-view">
                             <i class="fas fa-eye"></i> Ver
                         </a>
+                        {# Puedes añadir botones de editar y eliminar aquí si los tienes definidos en tus URLs #}
+                        {# <a href="#" class="btn-action btn-edit"><i class="fas fa-edit"></i> Editar</a> #}
+                        {# <a href="#" class="btn-action btn-delete"><i class="fas fa-trash-alt"></i> Eliminar</a> #}
                     </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="11" class="no-clients-message">No hay clientes registrados.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% else %}
+    <p>No hay clientes registrados.</p>
+    {% endif %}
 </div>
 {% endblock %}

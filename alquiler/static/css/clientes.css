@@ -1,142 +1,152 @@
-:root {
-    /* Variables locales independientes del nav */
-    --local-bg: #ffffff;
-    --local-text: #333333;
-    --local-success: #28a745;
-    --local-border: #e0e0e0;
-}
+/* clientes.css */
 
 .clientes-container {
-    all: initial;
-    isolation: isolate;
-    color: var(--local-text);
-    font-family: inherit;
     padding: 20px;
-}
-
-.clientes-cards-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: flex;
-    padding: 10px;
+    background-color: var(--card-background); /* Usa la variable para el fondo del contenedor */
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-md);
+    margin: 20px; /* Margen similar al content-wrapper */
+    border: 1px solid var(--border-color); /* Borde para el contenedor */
+    overflow-x: auto; /* Para tablas que se desbordan en pantallas pequeñas */
 }
 
 .btn-add-client {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 15px;
-    background-color: var(--primary-color); /* Cambiado a variable del nav */
-    color: white;
-    text-decoration: none;
-    border-radius: 6px;
-    font-weight: 500;
     margin-bottom: 20px;
-    transition: all 0.3s ease;
+    padding: 10px 20px;
+    color: white;
+    border-radius: var(--border-radius-sm);
+    text-decoration: none;
+    font-weight: 500;
+    transition: var(--transition);
 }
 
 .btn-add-client:hover {
-    background-color: var(--secondary-color); /* Cambiado a variable del nav */
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: var(--highlight-color);
+    box-shadow: var(--shadow-sm);
 }
 
-.cliente-card {
-    width: 280px;
-    border: 1px solid var(--local-border);
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-    background-color: var(--local-bg);
+.btn-add-client i {
+    font-size: 1rem;
 }
 
-.cliente-card .card-header img {
+.clientes-table {
     width: 100%;
-    height: 180px;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    min-width: 800px; /* Asegura un ancho mínimo para evitar columnas demasiado estrechas */
+}
+
+.clientes-table th {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 500;
+    white-space: nowrap; /* Evita que los encabezados de columna se envuelvan */
+}
+
+.clientes-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+    color: var(--text-color);
+    white-space: nowrap; /* Evita que el contenido de las celdas se envuelva por defecto */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Añade puntos suspensivos si el contenido es demasiado largo */
+    max-width: 200px; /* Limita el ancho de la celda si es necesario */
+}
+
+.clientes-table td:first-child { /* Estilo específico para la columna de imagen/nombre */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: normal; /* Permite que el nombre se envuelva si es necesario */
+    max-width: 250px;
+}
+
+.clientes-table tr:hover {
+    background-color: var(--secondary-color);
+}
+
+.clientes-table img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     object-fit: cover;
-    border-bottom: 1px solid var(--local-border);
+    border: 1px solid var(--border-color);
 }
 
-.cliente-card .card-body {
-    padding: 15px;
-    font-size: 14px;
-}
-
-.cliente-card .card-body h3 {
-    margin-top: 0;
-    font-size: 18px;
-    color: var(--local-text);
-}
-
-.cliente-card .card-body p {
-    margin: 5px 0;
-    color: #555;
-}
-
-.cliente-card .card-footer {
-    padding: 10px 15px;
-    background-color: #f9f9f9;
-    text-align: center;
-}
-
-.cliente-card .btn-card {
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
     display: inline-block;
-    margin: 5px 5px;
-    padding: 6px 12px;
-    background-color: var(--primary-color); /* Cambiado a variable del nav */
+}
+
+.status-badge.verificado {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: var(--success-color);
+}
+
+.status-badge.pendiente {
+    background-color: rgba(243, 156, 18, 0.2);
+    color: var(--warning-color);
+}
+
+.status-badge.rechazado {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: var(--error-color);
+}
+
+.btn-action {
+    padding: 5px 10px;
+    border-radius: 4px;
     color: white;
     text-decoration: none;
-    border-radius: 4px;
-    font-size: 13px;
+    margin-right: 5px;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: var(--transition);
 }
 
-.cliente-card .btn-card:hover {
-    background-color: var(--secondary-color); /* Cambiado a variable del nav */
+.btn-view {
+    background-color: var(--info-color);
 }
 
-.verificacion-badge {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-weight: bold;
-    font-size: 12px;
-    display: inline-block;
+.btn-view:hover {
+    background-color: var(--highlight-color);
 }
 
-.verificacion-badge.pendiente {
-    background-color: #ffe58f;
-    color: #ad8b00;
+.btn-edit {
+    background-color: var(--warning-color);
 }
 
-.verificacion-badge.verificado {
-    background-color: #b7eb8f;
-    color: #389e0d;
+.btn-edit:hover {
+    background-color: var(--highlight-color);
 }
 
-.verificacion-badge.rechazado {
-    background-color: #ffa39e;
-    color: #cf1322;
+.btn-delete {
+    background-color: var(--error-color);
 }
 
+.btn-delete:hover {
+    background-color: var(--highlight-color);
+}
+
+/* Responsive Table */
 @media (max-width: 768px) {
-    .clientes-cards-container {
-        justify-content: center;
+    .clientes-container {
+        margin: 10px;
+        padding: 10px;
     }
 
-    .cliente-card {
-        width: 100%;
-        max-width: 95%;
-    }
-
-    .cliente-card .card-header img {
-        height: auto;
-        max-height: 250px;
-    }
-
-    .cliente-card .btn-card {
-        width: 45%;
-        font-size: 14px;
+    .clientes-table {
+        min-width: 600px; /* Ajusta el ancho mínimo de la tabla para pantallas más pequeñas si es necesario */
     }
 }

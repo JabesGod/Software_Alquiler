@@ -1,35 +1,3 @@
-/* Variables de diseño */
-:root {
-    /* Colores principales */
-    --primary-color: #4361ee;
-    --primary-light: #eef1ff;
-    --secondary-color: #3f37c9;
-    --accent-color: #4cc9f0;
-    --success-color: #4ad66d;
-    --danger-color: #f72585;
-    --warning-color: #f8961e;
-    --info-color: #1abc9c;
-    
-    /* Colores de texto */
-    --dark-text: #212529;
-    --muted-text: #6c757d;
-    --light-text: #f8f9fa;
-    
-    /* Colores de fondo */
-    --light-bg: #f8f9fa;
-    --card-bg: #ffffff;
-    
-    /* Bordes */
-    --border-color: #dee2e6;
-    --border-radius: 10px;
-    
-    /* Sombras */
-    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --box-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
-    
-    /* Transiciones */
-    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
 
 /* Contenedor principal */
 .calendario-container {
@@ -273,7 +241,7 @@
 }
 
 .evento-fin {
-    background-color: var(--danger-color);
+    background-color: red;
     border-left: 3px solid darken(var(--danger-color), 10%);
 }
 

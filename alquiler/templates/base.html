@@ -118,6 +118,13 @@
                         {% if perms.alquiler.view_alquiler %}
                         <li><a href="{% url 'alquiler:listar_alquileres' %}"><i class="fas fa-list"></i> Listado</a></li>
                         {% endif %}
+                        {% if perms.alquiler.view_alquiler %}
+                        <li>
+                            <a href="{% url 'alquiler:alquileres_a_vencer' %}"> <i class="fas fa-bell"></i> Alquileres a Vencer
+                            
+                            </a>
+                        </li>
+                        {% endif %}
                         {% if perms.alquiler.add_alquiler %}
                         <li><a href="{% url 'alquiler:crear_alquiler' %}"><i class="fas fa-plus-circle"></i> Nuevo</a></li>
                         {% endif %}

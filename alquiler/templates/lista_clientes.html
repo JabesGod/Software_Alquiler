@@ -14,9 +14,17 @@
     <a href="{% url 'alquiler:crear_cliente' %}" class="btn-add-client btn-secondary">
         <i class="fas fa-user-plus"></i> Registrar Cliente
     </a>
-
+    <div class="search-container">
+        <form action="{% url 'alquiler:listar_clientes' %}" method="get" class="search-form">
+            <input type="text" name="q" placeholder="Buscar clientes..." value="{{ request.GET.q }}"
+                aria-label="Buscar clientes">
+            <button type="submit" aria-label="Ejecutar búsqueda"><i class="fas fa-search"></i></button>
+        </form>
+        {# Las sugerencias de búsqueda se manejarían con JavaScript si las quisieras implementar #}
+        {# <div class="search-suggestions"></div> #}
+    </div>
     {% if clientes %}
-    <div class="table-responsive"> {# Opcional: para mejor manejo del overflow en tablas #}
+    <div class="table-responsive">
         <table class="clientes-table">
             <thead>
                 <tr>
@@ -34,7 +42,7 @@
             </thead>
             <tbody>
                 {% for cliente in clientes %}
-                <tr>
+                <tr class="clickable-row" data-href="{% url 'alquiler:detalle_cliente' cliente.uuid_id %}">
                     <td>
                         {% if cliente.foto %}
                         <img src="{{ cliente.foto.url }}" alt="Foto de {{ cliente.nombre }}">
@@ -56,12 +64,11 @@
                         </span>
                     </td>
                     <td>
-                        <a href="{% url 'alquiler:detalle_cliente' cliente.uuid_id %}" class="btn-action btn-view">
+                        {# El botón "Ver" todavía es útil para accesibilidad y clics directos #}
+                        <a href="{% url 'alquiler:detalle_cliente' cliente.uuid_id %}" class="btn-action btn-view"
+                            onclick="event.stopPropagation();">
                             <i class="fas fa-eye"></i> Ver
                         </a>
-                        {# Puedes añadir botones de editar y eliminar aquí si los tienes definidos en tus URLs #}
-                        {# <a href="#" class="btn-action btn-edit"><i class="fas fa-edit"></i> Editar</a> #}
-                        {# <a href="#" class="btn-action btn-delete"><i class="fas fa-trash-alt"></i> Eliminar</a> #}
                     </td>
                 </tr>
                 {% endfor %}
@@ -72,4 +79,8 @@
     <p>No hay clientes registrados.</p>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/clientes.js' %}"></script>
 {% endblock %}

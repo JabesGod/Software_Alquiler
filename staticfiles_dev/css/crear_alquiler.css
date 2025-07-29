@@ -208,7 +208,9 @@ h2 i {
     padding: 0.5rem 0.75rem;
 }
 
-#subtotal, #impuestos, #total {
+#subtotal,
+#impuestos,
+#total {
     font-weight: 600;
     color: var(--dark-text);
 }
@@ -250,7 +252,7 @@ h2 i {
     .card-body {
         padding: 1.5rem;
     }
-    
+
     .form-label {
         font-size: 0.95rem;
     }
@@ -260,16 +262,16 @@ h2 i {
     .container {
         padding: 1rem;
     }
-    
+
     h2 {
         font-size: 1.75rem;
     }
-    
+
     .card-header {
         font-size: 1.1rem;
         padding: 1rem;
     }
-    
+
     .btn {
         padding: 0.65rem 1.25rem;
         font-size: 0.95rem;
@@ -280,12 +282,77 @@ h2 i {
     .card-body {
         padding: 1.25rem;
     }
-    
+
     .form-label i {
         display: none;
     }
-    
+
     .table thead th i {
         display: none;
     }
+}
+
+.row {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 1rem;
+    /* Espaciado entre columnas */
+
+    margin-bottom: 1rem;
+
+}
+
+
+
+/* Asegura que las columnas se comporten como columnas y no ocupen todo el ancho */
+
+.col,
+
+[class^="col-"],
+
+[class*=" col-"] {
+
+    flex: 1 0 0%;
+
+    min-width: 0;
+
+}
+
+
+
+/* Arregla select2 y elementos que tienden a expandirse */
+
+.select2-container--default .select2-selection--single {
+
+    height: 38px;
+    padding: 5px 10px;
+    font-size: 1rem;
+
+}
+
+
+
+/* Que los inputs ocupen todo el ancho del contenedor */
+
+.form-control,
+
+select,
+
+textarea {
+
+    width: 100% !important;
+
+}
+
+
+
+/* Distribuye mejor dentro de cards */
+
+.card-body>.row {
+
+    margin-bottom: 0;
+
 }

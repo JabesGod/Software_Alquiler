@@ -23,11 +23,40 @@ document.addEventListener('DOMContentLoaded', function () {
     const maxEventosVisibles = 2;
     const diasSemana = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'];
     const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+    // Función para obtener el prefijo actual de la URL
+    function getCurrentPrefix() {
+        const currentPath = window.location.pathname;
+        
+        if (currentPath.startsWith('/guanabanazo')) {
+            return '/guanabanazo';
+        } else if (currentPath.startsWith('/gramabana20')) {
+            return '/gramabana20';
+        } else if (currentPath.startsWith('/v1')) {
+            return '/v1';
+        }
+        
+        return '';
+    }
+
+    // Función para construir URLs con el prefijo correcto
+    function buildUrl(url) {
+        if (!url) return '';
+        
+        if (url.startsWith('http')) {
+            return url; // URL absoluta (externa)
+        }
+        
+        const prefix = getCurrentPrefix();
+        const normalizedUrl = url.replace(/^\/*/, ''); // Eliminar barras iniciales
+        
+        return `${prefix}/${normalizedUrl}`;
+    }
 
     function renderCalendario(anio) {
         contenedor.innerHTML = '';
-        
+
         for (let mes = 0; mes < 12; mes++) {
             const fecha = new Date(anio, mes, 1);
             const diasEnMes = new Date(anio, mes + 1, 0).getDate();
@@ -45,11 +74,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Crear tabla del mes
             const tabla = document.createElement('table');
-            
+
             // Cabecera con días de la semana
             const cabecera = document.createElement('thead');
             const filaCabecera = document.createElement('tr');
-            
+
             diasSemana.forEach(dia => {
                 const th = document.createElement('th');
                 th.textContent = dia;
@@ -78,10 +107,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const celda = document.createElement('td');
                 celda.classList.add('celda-dia');
-                
+
                 // Número del día
                 celda.innerHTML = `<div class="numero-dia">${dia}</div>`;
-                
+
                 // Contenedor para eventos
                 const eventosContainer = document.createElement('div');
                 eventosContainer.classList.add('eventos-container');
@@ -92,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (dia === hoy.getDate() && mes === hoy.getMonth() && anio === hoy.getFullYear()) {
                     celda.classList.add('hoy');
                 }
-                
+
                 const fechaActual = `${anio}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
                 const eventosDia = eventos.filter(e => e.start === fechaActual);
                 const totalEventos = eventosDia.length;
@@ -102,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 eventosMostrar.forEach(e => {
                     const evento = document.createElement('div');
                     evento.classList.add('evento');
-                    
+
                     // Determinar tipo de evento
                     if (e.title.includes('INICIO')) {
                         evento.classList.add('evento-inicio');
@@ -114,22 +143,20 @@ document.addEventListener('DOMContentLoaded', function () {
                         evento.classList.add('evento-aviso');
                         evento.innerHTML = `<i class="fas fa-exclamation"></i><span>${e.title.split(' - ')[0]}</span>`;
                     }
-                    
+
                     evento.title = e.title; // Tooltip con info completa
-                    
+
                     // Verificar que la URL existe y es válida antes de asignar el evento click
                     if (e.url && typeof e.url === 'string' && e.url.trim() !== '') {
                         evento.style.cursor = 'pointer';
                         evento.addEventListener('click', (ev) => {
                             ev.stopPropagation();
-                            // Verificar si la URL es relativa o absoluta
-                            const url = e.url.startsWith('http') ? e.url : `/${e.url.replace(/^\//, '')}`;
-                            window.location.href = url;
+                            window.location.href = buildUrl(e.url);
                         });
                     } else {
                         evento.style.cursor = 'default';
                     }
-                    
+
                     eventosContainer.appendChild(evento);
                 });
 
@@ -193,13 +220,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 item.innerHTML = `<i class="fas fa-exclamation-triangle"></i><span>${e.title}</span>`;
             }
             
-            // Verificar que la URL existe y es válida antes de asignar el evento click
+            // Manejo de URLs con prefijo dinámico
             if (e.url && typeof e.url === 'string' && e.url.trim() !== '') {
                 item.style.cursor = 'pointer';
                 item.addEventListener('click', () => {
-                    // Verificar si la URL es relativa o absoluta
-                    const url = e.url.startsWith('http') ? e.url : `/${e.url.replace(/^\//, '')}`;
-                    window.location.href = url;
+                    window.location.href = buildUrl(e.url);
                 });
             }
             

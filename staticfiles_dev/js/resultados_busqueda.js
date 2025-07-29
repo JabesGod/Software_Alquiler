@@ -1,56 +1,48 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Efectos de hover para los items de resultado
-    const resultItems = document.querySelectorAll('.result-item');
+    // Filtrado por tipo
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const resultCards = document.querySelectorAll('.result-card');
     
-    resultItems.forEach(item => {
-        // Efecto de escala al hacer hover
-        item.addEventListener('mouseenter', function() {
-            this.style.transform = 'scale(1.02)';
-            this.style.zIndex = '10';
-        });
-        
-        item.addEventListener('mouseleave', function() {
-            this.style.transform = '';
-            this.style.zIndex = '';
-        });
-        
-        // Click en toda la tarjeta
-        item.addEventListener('click', function(e) {
-            // Si el click no fue en un enlace interno
-            if (!e.target.closest('a') && !e.target.closest('button')) {
-                const link = this.querySelector('h3 a');
-                if (link) {
-                    window.location.href = link.href;
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            
+            // Actualizar botones activos
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Mostrar/ocultar resultados
+            resultCards.forEach(card => {
+                if (filter === 'todos' || card.dataset.type === filter) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
                 }
-            }
+            });
         });
     });
     
-    // Mejorar la accesibilidad del teclado
-    resultItems.forEach(item => {
-        item.setAttribute('tabindex', '0');
-        item.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                const link = this.querySelector('h3 a');
-                if (link) {
-                    window.location.href = link.href;
-                }
-            }
-        });
+    // Animación al cargar
+    const cards = document.querySelectorAll('.result-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(10px)';
+        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 50);
     });
-    
-    // Animación de carga inicial
-    setTimeout(() => {
-        document.querySelector('.search-results-container').style.opacity = '1';
-    }, 100);
-});
 
-// Opcional: Integración con la API de búsqueda para sugerencias en vivo
-function setupLiveSearch() {
-    const searchInput = document.querySelector('.search-form input');
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            // Implementar lógica de búsqueda en vivo aquí
+    // Manejar clics en las tarjetas (redundante pero seguro)
+    document.querySelectorAll('.result-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Permitir clics en enlaces internos
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
+                return;
+            }
+            window.location.href = this.getAttribute('onclick').match(/window\.location\.href='(.*?)'/)[1];
         });
-    }
-}
+    });
+});

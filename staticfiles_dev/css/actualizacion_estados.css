@@ -1,31 +1,13 @@
-/* actualizacion_estados.css */
 
-:root {
-    --color-primario: var(--primary-color);
-    --color-secundario: var(--success-color);
-    --color-peligro: var(--error-color);
-    --color-advertencia: var(--warning-color);
-    --color-info: var(--info-color);
-    --color-texto: var(--text-color);
-    --color-fondo: var(--card-background);
-    --color-borde: var(--border-color);
-}
 
-  /* Estilos adicionales in-page para mayor control */
-    body {
-        color: #333; /* Fuerza color de texto base */
-    }
-    .contenedor-actualizacion {
-        font-family: 'Poppins', sans-serif; /* Asegura consistencia */
-    }
-    
 .contenedor-actualizacion {
     max-width: 1200px;
     margin: 20px auto;
     padding: 20px;
-    background: white;
+    background: var(--card-background); /* Usa la variable de fondo de tarjeta para adaptarse al modo oscuro */
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    font-family: 'Poppins', sans-serif; /* Asegura consistencia */
 }
 
 .header-acciones {
@@ -42,15 +24,15 @@
     align-items: center;
     gap: 8px;
     padding: 8px 15px;
-    background-color: var(--color-primario);
-    color: white;
+    background-color: var(--primary-color); /* Usa la variable global */
+    color: white; /* Blanco para asegurar visibilidad en fondo oscuro primary-color */
     border-radius: 4px;
     text-decoration: none;
     transition: all 0.3s;
 }
 
 .btn-volver:hover {
-    background-color: #2980b9;
+    background-color: var(--highlight-color); /* Usa la variable global de highlight para el hover */
     transform: translateY(-2px);
 }
 
@@ -64,15 +46,18 @@
     align-items: center;
     gap: 8px;
     padding: 8px 15px;
-    background-color: var(--color-fondo);
-    border: 1px solid var(--color-borde);
+    background-color: var(--card-background); /* Usa la variable global */
+    border: 1px solid var(--border-color); /* Usa la variable global */
+    color: var(--text-color); /* Asegura que el texto del botón cambie */
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.3s;
 }
 
 .btn-accion:hover {
-    background-color: #e9e9e9;
+    /* Aquí puedes usar rgba de tu primary-color, o una variable de color de hover.
+       Se recomienda usar --secondary-color o definir un --button-hover-background en base.css */
+    background-color: var(--secondary-color);
 }
 
 .filtros-rapidos {
@@ -87,9 +72,14 @@
     flex: 1;
     min-width: 250px;
     padding: 10px 15px;
-    border: 1px solid var(--color-borde);
+    border: 1px solid var(--border-color); /* Usa la variable global */
     border-radius: 4px;
     font-size: 1rem;
+    color: var(--text-color); /* Color de texto para inputs */
+}
+
+.input-filtro::placeholder { /* Para el placeholder del input */
+    color: var(--text-secondary);
 }
 
 .controles-estado {
@@ -100,16 +90,17 @@
 
 .select-estado {
     padding: 10px 15px;
-    border: 1px solid var(--color-borde);
+    border: 1px solid var(--border-color); /* Usa la variable global */
     border-radius: 4px;
     font-size: 1rem;
     min-width: 200px;
+    color: var(--text-color); /* Color de texto para selects */
 }
 
 .btn-actualizar {
     padding: 10px 20px;
-    background-color: var(--color-secundario);
-    color: white;
+    background-color: var(--success-color); /* Usa la variable global */
+    color: white; /* Blanco se mantiene si el contraste es bueno en ambos modos */
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -121,8 +112,7 @@
 }
 
 .btn-actualizar:hover {
-    background-color: #27ae60;
-    transform: translateY(-2px);
+    background-color: var(--highlight-color); /* Usa la variable global de highlight para el hover */
 }
 
 .tabla-container {
@@ -134,23 +124,26 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 0.95rem;
+    background: transparent;
 }
 
 .tabla-equipos th,
 .tabla-equipos td {
     padding: 12px 15px;
     text-align: left;
-    border-bottom: 1px solid var(--color-borde);
+    border-bottom: 1px solid var(--border-color); /* Usa la variable global */
+    color: var(--text-color); /* Asegura que el texto de la tabla cambie */
 }
 
 .tabla-equipos th {
-    background-color: var(--color-primario);
-    color: white;
+    background-color: var(--primary-color); /* Usa la variable global para el fondo */
+    color: white; /* El texto del encabezado de tabla debe ser blanco en fondo oscuro */
     font-weight: 500;
 }
 
 .tabla-equipos tr:hover {
-    background-color: rgba(52, 152, 219, 0.05);
+    /* Aquí puedes usar rgba de tu primary-color o una nueva variable para el hover de tabla */
+    background-color: var(--secondary-color); /* O una nueva variable como --table-hover-background */
 }
 
 .check-equipo {
@@ -164,23 +157,23 @@
     border-radius: 12px;
     font-size: 0.85rem;
     font-weight: 500;
-    color: white;
+    color: white; /* Si el blanco funciona bien en ambos modos, déjalo */
 }
 
 .estado-disponible {
-    background-color: var(--color-secundario);
+    background-color: var(--success-color); /* Usa la variable global */
 }
 
 .estado-alquilado {
-    background-color: var(--color-peligro);
+    background-color: var(--error-color); /* Usa la variable global */
 }
 
 .estado-reservado {
-    background-color: var(--color-advertencia);
+    background-color: var(--warning-color); /* Usa la variable global */
 }
 
 .estado-mantenimiento {
-    background-color: var(--color-info);
+    background-color: var(--info-color); /* Usa la variable global */
 }
 
 .badge-disponibilidad {
@@ -192,19 +185,41 @@
 }
 
 .badge-disponibilidad.disponible {
+    /* IMPORTANTE: Si base.css define --success-color-rgb (ej: 46, 204, 113), úsalo aquí.
+       De lo contrario, estos rgba seguirán siendo fijos. */
     background-color: rgba(46, 204, 113, 0.2);
-    color: #27ae60;
+    color: var(--success-color);
 }
 
 .badge-disponibilidad.no-disponible {
+    /* IMPORTANTE: Si base.css define --error-color-rgb (ej: 231, 76, 60), úsalo aquí. */
     background-color: rgba(231, 76, 60, 0.2);
-    color: #c0392b;
+    color: var(--error-color);
 }
+
+/* Estilos para los badges de alquiler (AÑADIDOS/CORREGIDOS) */
+.badge-alquiler {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: white; /* Asume que los fondos serán oscuros para estos badges */
+}
+
+.badge-alquiler.activo {
+    background-color: var(--error-color); /* Un color de advertencia o error para indicar que está alquilado */
+}
+
+.badge-alquiler.inactivo {
+    background-color: var(--success-color); /* Un color de éxito o info para indicar que está libre */
+}
+
 
 .sin-equipos {
     text-align: center;
     padding: 20px;
-    color: var(--color-texto);
+    color: var(--text-secondary); /* Usa un color de texto secundario para esto */
     opacity: 0.7;
 }
 
@@ -214,7 +229,7 @@ input[type="checkbox"] {
     appearance: none;
     width: 20px;
     height: 20px;
-    border: 2px solid var(--color-borde);
+    border: 2px solid var(--border-color); /* Usa la variable global */
     border-radius: 4px;
     outline: none;
     cursor: pointer;
@@ -222,8 +237,8 @@ input[type="checkbox"] {
 }
 
 input[type="checkbox"]:checked {
-    background-color: var(--color-primario);
-    border-color: var(--color-primario);
+    background-color: var(--primary-color); /* Usa la variable global */
+    border-color: var(--primary-color); /* Usa la variable global */
 }
 
 input[type="checkbox"]:checked::after {
@@ -232,7 +247,7 @@ input[type="checkbox"]:checked::after {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: white;
+    color: white; /* El blanco suele funcionar para el checkmark */
     font-size: 12px;
 }
 

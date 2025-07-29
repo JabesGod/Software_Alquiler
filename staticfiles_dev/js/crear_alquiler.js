@@ -466,4 +466,5 @@ $(document).ready(function () {
     // Inicializar la tabla de equipos
     actualizarTablaEquipos();
     actualizarResumenCostos();
+    
 });

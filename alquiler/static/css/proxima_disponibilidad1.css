@@ -137,7 +137,6 @@
 
 /* Pricing Cards */
 .pricing-card {
-    background: white;
     border-radius: 8px;
     padding: 1.25rem;
     text-align: center;
@@ -159,7 +158,6 @@
 
 .price-amount {
     font-weight: 700;
-    color: var(--primary-color);
     font-size: 1.3rem;
     margin-bottom: 0.5rem;
 }

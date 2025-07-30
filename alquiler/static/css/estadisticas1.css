@@ -135,7 +135,6 @@ html, body {
 }
 
 .header-estadisticas h2 {
-    color: var(--primary-color);
     margin: 0;
     font-size: 1.8rem;
     display: flex;
@@ -203,7 +202,6 @@ html, body {
 }
 
 .filtros {
-    background-color: var(--background-light);
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 25px;

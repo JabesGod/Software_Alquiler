@@ -43,3 +43,4 @@ function handleSwipe() {
         console.log('Swiped right');
     }
 }
+

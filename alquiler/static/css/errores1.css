@@ -1,7 +1,6 @@
 .container {
     width: 100%; /* Ocupa todo el ancho disponible */
     padding: 30px 20px; /* Espaciado interno */
-    background-color: var(--background-color); /* Fondo principal de la página */
     color: var(--text-color); /* Color de texto general */
     transition: var(--transition); /* Transición suave para cambios de tema */
     display: flex; /* Usar flexbox para centrar el contenido */
@@ -20,7 +19,6 @@
     border: 1px solid var(--border-color); /* Borde sutil */
     border-radius: var(--border-radius-md); /* Bordes redondeados */
     box-shadow: var(--shadow-sm); /* Sombra sutil */
-    background-color: var(--card-background); /* Fondo para el bloque de contenido */
     transition: var(--transition);
 }
 
@@ -95,13 +93,9 @@ p {
     }
 }
 
-/* Dark mode adjustments */
-body.dark-mode .container {
-    background-color: var(--background-color);
-}
+
 
 body.dark-mode .col-md-8 {
-    background-color: var(--secondary-color); /* Fondo del bloque de contenido más oscuro */
     border-color: var(--border-color);
 }
 

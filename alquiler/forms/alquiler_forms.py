@@ -48,6 +48,7 @@ class AlquilerForm(forms.ModelForm):
             'iva', 'precio_total', 'forzar_alquiler'
         ]
         widgets = {
+            # ... tus otros widgets ...
             'fecha_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'fecha_fin': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'fecha_vencimiento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
@@ -56,12 +57,24 @@ class AlquilerForm(forms.ModelForm):
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'renovacion_automatica': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'contrato_firmado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            
+            # ESTA ES LA LÍNEA CLAVE PARA EL CAMPO 'cliente'
+            'cliente': forms.Select(attrs={'class': 'form-control select2'}), 
         }
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-    
+        # Puedes eliminar este bucle si ya estás especificando 'form-control' en widgets
+        # for field_name, field in self.fields.items():
+        #     if isinstance(field.widget, (forms.TextInput, forms.Textarea, forms.Select, forms.DateInput, forms.NumberInput)):
+        #         current_classes = field.widget.attrs.get('class', '')
+        #         if 'form-control' not in current_classes:
+        #             field.widget.attrs['class'] = (current_classes + ' form-control').strip()
+
+        # El campo 'cliente' ya tiene la clase 'select2' en Meta.widgets
+        
+        # ... el resto de tu método __init__ ...
         if self.instance and self.instance.pk:
             self.fields['aprobado_por'] = forms.CharField(
                 initial=self.instance.aprobado_por or (
@@ -98,8 +111,6 @@ class AlquilerForm(forms.ModelForm):
             raise forms.ValidationError("No tiene permisos para forzar alquileres a clientes morosos.")
 
         return cleaned_data
-
-
 
     def clean_iva(self):
         iva = self.cleaned_data.get('iva', '0') or '0'

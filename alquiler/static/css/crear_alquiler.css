@@ -1,358 +1,603 @@
-/* Variables de diseño mejoradas */
-:root {
-    --primary-color: #4361ee;
-    --primary-light: #eef1ff;
-    --secondary-color: #3f37c9;
-    --accent-color: #4cc9f0;
-    --success-color: #4ad66d;
-    --danger-color: #f72585;
-    --warning-color: #f8961e;
-    --light-bg: #f8f9fa;
-    --dark-text: #212529;
-    --muted-text: #6c757d;
-    --border-radius: 10px;
-    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --box-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
-    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    --input-focus-glow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+/* Import base.css variables for consistency */
+@import url('base.css');
+
+/* General Body and Container Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
 }
 
-/* Estilos base para el formulario de alquiler */
 .container {
-    max-width: 1400px;
-    padding: 2rem;
-    margin: 0 auto;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 40px auto;
 }
 
+/* Headings */
 h2 {
-    color: var(--primary-color);
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    position: relative;
-    padding-bottom: 0.75rem;
+    margin-bottom: 30px;
     font-size: 2rem;
+    text-align: center;
 }
 
-h2:after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 80px;
-    height: 4px;
-    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
-    border-radius: 3px;
+h2 .fas {
+    margin-right: 10px;
+    color: var(--accent-color);
 }
 
-h2 i {
-    margin-right: 0.75rem;
-    font-size: 1.8rem;
+h5 {
+    color: var(--primary-color);
 }
 
-/* Tarjetas del formulario */
+h5 .fas {
+    margin-right: 8px;
+    color: var(--accent-color);
+}
+
+/* Alerts */
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+}
+
+.alert-danger {
+    background-color: rgba(var(--error-color), 0.1);
+    color: var(--error-color);
+    border-color: var(--error-color);
+}
+
+.alert .fas {
+    font-size: 1.2rem;
+}
+
+/* Card Styles */
 .card {
-    border: none;
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
-    transition: var(--transition);
-    margin-bottom: 2rem;
-    overflow: hidden;
-}
-
-.card:hover {
-    box-shadow: var(--box-shadow-hover);
-    transform: translateY(-2px);
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+    overflow: hidden; /* Ensures rounded corners are respected */
 }
 
 .card-header {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 1.25rem 1.5rem;
-    font-size: 1.25rem;
+    padding: 15px 20px;
+    font-size: 1.1rem;
     font-weight: 600;
-    border-bottom: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white; /* Default to white text for headers */
 }
 
-.card-header i {
-    margin-right: 0.75rem;
+.card-header.bg-primary {
+    background-color: var(--primary-color);
+}
+
+.card-header.bg-success {
+    background-color: var(--success-color);
+}
+
+.card-header .fas {
+    font-size: 1.2rem;
 }
 
 .card-body {
-    padding: 2rem;
+    padding: 20px;
 }
 
-/* Formulario y elementos de entrada */
+/* Form Styles */
 .form-label {
-    font-weight: 600;
-    color: var(--dark-text);
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-color);
+    font-size: 0.95rem;
 }
 
-.form-label i {
-    margin-right: 0.5rem;
-    font-size: 1rem;
-    color: var(--muted-text);
+.form-label .fas {
+    margin-right: 8px;
+    color: var(--accent-color);
 }
 
 .form-control {
-    padding: 0.75rem 1rem;
-    border-radius: var(--border-radius);
-    border: 1px solid #d1d5db;
-    transition: var(--transition);
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    background-clip: padding-box;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .form-control:focus {
-    border-color: var(--primary-color);
-    box-shadow: var(--input-focus-glow);
+    color: var(--text-color);
+    background-color: var(--background-color);
+    border-color: var(--accent-color);
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(var(--accent-color-rgb), 0.25); /* Needs RGB variant or a fixed color */
 }
 
-/* Select2 personalizado */
+.form-control::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.form-control:disabled,
+.form-control[readonly] {
+    background-color: var(--border-color);
+    opacity: 0.8;
+}
+
+.invalid-feedback {
+    color: var(--error-color);
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
+/* Select2 Customization */
 .select2-container--default .select2-selection--single,
 .select2-container--default .select2-selection--multiple {
-    height: auto;
-    min-height: 42px;
-    border: 1px solid #d1d5db;
-    border-radius: var(--border-radius);
-    padding: 0.375rem 0.75rem;
+    height: auto !important;
+    min-height: 42px; /* Adjust height to match form-control */
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--border-radius-sm) !important;
+    background-color: var(--background-color) !important;
+    color: var(--text-color) !important;
+    display: flex;
+    align-items: center;
 }
 
 .select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 1.5;
+    color: var(--text-color) !important;
+    line-height: 40px; /* Vertically align text */
+    padding-left: 12px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 40px !important;
 }
 
 .select2-container--default .select2-selection--multiple .select2-selection__choice {
-    background-color: var(--primary-light);
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-    border-radius: 4px;
+    background-color: var(--secondary-color) !important;
+    color: white !important;
+    border: 1px solid var(--primary-color) !important;
+    border-radius: var(--border-radius-sm) !important;
+    padding: 3px 8px;
+    margin-top: 5px;
+    margin-right: 5px;
 }
 
-/* Tabla de equipos */
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: white !important;
+    margin-right: 5px;
+}
+
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: var(--accent-color) !important;
+    box-shadow: 0 0 0 0.25rem rgba(var(--accent-color-rgb), 0.25); /* Needs RGB variant or a fixed color */
+}
+
+.select2-container--default .select2-results__option {
+    color: var(--text-color);
+    background-color: var(--card-background);
+}
+
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+    background-color: var(--highlight-color) !important;
+    color: white !important;
+}
+
+.select2-dropdown {
+    background-color: var(--card-background) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--border-radius-sm) !important;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Small text/help text */
+.form-text.text-muted {
+    color: var(--text-secondary) !important;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Table Styles */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
 .table {
-    margin-top: 1.5rem;
-    border-radius: var(--border-radius);
-    overflow: hidden;
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.table th,
+.table td {
+    padding: 12px 15px;
+    vertical-align: top;
+    border-top: 1px solid var(--border-color);
 }
 
 .table thead th {
-    background-color: var(--primary-color);
-    color: white;
+    vertical-align: bottom;
+    border-bottom: 2px solid var(--border-color);
+    background-color: var(--primary-color); /* Matches existing .equipos-table th */
+    color: white; /* Matches existing .equipos-table th */
     font-weight: 600;
-    border-bottom: none;
-}
-
-.table thead th i {
-    margin-right: 0.5rem;
 }
 
 .table tbody tr:hover {
-    background-color: rgba(67, 97, 238, 0.05);
+    background-color: var(--secondary-color);
 }
 
-/* Botones */
+/* Action Buttons in Table */
+.btn-remove-item {
+    background-color: var(--error-color);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.3s ease;
+}
+
+.btn-remove-item:hover {
+    background-color: var(--highlight-color);
+}
+
+.btn-remove-item .fas {
+    margin-right: 5px;
+}
+
+/* List Group for Summary */
+.list-group {
+    list-style: none;
+    padding-left: 0;
+}
+
+.list-group-item {
+    position: relative;
+    display: block;
+    padding: 10px 15px;
+    margin-bottom: -1px; /* Collapse borders */
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+
+.list-group-item:first-child {
+    border-top-left-radius: var(--border-radius-md);
+    border-top-right-radius: var(--border-radius-md);
+}
+
+.list-group-item:last-child {
+    margin-bottom: 0;
+    border-bottom-right-radius: var(--border-radius-md);
+    border-bottom-left-radius: var(--border-radius-md);
+}
+
+/* Summary Totals */
+.fw-bold {
+    font-weight: 600 !important;
+    color: var(--text-color);
+}
+
+hr {
+    border-top: 1px solid var(--border-color);
+    margin: 1rem 0;
+}
+
+/* Main Action Buttons */
+.d-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.d-md-flex {
+    display: flex;
+}
+
+.justify-content-md-end {
+    justify-content: flex-end;
+}
+
 .btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--border-radius);
-    font-weight: 600;
-    transition: var(--transition);
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-}
-
-.btn i {
-    margin-right: 0.5rem;
+    gap: 8px;
+    text-decoration: none; /* For anchor tags acting as buttons */
 }
 
 .btn-primary {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+    background-color: var(--accent-color);
+    color: white;
 }
 
 .btn-primary:hover {
-    background-color: var(--secondary-color);
-    border-color: var(--secondary-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(63, 55, 201, 0.2);
+    background-color: var(--highlight-color);
+    box-shadow: var(--shadow-sm);
 }
 
 .btn-secondary {
-    background-color: #6c757d;
-    border-color: #6c757d;
+    background-color: var(--secondary-color);
+    color: white;
 }
 
 .btn-secondary:hover {
-    background-color: #5a6268;
-    border-color: #545b62;
+    background-color: var(--highlight-color);
+    box-shadow: var(--shadow-sm);
 }
 
-/* Resumen de costos */
-#resumen-costos {
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-#resumen-costos .list-group-item {
-    border-radius: var(--border-radius);
-    margin-bottom: 0.5rem;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-#resumen-costos .badge {
-    font-size: 0.9rem;
-    padding: 0.5rem 0.75rem;
-}
-
-#subtotal,
-#impuestos,
-#total {
-    font-weight: 600;
-    color: var(--dark-text);
-}
-
-#total {
-    font-size: 1.5rem;
-    color: var(--success-color);
-}
-
-/* Form switches */
-.form-switch .form-check-input {
-    width: 3em;
-    height: 1.5em;
-    margin-left: -0.5em;
-}
-
-.form-switch .form-check-label {
-    font-weight: 500;
-    color: var(--dark-text);
-}
-
-/* Validación */
-.invalid-feedback {
-    color: var(--danger-color);
-    font-size: 0.85rem;
-    margin-top: 0.25rem;
-}
-
-.is-invalid {
-    border-color: var(--danger-color);
-}
-
-.is-invalid:focus {
-    box-shadow: 0 0 0 0.25rem rgba(247, 37, 133, 0.25);
-}
-
-/* Responsive */
-@media (max-width: 992px) {
-    .card-body {
-        padding: 1.5rem;
-    }
-
-    .form-label {
-        font-size: 0.95rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .container {
-        padding: 1rem;
-    }
-
-    h2 {
-        font-size: 1.75rem;
-    }
-
-    .card-header {
-        font-size: 1.1rem;
-        padding: 1rem;
-    }
-
-    .btn {
-        padding: 0.65rem 1.25rem;
-        font-size: 0.95rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .card-body {
-        padding: 1.25rem;
-    }
-
-    .form-label i {
-        display: none;
-    }
-
-    .table thead th i {
-        display: none;
-    }
-}
-
-.row {
-
-    display: flex;
-
-    flex-wrap: wrap;
-
-    gap: 1rem;
-    /* Espaciado entre columnas */
-
-    margin-bottom: 1rem;
-
-}
-
-
-
-/* Asegura que las columnas se comporten como columnas y no ocupen todo el ancho */
-
-.col,
-
-[class^="col-"],
-
-[class*=" col-"] {
-
-    flex: 1 0 0%;
-
-    min-width: 0;
-
-}
-
-
-
-/* Arregla select2 y elementos que tienden a expandirse */
-
-.select2-container--default .select2-selection--single {
-
-    height: 38px;
-    padding: 5px 10px;
+.btn .fas {
     font-size: 1rem;
-
 }
 
-
-
-/* Que los inputs ocupen todo el ancho del contenedor */
-
-.form-control,
-
-select,
-
-textarea {
-
-    width: 100% !important;
-
+/* Form Check Switch */
+.form-check {
+    display: block;
+    min-height: 1.5rem;
+    padding-left: 2.25em;
+    margin-bottom: 0.125rem;
 }
 
+.form-check .form-check-input {
+    float: left;
+    margin-left: -2.25em;
+}
 
+.form-check-input {
+    width: 1em;
+    height: 1em;
+    margin-top: 0.25em;
+    vertical-align: top;
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    print-color-adjust: exact;
+    border-radius: 0.25rem;
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
 
-/* Distribuye mejor dentro de cards */
+.form-check-input[type="checkbox"] {
+    border-radius: 0.25em;
+}
 
-.card-body>.row {
+.form-check-input:checked {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
 
+.form-check-input:focus {
+    border-color: var(--accent-color);
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(var(--accent-color-rgb), 0.25); /* Needs RGB variant or a fixed color */
+}
+
+.form-check-label {
     margin-bottom: 0;
+    color: var(--text-color);
+    cursor: pointer;
+}
 
+.form-switch {
+    padding-left: 2.5em;
+}
+
+.form-switch .form-check-input {
+    width: 2em;
+    margin-left: -2.5em;
+    border-radius: 1em;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%236c757d'/%3e%3c/svg%3e");
+    background-position: left center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    transition: background-position 0.15s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .form-switch .form-check-input {
+        transition: none;
+    }
+}
+
+.form-switch .form-check-input:checked {
+    background-position: right center;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+}
+
+.form-switch .form-check-label .fas {
+    margin-right: 8px;
+    color: var(--accent-color);
+}
+
+/* Row and Column Gap Utilities */
+.row {
+    --bs-gutter-x: 1.5rem;
+    --bs-gutter-y: 0;
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: calc(-1 * var(--bs-gutter-y));
+    margin-right: calc(-0.5 * var(--bs-gutter-x));
+    margin-left: calc(-0.5 * var(--bs-gutter-x));
+}
+
+.row > * {
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 100%;
+    padding-right: calc(var(--bs-gutter-x) * 0.5);
+    padding-left: calc(var(--bs-gutter-x) * 0.5);
+    margin-top: var(--bs-gutter-y);
+}
+
+.row-cols-1 > * {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
+.g-3 {
+    --bs-gutter-x: 1rem;
+    --bs-gutter-y: 1rem;
+}
+
+.mb-3 {
+    margin-bottom: 1rem !important;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
+.mt-3 {
+    margin-top: 1rem !important;
+}
+
+.mt-4 {
+    margin-top: 1.5rem !important;
+}
+
+/* Responsive adjustments for columns */
+@media (min-width: 768px) {
+    .row-cols-md-2 > * {
+        flex: 0 0 auto;
+        width: 50%;
+    }
+    .row-cols-md-3 > * {
+        flex: 0 0 auto;
+        width: 33.333333%;
+    }
+}
+
+@media (min-width: 992px) {
+    .row-cols-lg-4 > * {
+        flex: 0 0 auto;
+        width: 25%;
+    }
+}
+
+/* Dark mode specific adjustments */
+body.dark-mode .card {
+    background-color: var(--card-background); /* Should be #1e1e1e from base.css */
+    border-color: var(--border-color); /* Should be #333333 from base.css */
+}
+
+body.dark-mode .card-header {
+    color: var(--text-color); /* To make header text visible in dark mode if header bg is dark */
+}
+
+body.dark-mode .card-header.bg-primary {
+    background-color: var(--primary-color); /* Should be #0d0d0d from base.css */
+}
+
+body.dark-mode .card-header.bg-success {
+    background-color: var(--success-color); /* Should be #27ae60 from base.css */
+}
+
+body.dark-mode .form-control,
+body.dark-mode .select2-container--default .select2-selection--single,
+body.dark-mode .select2-container--default .select2-selection--multiple {
+    background-color: var(--secondary-color) !important; /* A slightly darker background for inputs in dark mode */
+    color: var(--text-color) !important; /* Light text */
+    border-color: var(--border-color) !important;
+}
+
+body.dark-mode .form-control:focus,
+body.dark-mode .select2-container--default.select2-container--focus .select2-selection--single,
+body.dark-mode .select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: var(--accent-color) !important;
+    box-shadow: 0 0 0 0.25rem rgba(15, 52, 96, 0.25); /* Using direct rgba for accent-color in dark mode */
+}
+
+body.dark-mode .select2-dropdown {
+    background-color: var(--card-background) !important;
+    border-color: var(--border-color) !important;
+}
+
+body.dark-mode .select2-container--default .select2-results__option {
+    color: var(--text-color);
+}
+
+body.dark-mode .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+    background-color: var(--highlight-color) !important;
+}
+
+body.dark-mode .table thead th {
+    background-color: var(--primary-color); /* Darker primary color for dark mode */
+    color: var(--text-color); /* Light text for table headers in dark mode */
+}
+
+body.dark-mode .table tbody tr:hover {
+    background-color: var(--secondary-color); /* Darker secondary for hover */
+}
+
+body.dark-mode .table td {
+    color: var(--text-color); /* Light text for table cells */
+}
+
+body.dark-mode .list-group-item {
+    background-color: var(--secondary-color); /* Darker background for list items */
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+body.dark-mode .alert-danger {
+    background-color: rgba(var(--error-color), 0.2); /* Slightly adjusted for dark mode visibility */
+    color: var(--error-color);
+    border-color: var(--error-color);
+}
+
+/* Ensure icons inherit colors correctly in dark mode where needed */
+body.dark-mode .form-label .fas,
+body.dark-mode h2 .fas,
+body.dark-mode h5 .fas,
+body.dark-mode .form-switch .form-check-label .fas {
+    color: var(--accent-color); /* Maintain accent color for icons in dark mode */
+}
+
+/* Adjust for better spacing on smaller screens */
+@media (max-width: 767.98px) {
+    .d-md-flex {
+        flex-direction: column;
+    }
+    .justify-content-md-end {
+        justify-content: flex-start;
+    }
+    .me-md-2 {
+        margin-right: 0 !important;
+        margin-bottom: 10px;
+    }
+    .btn {
+        width: 100%;
+    }
 }

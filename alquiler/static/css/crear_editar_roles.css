@@ -1,280 +1,444 @@
-/* crear_editar_roles.css - Estilo Corporativo para Formulario de Roles */
-:root {
-    --primary-color: #4361ee; /* Azul corporativo */
-    --secondary-color: #3a0ca3; /* Azul más profundo */
-    --accent-color: #f72585; /* Rosa brillante */
-    --success-color: #4cc9f0; /* Turquesa */
-    --warning-color: #f8961e; /* Naranja */
-    --danger-color: #ef233c; /* Rojo */
-    --light-color: #f8f9fa; /* Fondo claro */
-    --dark-color: #212529; /* Texto oscuro */
-    --border-radius: 8px;
-    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    --transition: all 0.3s ease;
-}
+/* crear_editar_roles.css */
 
-/* Estructura principal */
+/* Contenedor principal del formulario */
 .role-form-container {
-    padding: 2rem;
-    background-color: var(--light-color);
+    padding: 20px;
+    margin: 20px; /* Consistencia con otros contenedores */
+    background-color: var(--card-background);
+    color: var(--text-color);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
 }
 
+/* Estilo de la "tarjeta" principal */
 .corporate-card {
-    border: none;
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
-    overflow: hidden;
-    background-color: white;
-}
-
-.card-header {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 1.5rem;
-    border-bottom: none;
-}
-
-.card-title {
+    background-color: transparent; /* El fondo ya lo da el container */
+    border: none; /* Quitamos el borde de la tarjeta si el contenedor ya tiene */
+    box-shadow: none; /* Quitamos la sombra si el contenedor ya tiene */
     margin: 0;
-    font-weight: 600;
 }
 
-.card-body {
-    padding: 2rem;
+.corporate-card .card-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--border-color);
+    padding: 15px 0;
+    margin-bottom: 20px;
+    display: flex; /* Para alinear el título y el icono */
+    align-items: center;
+    gap: 10px;
 }
 
-.card-footer {
-    background-color: rgba(67, 97, 238, 0.05);
-    padding: 1.5rem;
-    border-top: 1px solid rgba(67, 97, 238, 0.1);
+.corporate-card .card-header .card-title {
+    font-size: 1.8rem;
+    color: var(--primary-color);
+    margin: 0;
+}
+
+/* Icono en el título de la página (viene de base.html) */
+#page-title-container { /* Asumiendo que hay un contenedor para page_title en base.html */
     display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: 2rem;
+    color: var(--text-color);
 }
 
-/* Estilos de formulario */
+#page-title-container i {
+    color: var(--accent-color);
+}
+
+
+/* Estilos de los grupos de formulario */
 .form-group {
-    margin-bottom: 2rem;
+    margin-bottom: 20px;
 }
 
-label {
+.form-group label {
     display: block;
-    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
     font-weight: 500;
-    color: var(--secondary-color);
 }
 
-input[type="text"],
-input[type="password"],
-input[type="email"],
-textarea,
-select {
+/* Estilos para inputs y textareas */
+.corporate-card input[type="text"],
+.corporate-card textarea {
     width: 100%;
-    padding: 0.75rem 1rem;
-    border: 2px solid rgba(67, 97, 238, 0.2);
-    border-radius: var(--border-radius);
-    font-size: 1rem;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background-color: var(--background-color); /* Fondo de inputs */
+    color: var(--text-color); /* Color del texto en inputs */
+    font-size: 0.9rem;
     transition: var(--transition);
 }
 
-input[type="text"]:focus,
-input[type="password"]:focus,
-input[type="email"]:focus,
-textarea:focus,
-select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+.corporate-card input[type="text"]:focus,
+.corporate-card textarea:focus {
     outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
 }
 
-textarea {
-    min-height: 120px;
-    resize: vertical;
+.corporate-card textarea {
+    min-height: 80px;
+    resize: vertical; /* Permite redimensionar verticalmente */
 }
 
-.invalid-feedback {
-    color: var(--danger-color);
-    margin-top: 0.5rem;
-    font-size: 0.875rem;
+/* Mensajes de error */
+.invalid-feedback.d-block { /* d-block de Bootstrap para que se muestre */
+    color: var(--error-color);
+    font-size: 0.85rem;
+    margin-top: 5px;
 }
 
 /* Contenedor de permisos */
 .permissions-container {
-    border: 2px solid rgba(67, 97, 238, 0.1);
-    border-radius: var(--border-radius);
-    overflow: hidden;
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: 15px;
 }
 
 .permission-app {
-    border-bottom: 1px solid rgba(67, 97, 238, 0.1);
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
 }
 
 .permission-app:last-child {
     border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
 }
 
 .permission-app-header {
-    background-color: rgba(67, 97, 238, 0.05);
-    padding: 1rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.permission-app-header:hover {
-    background-color: rgba(67, 97, 238, 0.1);
+    margin-bottom: 10px;
+    cursor: pointer; /* Para indicar que es clickeable */
 }
 
 .permission-app-header h5 {
+    font-size: 1.1rem;
+    color: var(--primary-color);
     margin: 0;
-    color: var(--secondary-color);
-    font-weight: 600;
 }
 
 .btn-toggle-permissions {
     background: none;
     border: none;
-    color: var(--primary-color);
+    color: var(--accent-color);
     font-size: 1rem;
     cursor: pointer;
-    transition: var(--transition);
-    padding: 0.5rem;
-    border-radius: 50%;
+    transition: transform 0.3s ease;
 }
 
-.btn-toggle-permissions:hover {
-    background-color: rgba(67, 97, 238, 0.1);
-    transform: rotate(90deg);
+.btn-toggle-permissions i {
+    font-size: 0.9em;
 }
+
+/* Estado de los iconos de toggle */
+.btn-toggle-permissions .fa-chevron-down {
+    transform: rotate(0deg);
+}
+.btn-toggle-permissions .fa-chevron-right {
+    transform: rotate(90deg); /* Animación de rotación */
+}
+
 
 .permission-items {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
-    padding: 1.5rem;
-    background-color: white;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 10px;
+    padding: 10px 0;
+    /* transition: all 0.3s ease-out; /* Para una transición suave del display */
+    overflow: hidden; /* Oculta el contenido al contraer */
 }
 
 .permission-item {
-    padding: 1rem;
-    border-radius: var(--border-radius);
-    background-color: rgba(76, 201, 240, 0.05);
-    border: 1px solid rgba(76, 201, 240, 0.1);
-    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    transition: background-color 0.2s ease;
 }
 
 .permission-item:hover {
-    background-color: rgba(76, 201, 240, 0.1);
-    transform: translateY(-2px);
+    background-color: var(--secondary-color); /* Un hover suave para cada permiso */
 }
 
-.form-check {
+.permission-item .form-check {
     display: flex;
     align-items: center;
-    margin-bottom: 0.25rem;
+    margin-bottom: 5px;
 }
 
-.form-check-input {
-    margin-right: 0.75rem;
-    width: 1.1em;
-    height: 1.1em;
-    border: 2px solid var(--primary-color);
-    appearance: none;
+.permission-item .form-check-input {
+    margin-right: 8px;
+    /* Estilos personalizados para checkbox */
     -webkit-appearance: none;
-    border-radius: 0.25em;
-    transition: var(--transition);
+    -moz-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    background-color: var(--background-color);
     cursor: pointer;
+    position: relative;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.form-check-input:checked {
-    background-color: var(--primary-color);
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e");
+.permission-item .form-check-input:checked {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
 }
 
-.form-check-label {
+.permission-item .form-check-input:checked::before {
+    content: '\f00c'; /* FontAwesome check icon */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: white;
+    font-size: 12px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.permission-item .form-check-label {
+    font-size: 0.9rem;
+    color: var(--text-color);
     cursor: pointer;
-    font-weight: 500;
-    color: var(--dark-color);
+    margin-bottom: 0; /* Bootstrap puede añadir margin-bottom por defecto */
 }
 
-.text-muted {
-    color: var(--primary-color);
-    opacity: 0.7;
-    font-size: 0.8rem;
-    display: block;
-    margin-top: 0.25rem;
+.permission-item small.text-muted {
+    font-size: 0.75rem;
+    color: var(--text-secondary) !important; /* Asegura el color en modo oscuro */
+    margin-left: 26px; /* Alinea con el texto del label */
+}
+
+/* Footer del formulario */
+.card-footer {
+    background-color: transparent;
+    border-top: 1px solid var(--border-color);
+    padding: 20px 0 0;
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
 }
 
 /* Botones */
 .btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--border-radius);
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.95rem;
     font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    transition: var(--transition);
-    border: none;
-    cursor: pointer;
+    gap: 8px;
+    text-decoration: none;
+    color: white; /* Por defecto para todos los botones */
 }
 
 .btn-primary {
     background-color: var(--accent-color);
-    color: white;
 }
 
 .btn-primary:hover {
-    background-color: var(--secondary-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: var(--highlight-color);
+    box-shadow: var(--shadow-sm);
 }
 
 .btn-secondary {
-    background-color: white;
-    color: var(--primary-color);
-    border: 2px solid var(--primary-color);
+    background-color: var(--secondary-color);
 }
 
 .btn-secondary:hover {
-    background-color: rgba(67, 97, 238, 0.05);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: var(--highlight-color);
+    box-shadow: var(--shadow-sm);
 }
 
-/* Responsividad */
+
+body.dark-mode .role-form-container {
+    background-color: var(--card-background);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .corporate-card .card-header .card-title {
+    color: var(--text-color); /* Título en modo oscuro */
+}
+
+body.dark-mode .corporate-card .card-header {
+    border-color: var(--border-color);
+}
+
+body.dark-mode .corporate-card input[type="text"],
+body.dark-mode .corporate-card textarea {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .form-group label {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .permissions-container {
+    background-color: var(--background-color);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .permission-app {
+    border-color: var(--border-color);
+}
+
+body.dark-mode .permission-app-header h5 {
+    color: var(--text-color); /* Título de app de permisos en dark mode */
+}
+
+body.dark-mode .btn-toggle-permissions {
+    color: var(--accent-color);
+}
+
+body.dark-mode .permission-item {
+    background-color: var(--card-background);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .permission-item:hover {
+    background-color: var(--secondary-color);
+}
+
+body.dark-mode .permission-item .form-check-input {
+    background-color: var(--background-color);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .permission-item .form-check-input:checked {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+body.dark-mode .permission-item .form-check-label {
+    color: var(--text-color);
+}
+
+body.dark-mode .permission-item small.text-muted {
+    color: var(--text-secondary) !important;
+}
+
+body.dark-mode .card-footer {
+    border-color: var(--border-color);
+}
+
+body.dark-mode .btn-secondary {
+    background-color: var(--secondary-color);
+    color: var(--text-color); /* Texto claro para el botón secundario en dark mode */
+}
+
+body.dark-mode .btn-secondary:hover {
+    background-color: var(--highlight-color);
+    color: white;
+}
+
+
+/* --- Media Queries para Responsividad --- */
 @media (max-width: 768px) {
-    .card-body {
-        padding: 1.5rem;
+    .role-form-container {
+        margin: 10px;
+        padding: 15px;
     }
-    
+
+    .corporate-card .card-header {
+        padding: 10px 0;
+        margin-bottom: 15px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .corporate-card .card-header .card-title {
+        font-size: 1.5rem;
+    }
+
+    #page-title-container {
+        font-size: 1.7rem;
+        justify-content: center;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .permissions-container {
+        padding: 10px;
+    }
+
+    .permission-app-header h5 {
+        font-size: 1rem;
+    }
+
     .permission-items {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* Una columna en móviles */
+        gap: 8px;
     }
-    
+
+    .permission-item {
+        padding: 10px;
+    }
+
+    .permission-item .form-check-label {
+        font-size: 0.85rem;
+    }
+
+    .permission-item small.text-muted {
+        font-size: 0.7rem;
+    }
+
     .card-footer {
         flex-direction: column;
+        gap: 10px;
+        padding-top: 15px;
     }
-    
+
     .btn {
         width: 100%;
         justify-content: center;
+        padding: 12px;
     }
 }
 
-/* Animaciones */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+@media (max-width: 480px) {
+    .role-form-container {
+        margin: 5px;
+        padding: 10px;
+    }
 
-.permission-app {
-    animation: fadeIn 0.3s ease forwards;
-}
+    .corporate-card .card-header .card-title {
+        font-size: 1.3rem;
+    }
 
-.permission-app:nth-child(1) { animation-delay: 0.1s; }
-.permission-app:nth-child(2) { animation-delay: 0.2s; }
-.permission-app:nth-child(3) { animation-delay: 0.3s; }
-.permission-app:nth-child(4) { animation-delay: 0.4s; }
-.permission-app:nth-child(5) { animation-delay: 0.5s; }
+    #page-title-container {
+        font-size: 1.5rem;
+    }
+
+    .form-group label {
+        font-size: 0.9rem;
+    }
+
+    .corporate-card input[type="text"],
+    .corporate-card textarea {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+}

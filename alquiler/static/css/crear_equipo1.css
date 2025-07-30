@@ -36,6 +36,7 @@
 }
 
 .header-actions .btn {
+    
     padding: 8px 15px;
     font-size: 0.9rem;
     border-radius: var(--border-radius-sm);
@@ -78,7 +79,6 @@
 
 /* Secciones del formulario */
 .form-section {
-    background-color: var(--background-color); /* Fondo ligeramente diferente para secciones */
     padding: 20px;
     border-radius: var(--border-radius-md);
     border: 1px solid var(--border-color);
@@ -334,7 +334,6 @@
 .photo-actions input[type="text"] {
     padding: 6px 8px;
     font-size: 0.8rem;
-    background-color: var(--card-background);
 }
 
 /* DELETE checkbox for photos */
@@ -350,7 +349,6 @@
 .file-upload-card {
     border: 2px dashed var(--border-color);
     border-radius: var(--border-radius-md);
-    background-color: var(--background-color);
     padding: 30px;
     text-align: center;
     cursor: pointer;
@@ -424,7 +422,6 @@
 
 /* --- Ajustes para el Modo Oscuro --- */
 body.dark-mode .container.mt-4 {
-    background-color: var(--card-background);
     border-color: var(--border-color);
 }
 
@@ -438,13 +435,11 @@ body.dark-mode .header-actions .btn {
 }
 
 body.dark-mode .header-actions .btn:hover {
-    background-color: var(--secondary-color);
     color: white;
     border-color: var(--secondary-color);
 }
 
 body.dark-mode .form-section {
-    background-color: var(--background-color);
     border-color: var(--border-color);
 }
 
@@ -460,7 +455,6 @@ body.dark-mode .form-group label {
 body.dark-mode .form-group input,
 body.dark-mode .form-group select,
 body.dark-mode .form-group textarea {
-    background-color: var(--card-background);
     color: var(--text-color);
     border-color: var(--border-color);
 }
@@ -479,18 +473,15 @@ body.dark-mode .form-check.form-switch .form-check-label {
 }
 
 body.dark-mode .form-check.form-switch .form-check-input {
-    background-color: var(--text-secondary);
     border-color: var(--text-secondary);
 }
 
 body.dark-mode .form-check.form-switch .form-check-input:checked {
-    background-color: var(--accent-color);
     border-color: var(--accent-color);
 }
 
 
 body.dark-mode .price-card {
-    background-color: var(--card-background);
     border-color: var(--border-color);
 }
 
@@ -503,13 +494,11 @@ body.dark-mode .price-card .input-group {
 }
 
 body.dark-mode .price-card .input-group-text {
-    background-color: var(--background-color);
     color: var(--text-secondary);
     border-color: var(--border-color);
 }
 
 body.dark-mode .price-card input[type="number"] {
-    background-color: var(--card-background);
     color: var(--text-color);
 }
 
@@ -519,7 +508,6 @@ body.dark-mode .subsection-title {
 }
 
 body.dark-mode .photo-card {
-    background-color: var(--background-color);
     border-color: var(--border-color);
 }
 
@@ -528,7 +516,6 @@ body.dark-mode .photo-img {
 }
 
 body.dark-mode .photo-placeholder {
-    background-color: var(--secondary-color);
     color: white;
     border-color: var(--border-color);
 }
@@ -542,14 +529,12 @@ body.dark-mode .photo-actions .form-group label {
 }
 
 body.dark-mode .photo-actions input[type="text"] {
-    background-color: var(--card-background);
     color: var(--text-color);
     border-color: var(--border-color);
 }
 
 body.dark-mode .upload-area .file-upload-card {
     border-color: var(--border-color);
-    background-color: var(--background-color);
 }
 
 body.dark-mode .upload-area .file-upload-card:hover {
@@ -566,12 +551,15 @@ body.dark-mode .form-footer {
 }
 
 body.dark-mode .btn-outline-secondary {
+        background-color: var(--accent-color);
+
     color: var(--text-color);
     border-color: var(--border-color);
 }
 
 body.dark-mode .btn-outline-secondary:hover {
-    background-color: var(--secondary-color);
+        background-color: var(--accent-color);
+
     color: white;
     border-color: var(--secondary-color);
 }

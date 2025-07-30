@@ -554,11 +554,12 @@ body.dark-mode .similar-info .precio {
 }
 
 
-
 body.dark-mode .thumbnail-img.active {
     border-color: var(--accent-color);
     box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb, 15, 52, 96), 0.3); /* Sombra de acento oscuro */
 }
+
+
 
 
 
@@ -590,7 +591,9 @@ body.dark-mode .equipo-similar-horizontal {
     border-color: var(--border-color);
 }
 
-
+body.dark-mode .equipo-similar-horizontal:hover {
+    background-color: var(--secondary-color);
+}
 
 body.dark-mode .similar-img-container {
     border-color: var(--border-color);

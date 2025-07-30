@@ -160,6 +160,7 @@ urlpatterns = [
     path('guanabanazo/', include((core_patterns, 'alquiler'), namespace='alquiler')),
 ]
 
+
 # Configuración para archivos multimedia en desarrollo
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

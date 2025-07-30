@@ -20,6 +20,10 @@
                     <i class="fas fa-check-circle"></i>
                     <span>Equipos disponibles</span>
                 </a>
+                <a href="{% url 'alquiler:equipos_por_estado' estado='disponible' %}" class="panel-item">
+                    <i class="fas fa-filter"></i>
+                    <span>Filtrar por estado</span>
+                </a>
                 
                 {% if perms.alquiler.add_equipo %}
                 <a href="{% url 'alquiler:crear_equipo' %}" class="panel-item admin">
@@ -32,6 +36,13 @@
                 <a href="{% url 'alquiler:equipos_mas_alquilados' %}" class="panel-item admin">
                     <i class="fas fa-chart-line"></i>
                     <span>Estadísticas de equipos</span>
+                </a>
+                {% endif %}
+                
+                {% if perms.alquiler.export_data %}
+                <a href="{% url 'alquiler:exportar_equipos_csv' %}" class="panel-item admin">
+                    <i class="fas fa-file-export"></i>
+                    <span>Exportar equipos</span>
                 </a>
                 {% endif %}
             </div>
@@ -47,11 +58,19 @@
                     <i class="fas fa-list"></i>
                     <span>Ver todos los alquileres</span>
                 </a>
+                <a href="{% url 'alquiler:alquileres_a_vencer' %}" class="panel-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Alquileres a vencer</span>
+                </a>
                 
                 {% if perms.alquiler.add_alquiler %}
                 <a href="{% url 'alquiler:crear_alquiler' %}" class="panel-item admin">
                     <i class="fas fa-cart-plus"></i>
                     <span>Crear nuevo alquiler</span>
+                </a>
+                <a href="{% url 'alquiler:reservar_alquiler' %}" class="panel-item admin">
+                    <i class="fas fa-clock"></i>
+                    <span>Reservar equipo</span>
                 </a>
                 {% endif %}
                 
@@ -59,13 +78,6 @@
                 <a href="{% url 'alquiler:calendario_alquileres' %}" class="panel-item admin">
                     <i class="fas fa-calendar-alt"></i>
                     <span>Calendario de alquileres</span>
-                </a>
-                {% endif %}
-                
-                {% if perms.alquiler.add_reserva %}
-                <a href="{% url 'alquiler:reservar_alquiler' %}" class="panel-item admin">
-                    <i class="fas fa-clock"></i>
-                    <span>Reservar equipo</span>
                 </a>
                 {% endif %}
             </div>
@@ -99,6 +111,69 @@
         </div>
         {% endif %}
         
+        <!-- Sección Pagos -->
+        {% if perms.alquiler.view_pago %}
+        <div class="panel-categoria">
+            <h2>Gestión de Pagos</h2>
+            <div class="panel-grid">
+                <a href="{% url 'alquiler:lista_pagos' %}" class="panel-item">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Ver todos los pagos</span>
+                </a>
+                <a href="{% url 'alquiler:pagos_pendientes_admin' %}" class="panel-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Pagos pendientes</span>
+                </a>
+                <a href="{% url 'alquiler:pagos_vencidos' %}" class="panel-item">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Pagos vencidos</span>
+                </a>
+                <a href="{% url 'alquiler:pagos_proximos' %}" class="panel-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Pagos próximos</span>
+                </a>
+                
+                {% if perms.alquiler.add_pago %}
+                <a href="{% url 'alquiler:registrar_pago' %}" class="panel-item admin">
+                    <i class="fas fa-cash-register"></i>
+                    <span>Registrar pago</span>
+                </a>
+                {% endif %}
+                
+                {% if perms.alquiler.view_reports %}
+                <a href="{% url 'alquiler:reportes_pagos' %}" class="panel-item admin">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Reportes de pagos</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Sección Usuarios y Roles -->
+        {% if perms.alquiler.view_usuario %}
+        <div class="panel-categoria">
+            <h2>Usuarios y Roles</h2>
+            <div class="panel-grid">
+                <a href="{% url 'alquiler:lista_usuarios' %}" class="panel-item admin">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Administrar usuarios</span>
+                </a>
+                <a href="{% url 'alquiler:lista_roles' %}" class="panel-item admin">
+                    <i class="fas fa-user-tag"></i>
+                    <span>Administrar roles</span>
+                </a>
+                
+                {% if perms.alquiler.add_rol %}
+                <a href="{% url 'alquiler:crear_rol' %}" class="panel-item admin">
+                    <i class="fas fa-plus-square"></i>
+                    <span>Crear nuevo rol</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
         <!-- Sección Administración -->
         {% if perms.alquiler.view_admin %}
         <div class="panel-categoria">
@@ -109,24 +184,10 @@
                     <span>Dashboard Admin</span>
                 </a>
                 
-                {% if perms.alquiler.export_data %}
-                <a href="{% url 'alquiler:exportar_equipos_csv' %}" class="panel-item admin">
-                    <i class="fas fa-file-export"></i>
-                    <span>Exportar equipos</span>
-                </a>
-                {% endif %}
-                
                 {% if perms.alquiler.change_equipo %}
                 <a href="{% url 'alquiler:actualizar_estados_masivo' %}" class="panel-item admin">
                     <i class="fas fa-sync-alt"></i>
                     <span>Actualización masiva</span>
-                </a>
-                {% endif %}
-                
-                {% if perms.alquiler.send_alerts %}
-                <a href="{% url 'alquiler:enviar_alertas_vencimiento' %}" class="panel-item admin">
-                    <i class="fas fa-bell"></i>
-                    <span>Alertas de vencimiento</span>
                 </a>
                 {% endif %}
             </div>

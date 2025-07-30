@@ -143,30 +143,25 @@ core_patterns = [
     path('usuarios/auditoria/<uuid:usuario_uuid>/', auditoria_usuario, name='auditoria_usuario'),
     path('activar/<uidb64>/<token>/', activar_cuenta, name='activar_cuenta'),
 
-    #Roles (cambiando <int:rol_id> por <uuid:rol_id> si los roles también usarán UUIDs)
     path('roles/', lista_roles, name='lista_roles'),
     path('roles/crear/', crear_rol, name='crear_rol'),
     path('roles/editar/<uuid:rol_uuid>/', editar_rol, name='editar_rol'),
     path('roles/eliminar/<uuid:rol_uuid>/', eliminar_rol, name='eliminar_rol'),
 
-    # Asignación de roles a usuarios (cambiando <int:usuario_id> por <uuid:usuario_id>)
     path('usuarios/<uuid:usuario_id>/asignar-rol/', asignar_rol, name='asignar_rol'),
 ]
 
 
-# Configuración principal de URLs
 urlpatterns = [
     path('', RedirectView.as_view(url='/guanabanazo/')),
     path('guanabanazo/', include((core_patterns, 'alquiler'), namespace='alquiler')),
 ]
 
 
-# Configuración para archivos multimedia en desarrollo
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-# Manejo de errores
 handler403 = 'alquiler.views.error_views.handler403'
 handler404 = 'alquiler.views.error_views.handler404'
 handler500 = 'alquiler.views.error_views.handler500'

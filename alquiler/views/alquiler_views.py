@@ -11,6 +11,7 @@ from alquiler.forms.alquiler_forms import (
     ConvertirReservaForm, 
     RenovarAlquilerForm
 )
+from django.http import Http404 
 from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
@@ -1234,19 +1235,26 @@ def firmar_contrato(request, id):
         'contrato': contrato
     })
 
+
 @login_required
 @permission_required('alquiler.change_contrato', raise_exception=True)
 def renovar_contrato(request, id):
-    alquiler_original = get_object_or_404(Alquiler, id=id)
+    try:
+        alquiler_original = get_object_or_404(Alquiler, uuid_id=id)
+    except Http404:
+        messages.error(request, f"El alquiler con ID '{id}' no fue encontrado. Por favor, verifique la URL o si el alquiler existe.")
+        return redirect('alquiler:listar_alquileres') 
+    except Exception as e:
+        messages.error(request, f"Ocurrió un error inesperado al buscar el alquiler. Por favor, inténtelo de nuevo.")
+        return redirect('alquiler:listar_alquileres')
 
-    # Verificar contrato existente
-    if not hasattr(alquiler_original, 'contrato'):
-        messages.error(request, "El alquiler original no tiene contrato asociado.")
-        return redirect('alquiler:detalle_alquiler', id=alquiler_original.id)
+    if not hasattr(alquiler_original, 'contrato') or not alquiler_original.contrato:
+        messages.error(request, "El alquiler original no tiene contrato asociado y no puede ser renovado.")
+        return redirect('alquiler:detalle_alquiler', id=alquiler_original.uuid_id)
 
     if alquiler_original.estado_alquiler not in ['activo', 'finalizado']:
-        messages.error(request, "Solo se pueden renovar alquileres activos o finalizados.")
-        return redirect('alquiler:detalle_alquiler', id=alquiler_original.id)
+        messages.error(request, f"Solo se pueden renovar alquileres activos o finalizados. Estado actual: '{alquiler_original.estado_alquiler}'.")
+        return redirect('alquiler:detalle_alquiler', id=alquiler_original.uuid_id)
 
     if request.method == 'POST':
         form = AlquilerForm(request.POST)
@@ -1257,24 +1265,20 @@ def renovar_contrato(request, id):
                     nuevo_alquiler.estado_alquiler = 'activo'
                     nuevo_alquiler.cliente = alquiler_original.cliente
                     nuevo_alquiler.renovacion = True
-                    nuevo_alquiler.es_reserva = False  # Asegurar que no sea reserva
+                    nuevo_alquiler.es_reserva = False
 
-                    # Obtener nombre del usuario
                     user = request.user
-                    nombre = f"{getattr(user, 'nombre', '')} {getattr(user, 'apellido', '')}".strip()
-                    if not nombre:
-                        nombre = getattr(user, 'nombre_usuario', '') or user.username
-                    nuevo_alquiler.aprobado_por = nombre
+                    nombre_aprobador = f"{getattr(user, 'nombre', '')} {getattr(user, 'apellido', '')}".strip()
+                    if not nombre_aprobador:
+                        nombre_aprobador = getattr(user, 'nombre_usuario', '') or user.username
+                    nuevo_alquiler.aprobado_por = nombre_aprobador
 
-                    # Tomar número de factura ingresado manualmente
                     nuevo_alquiler.numero_factura = form.cleaned_data.get('numero_factura')
                     if not nuevo_alquiler.numero_factura:
-                        raise ValidationError("Debe ingresar un número de factura.")
-
-                    # Guardar primero el alquiler para obtener ID
+                        raise ValidationError("Debe ingresar un número de factura para la renovación.")
+                    
                     nuevo_alquiler.save()
 
-                    # Copiar los detalles del alquiler anterior
                     for detalle in alquiler_original.detalles.all():
                         DetalleAlquiler.objects.create(
                             alquiler=nuevo_alquiler,
@@ -1285,50 +1289,53 @@ def renovar_contrato(request, id):
                             precio_unitario=detalle.precio_unitario
                         )
                         detalle.equipo.actualizar_disponibilidad()
-
-                    # Clonar el contrato
+                    
                     contrato_original = alquiler_original.contrato
+                    if not contrato_original:
+                        raise Exception("El contrato original no pudo ser clonado porque es nulo.")
+
                     nuevo_contrato = Contrato.objects.create(
                         alquiler=nuevo_alquiler,
                         terminos_contrato=contrato_original.terminos_contrato,
                         fecha_contratacion=timezone.now().date()
                     )
-
-                    # Generar el PDF del contrato con los datos actualizados
                     nuevo_contrato.generar_documento_contrato()
 
-                    # Finalizar el alquiler anterior si aún está activo
                     if alquiler_original.estado_alquiler == 'activo':
                         alquiler_original.estado_alquiler = 'finalizado'
                         alquiler_original.save()
 
-                    messages.success(request, "Contrato renovado correctamente. Ahora debe ser firmado.")
-                    return redirect('alquiler:firmar_contrato', id=nuevo_alquiler.id)
+                    messages.success(request, f"Contrato de renovación # {nuevo_alquiler.numero_factura} creado correctamente. Ahora debe ser firmado.")
+                    return redirect('alquiler:firmar_contrato', id=nuevo_alquiler.uuid_id)
 
+            except ValidationError as ve:
+                messages.error(request, f"Error de validación al renovar: {str(ve)}")
             except Exception as e:
-                messages.error(request, f"Error al renovar el contrato: {str(e)}")
-                logger.error(f"Error renovando contrato: {str(e)}", exc_info=True)
+                messages.error(request, f"Ocurrió un error inesperado al renovar el contrato: {str(e)}")
         else:
             for field, errors in form.errors.items():
                 for error in errors:
-                    messages.error(request, f"Error en {field}: {error}")
+                    messages.error(request, f"Error en el campo '{form[field].label}': {error}")
     else:
-        fecha_inicio = alquiler_original.fecha_fin
-        fecha_fin = fecha_inicio + timedelta(days=30)
-        if fecha_inicio < timezone.now().date():
-            fecha_inicio = timezone.now().date()
-            fecha_fin = fecha_inicio + timedelta(days=30)
+        fecha_inicio_sugerida = alquiler_original.fecha_fin
+        
+        if fecha_inicio_sugerida < timezone.now().date():
+            fecha_inicio_sugerida = timezone.now().date()
+
+        fecha_fin_sugerida = fecha_inicio_sugerida + timedelta(days=30)
 
         form = AlquilerForm(initial={
-            'fecha_inicio': fecha_inicio,
-            'fecha_fin': fecha_fin,
-            'observaciones': f"Renovación del alquiler #{alquiler_original.id}",
+            'fecha_inicio': fecha_inicio_sugerida,
+            'fecha_fin': fecha_fin_sugerida,
+            'observaciones': f"",
             'renovacion': True
         })
+        
         form.fields['cliente'].widget = forms.HiddenInput()
         form.fields['cliente'].required = False
+
         form.fields['numero_factura'].required = True
-        form.fields['numero_factura'].widget = forms.TextInput(attrs={'class': 'form-control'})
+        form.fields['numero_factura'].widget = forms.TextInput(attrs={'class': 'form-control', 'required': 'required'})
 
     context = {
         'form': form,
@@ -1339,7 +1346,6 @@ def renovar_contrato(request, id):
     }
 
     return render(request, 'renovar_contrato.html', context)
-
 @login_required
 @permission_required('alquiler.delete_alquiler', raise_exception=True)
 def eliminar_alquiler(request, id):

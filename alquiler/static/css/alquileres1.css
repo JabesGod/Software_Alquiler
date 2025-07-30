@@ -1,4 +1,4 @@
-/* alquileres.css - Versión corregida y mejorada */
+
 :root {
     --alquileres-header-bg: var(--card-background);
     --alquileres-header-border: var(--border-color);
@@ -13,7 +13,7 @@
     --badge-radius: 20px;
 }
 
-/* Contenedor principal */
+
 .alquileres-container {
     padding: 25px;
     background-color: var(--card-background);
@@ -21,10 +21,10 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     margin-bottom: 30px;
     border: 1px solid var(--border-color);
-    overflow-x: hidden; /* Previene desbordamiento horizontal si algo se sale */
+    overflow-x: hidden; 
 }
 
-/* Encabezado */
+
 .alquileres-header {
     display: flex;
     justify-content: space-between;
@@ -32,8 +32,8 @@
     margin-bottom: 25px;
     padding-bottom: 15px;
     border-bottom: 1px solid var(--alquileres-header-border);
-    flex-wrap: wrap; /* Permite que el contenido del header se ajuste */
-    gap: 15px; /* Espaciado entre título y acciones en pantallas pequeñas */
+    flex-wrap: wrap; 
+    gap: 15px; 
 }
 
 .alquileres-header h1 {
@@ -43,7 +43,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 0; /* Elimina margen inferior de h1 */
+    margin-bottom: 0;
 }
 
 .alquileres-header h1 i {
@@ -51,12 +51,12 @@
     font-size: 1.5rem;
 }
 
-/* Acciones */
+
 .alquileres-actions {
     display: flex;
     gap: 12px;
-    flex-wrap: wrap; /* Fundamental para que los botones se envuelvan */
-    justify-content: flex-end; /* Alinea los botones a la derecha */
+    flex-wrap: wrap; 
+    justify-content: flex-end; 
 }
 
 .alquileres-actions .btn {
@@ -71,7 +71,7 @@
     color: #ffffff;
     border: none;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    text-align: center; /* Centra el texto si el botón es más ancho */
+    text-align: center;
 }
 
 .alquileres-actions .btn:hover {
@@ -84,7 +84,7 @@
     font-size: 0.95rem;
 }
 
-/* Filtros */
+
 .filtros-container {
     background-color: var(--filtros-bg);
     border: 1px solid var(--filtros-border);
@@ -95,13 +95,13 @@
 }
 
 .filtros-form {
-    /* Eliminamos display: flex y gap: 15px; de aquí, Bootstrap .row ya lo maneja */
+ 
     align-items: flex-end;
 }
 
 .filtro-group {
-    /* flex: 1; min-width: 200px; ya no son necesarios gracias a las columnas de Bootstrap */
-    width: 100%; /* Asegura que dentro de la columna ocupe el 100% */
+
+    width: 100%; 
 }
 
 .filtro-group label {
@@ -118,7 +118,7 @@
 }
 
 .filtro-group .form-control,
-.filtro-group .form-select { /* Agregado form-select */
+.filtro-group .form-select { 
     width: 100%;
     padding: 12px 15px;
     border: 1px solid var(--border-color);
@@ -130,7 +130,7 @@
 }
 
 .filtro-group .form-control:focus,
-.filtro-group .form-select:focus { /* Agregado form-select */
+.filtro-group .form-select:focus {
     border-color: var(--accent-color);
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
     outline: none;
@@ -144,7 +144,7 @@
     color: #ffffff;
     border: none;
     transition: all 0.3s ease;
-    width: auto; /* Permite que el botón se ajuste a su contenido, o al 100% en mobile */
+    width: auto; 
 }
 
 .filtros-form .btn:hover {
@@ -152,17 +152,17 @@
     transform: translateY(-2px);
 }
 
-/* Tabla */
+
 .table-responsive {
     border-radius: 8px;
-    overflow-x: auto; /* MUY IMPORTANTE: Permite el scroll horizontal en la tabla */
+    overflow-x: auto;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     border: 1px solid var(--table-border);
 }
 
 .alquileres-table {
     width: 100%;
-    min-width: 800px; /* Establece un ancho mínimo para la tabla en pantallas pequeñas si es necesario */
+    min-width: 800px; 
     border-collapse: collapse;
     margin-bottom: 0;
 }
@@ -179,7 +179,7 @@
     position: sticky;
     top: 0;
     z-index: 10;
-    white-space: nowrap; /* Evita que el texto de las cabeceras se rompa */
+    white-space: nowrap; 
 }
 
 .alquileres-table tbody td {
@@ -189,7 +189,7 @@
     font-size: 0.9rem;
     color: var(--text-color);
     background-color: var(--table-row-bg);
-    white-space: nowrap; /* Evita que el texto de las celdas se rompa, para scroll horizontal */
+    white-space: nowrap; 
 }
 
 .alquileres-table tbody tr:hover {
@@ -200,21 +200,20 @@
     border-bottom: none;
 }
 
-/* Estilos específicos para celdas con contenido complejo */
-.alquileres-table tbody td:nth-child(4) { /* Columna de Equipos */
-    white-space: normal; /* Permite que el contenido se envuelva */
-    max-width: 250px; /* O un valor apropiado */
+
+.alquileres-table tbody td:nth-child(4) { 
+    white-space: normal; 
+    max-width: 250px;
 }
-.alquileres-table tbody td:nth-child(2) { /* Columna de SKUs */
+.alquileres-table tbody td:nth-child(2) {
     white-space: normal;
 }
-.alquileres-table tbody td:nth-child(10) { /* Columna de Acciones */
-    white-space: normal; /* Permite que los botones se envuelvan */
-    max-width: 180px; /* Ajusta según el número de botones */
+.alquileres-table tbody td:nth-child(10) { 
+    white-space: normal;
+    max-width: 180px; 
 }
 
 
-/* Badges */
 .badge {
     padding: var(--badge-padding);
     border-radius: var(--badge-radius);
@@ -225,12 +224,12 @@
     gap: 5px;
 }
 
-/* Botones de acción */
+
 .btn-group {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    /* justify-content: center; */ /* Descomenta si quieres centrar en mobile */
+   
 }
 
 .btn-group .btn {
@@ -240,7 +239,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 36px; /* Asegura un tamaño mínimo clickeable */
+    min-width: 36px;
     height: 36px;
     border: none;
     transition: all 0.3s ease;
@@ -255,7 +254,7 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* Paginación */
+
 .pagination {
     margin-top: 25px;
 }
@@ -282,7 +281,7 @@
     color: #ffffff;
 }
 
-/* Mensaje cuando no hay resultados */
+
 .alquileres-table tbody tr td[colspan] {
     text-align: center;
     padding: 30px 15px;
@@ -291,7 +290,7 @@
     background-color: var(--table-row-bg);
 }
 
-/* Modo oscuro específico */
+
 body.dark-mode .alquileres-container {
     background-color: var(--card-background);
     border-color: var(--border-color);
@@ -307,7 +306,7 @@ body.dark-mode .filtros-container {
 }
 
 body.dark-mode .filtro-group .form-control,
-body.dark-mode .filtro-group .form-select { /* Agregado form-select */
+body.dark-mode .filtro-group .form-select {
     background-color: var(--card-background);
     color: var(--text-color);
     border-color: var(--border-color);
@@ -339,33 +338,31 @@ body.dark-mode .pagination .page-item .page-link:hover {
     color: #ffffff;
 }
 
-/* Responsive */
-/* Eliminamos algunas media queries redundantes gracias a Bootstrap Grid */
 
 @media (max-width: 992px) {
     .alquileres-header {
         flex-direction: column;
         align-items: flex-start;
-        /* gap: 15px; ya definido en el header principal */
+      
     }
 
     .alquileres-actions {
         width: 100%;
-        justify-content: flex-start; /* Alinea los botones a la izquierda en pantallas pequeñas */
+        justify-content: flex-start; 
     }
 }
 
 @media (max-width: 768px) {
-    /* Las columnas de Bootstrap manejarán el apilamiento de los filtros automáticamente */
+
     .alquileres-table thead th,
     .alquileres-table tbody td {
-        padding: 10px 8px; /* Reducir el padding en celdas para pantallas más pequeñas */
-        font-size: 0.8rem; /* Reducir tamaño de fuente en celdas */
+        padding: 10px 8px; 
+        font-size: 0.8rem; 
     }
 
     .btn-group .btn {
-        padding: 6px 8px; /* Ajustar padding de botones de acción */
-        font-size: 0.75rem; /* Reducir tamaño de fuente de botones de acción */
+        padding: 6px 8px; 
+        font-size: 0.75rem; 
         min-width: 32px;
         height: 32px;
     }
@@ -373,20 +370,20 @@ body.dark-mode .pagination .page-item .page-link:hover {
 
 @media (max-width: 576px) {
     .alquileres-header h1 {
-        font-size: 1.5rem; /* Ajustar tamaño del título principal */
+        font-size: 1.5rem; 
     }
 
     .alquileres-actions .btn {
-        width: 100%; /* Botones de acción del encabezado ocupan todo el ancho */
+        width: 100%; 
         justify-content: center;
     }
 
     .filtros-form .btn {
-        width: 100%; /* Botones de filtro ocupan todo el ancho */
+        width: 100%; 
     }
 
     .pagination .page-item .page-link {
-        padding: 6px 10px; /* Reducir padding de paginación */
-        font-size: 0.8rem; /* Reducir tamaño de fuente de paginación */
+        padding: 6px 10px; 
+        font-size: 0.8rem; 
     }
 }

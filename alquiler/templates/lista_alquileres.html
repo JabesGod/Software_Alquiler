@@ -6,7 +6,7 @@
 {% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="{% static 'css/alquileres.css' %}">
+<link rel="stylesheet" href="{% static 'css/alquileres1.css' %}">
 {% endblock %}
 
 {% block extra_js %}
@@ -18,7 +18,6 @@
     <div class="alquileres-header">
         <h1><i class="fas fa-box-open"></i> Listado de Alquileres</h1>
 
-        <!-- En la sección de alquileres-actions -->
         <div class="alquileres-actions">
             <a href="{% url 'alquiler:crear_alquiler' %}" class="btn btn-secondary">
                 <i class="fas fa-plus"></i> Nuevo Alquiler
@@ -36,47 +35,62 @@
 
     <div class="filtros-container">
         <form method="get" class="filtros-form">
-            <div class="filtro-group">
-                <label for="estado"><i class="fas fa-filter"></i> Estado:</label>
-                <select name="estado" id="estado" class="form-control">
-                    <option value="">Todos</option>
-                    {% for estado in estados_alquiler %}
-                        <option value="{{ estado.0 }}" {% if estado_seleccionado and estado_seleccionado == estado.0 %}selected{% endif %}>
-                            {{ estado.1 }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
+            <div class="row g-3"> {# Usamos row y g-3 para espaciado de Bootstrap #}
+                <div class="col-md-6 col-lg-3"> {# Columnas para mayor adaptabilidad #}
+                    <div class="filtro-group">
+                        <label for="estado"><i class="fas fa-filter"></i> Estado:</label>
+                        <select name="estado" id="estado" class="form-select"> {# Cambiado a form-select para consistencia con Bootstrap #}
+                            <option value="">Todos</option>
+                            {% for estado in estados_alquiler %}
+                                <option value="{{ estado.0 }}" {% if estado_seleccionado and estado_seleccionado == estado.0 %}selected{% endif %}>
+                                    {{ estado.1 }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
 
-            <div class="filtro-group">
-                <label for="cliente"><i class="fas fa-user"></i> Cliente:</label>
-                <input type="text" name="cliente" id="cliente" class="form-control" placeholder="Buscar cliente..."
-                    value="{{ request.GET.cliente }}">
-            </div>
-            <div class="filtro-group">
-                <label for="buscador_factura"><i class="fas fa-search"></i> Buscar Factura:</label>
-                <input type="text" name="buscador_factura" id="buscador_factura" class="form-control"
-                    value="{{ request.GET.buscador_factura }}" placeholder="Ingrese número de factura">
-            </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="filtro-group">
+                        <label for="cliente"><i class="fas fa-user"></i> Cliente:</label>
+                        <input type="text" name="cliente" id="cliente" class="form-control" placeholder="Buscar cliente..."
+                            value="{{ request.GET.cliente }}">
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="filtro-group">
+                        <label for="buscador_factura"><i class="fas fa-search"></i> Buscar Factura:</label>
+                        <input type="text" name="buscador_factura" id="buscador_factura" class="form-control"
+                            value="{{ request.GET.buscador_factura }}" placeholder="Ingrese número de factura">
+                    </div>
+                </div>
 
-            <div class="filtro-group">
-                <label for="fecha_inicio"><i class="fas fa-calendar"></i> Desde:</label>
-                <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control"
-                    value="{{ request.GET.fecha_inicio }}">
-            </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="filtro-group">
+                        <label for="fecha_inicio"><i class="fas fa-calendar"></i> Desde:</label>
+                        <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control"
+                            value="{{ request.GET.fecha_inicio }}">
+                    </div>
+                </div>
 
-            <div class="filtro-group">
-                <label for="fecha_fin"><i class="fas fa-calendar"></i> Hasta:</label>
-                <input type="date" name="fecha_fin" id="fecha_fin" class="form-control"
-                    value="{{ request.GET.fecha_fin }}">
+                <div class="col-md-6 col-lg-3">
+                    <div class="filtro-group">
+                        <label for="fecha_fin"><i class="fas fa-calendar"></i> Hasta:</label>
+                        <input type="date" name="fecha_fin" id="fecha_fin" class="form-control"
+                            value="{{ request.GET.fecha_fin }}">
+                    </div>
+                </div>
+                
+                {# Contenedor para los botones de filtro y limpiar para que se alineen #}
+                <div class="col-12 col-md-6 col-lg-auto d-flex align-items-end gap-2"> 
+                    <button type="submit" class="btn btn-secondary flex-grow-1">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
+                    <a href="{% url 'alquiler:listar_alquileres' %}" class="btn btn-secondary flex-grow-1">
+                        <i class="fas fa-sync-alt"></i> Limpiar
+                    </a>
+                </div>
             </div>
-
-            <button type="submit" class="btn btn-secondary">
-                <i class="fas fa-search"></i> Filtrar
-            </button>
-            <a href="{% url 'alquiler:listar_alquileres' %}" class="btn btn-secondary">
-                <i class="fas fa-sync-alt"></i> Limpiar
-            </a>
         </form>
     </div>
 
@@ -85,13 +99,13 @@
             <thead class="table-dark">
                 <tr>
                     <th>Factura</th>
-                    <th>SKU(s)</th> {# Nueva columna para el SKU #}
+                    <th>SKU(s)</th>
                     <th>Cliente</th>
                     <th>Equipo(s)</th>
                     <th>Aprobado</th>
                     <th>Periodo</th>
                     <th>Estado</th>
-                    <th>Precio Total</th>
+                    <th>Precio</th>
                     <th>Vencimiento</th>
                     <th>Acciones</th>
                 </tr>
@@ -100,7 +114,7 @@
                 {% for alquiler in alquileres %}
                 <tr class="estado-{{ alquiler.estado_alquiler }}">
                     <td>{{ alquiler.numero_factura|default:"-" }}</td>
-                    <td> {# Celda para mostrar los SKU(s) #}
+                    <td>
                         {% for detalle in alquiler.detalles.all %}
                             {% if detalle.equipo.sku %}
                                 {{ detalle.equipo.sku }}{% if not forloop.last %}<br>{% endif %}
@@ -118,7 +132,6 @@
                             {% if detalle.numeros_serie %}
                                 <small class="text-muted">Seriales: {{ detalle.numeros_serie|join:", " }}</small><br>
                             {% endif %}
-                            {# Separador para múltiples equipos en la misma celda #}
                             {% if not forloop.last %}<hr class="my-1">{% endif %}
                         {% endfor %}
                     </td>
@@ -152,69 +165,69 @@
                     <td>${{ alquiler.precio_total|floatformat:2 }}</td>
                     <td>{{ alquiler.fecha_vencimiento|date:"d/m/Y"|default:"-" }}</td>
                     <td>
-    <div class="btn-group d-flex flex-wrap gap-1" role="group">
+                        <div class="btn-group d-flex flex-wrap gap-1" role="group">
 
-        {# --- Acciones principales según estado --- #}
-        {% if alquiler.estado_alquiler == 'activo' %}
-            <a href="{% url 'alquiler:finalizar_alquiler' alquiler.uuid_id %}" class="btn btn-sm btn-danger" title="Finalizar">
-                <i class="fas fa-stop-circle"></i>
-            </a>
-            <a href="{% url 'alquiler:editar_alquiler' alquiler.uuid_id %}" class="btn btn-sm btn-warning" title="Editar">
-                <i class="fas fa-edit"></i>
-            </a>
-            <a href="{% url 'alquiler:renovar_alquiler' alquiler.uuid_id %}" class="btn btn-sm btn-warning" title="Renovar">
-                <i class="fas fa-sync-alt"></i>
-            </a>
-        {% elif alquiler.estado_alquiler == 'reservado' or alquiler.estado_alquiler == 'pendiente_aprobacion' %}
-            <a href="{% url 'alquiler:aprobar_alquiler' alquiler.uuid_id %}" class="btn btn-sm btn-success" title="Aprobar Reserva"
-               onclick="return confirm('¿Está seguro que desea aprobar esta reserva y convertirla en alquiler activo?')">
-                <i class="fas fa-check"></i>
-            </a>
-        {% endif %}
+                            {# --- Acciones principales según estado --- #}
+                            {% if alquiler.estado_alquiler == 'activo' %}
+                                <a href="{% url 'alquiler:finalizar_alquiler' alquiler.uuid_id %}" class="btn btn-sm btn-danger" title="Finalizar">
+                                    <i class="fas fa-stop-circle"></i>
+                                </a>
+                                <a href="{% url 'alquiler:editar_alquiler' alquiler.uuid_id %}" class="btn btn-sm btn-warning" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'alquiler:renovar_alquiler' alquiler.uuid_id %}" class="btn btn-sm btn-warning" title="Renovar">
+                                    <i class="fas fa-sync-alt"></i>
+                                </a>
+                            {% elif alquiler.estado_alquiler == 'reservado' or alquiler.estado_alquiler == 'pendiente_aprobacion' %}
+                                <a href="{% url 'alquiler:aprobar_alquiler' alquiler.uuid_id %}" class="btn btn-sm btn-success" title="Aprobar Reserva"
+                                onclick="return confirm('¿Está seguro que desea aprobar esta reserva y convertirla en alquiler activo?')">
+                                    <i class="fas fa-check"></i>
+                                </a>
+                            {% endif %}
 
-        {# --- Cancelar si no está finalizado ni cancelado --- #}
-        {% if alquiler.estado_alquiler != 'finalizado' and alquiler.estado_alquiler != 'cancelado' %}
-            <a href="{% url 'alquiler:cancelar_alquiler' alquiler.uuid_id %}" class="btn btn-sm btn-secondary" title="Cancelar">
-                <i class="fas fa-times"></i>
-            </a>
-        {% endif %}
+                            {# --- Cancelar si no está finalizado ni cancelado --- #}
+                            {% if alquiler.estado_alquiler != 'finalizado' and alquiler.estado_alquiler != 'cancelado' %}
+                                <a href="{% url 'alquiler:cancelar_alquiler' alquiler.uuid_id %}" class="btn btn-sm btn-secondary" title="Cancelar">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            {% endif %}
 
-        {# --- Acta de devolución si finalizado --- #}
-        {% if alquiler.estado_alquiler == 'finalizado' %}
-            <a href="{% url 'alquiler:generar_acta_devolucion' alquiler.uuid_id %}" class="btn btn-sm btn-info" title="Acta Devolución">
-                <i class="fas fa-file-download"></i>
-            </a>
-        {% endif %}
+                            {# --- Acta de devolución si finalizado --- #}
+                            {% if alquiler.estado_alquiler == 'finalizado' %}
+                                <a href="{% url 'alquiler:generar_acta_devolucion' alquiler.uuid_id %}" class="btn btn-sm btn-info" title="Acta Devolución">
+                                    <i class="fas fa-file-download"></i>
+                                </a>
+                            {% endif %}
 
-        {# --- Siempre mostrar detalle --- #}
-        <a href="{% url 'alquiler:detalle_alquiler' alquiler.uuid_id %}" class="btn btn-sm btn-primary" title="Detalles">
-            <i class="fas fa-eye"></i>
-        </a>
+                            {# --- Siempre mostrar detalle --- #}
+                            <a href="{% url 'alquiler:detalle_alquiler' alquiler.uuid_id %}" class="btn btn-sm btn-primary" title="Detalles">
+                                <i class="fas fa-eye"></i>
+                            </a>
 
-        {# --- Contrato --- #}
-        {% if alquiler.contrato %}
-            {% if not alquiler.contrato.fecha_firma %}
-                <a href="{% url 'alquiler:firmar_contrato' alquiler.uuid_id %}" class="btn btn-sm btn-primary" title="Firmar Contrato">
-                    <i class="fas fa-signature"></i>
-                </a>
-            {% else %}
-                <a href="{{ alquiler.contrato.documento_contrato.url }}" target="_blank" class="btn btn-sm btn-info" title="Ver Contrato">
-                    <i class="fas fa-file-contract"></i>
-                </a>
-            {% endif %}
-        {% else %}
-            <a href="{% url 'alquiler:crear_contrato' alquiler.uuid_id %}" class="btn btn-sm btn-primary" title="Generar Contrato">
-                <i class="fas fa-file-signature"></i>
-            </a>
-        {% endif %}
+                            {# --- Contrato --- #}
+                            {% if alquiler.contrato %}
+                                {% if not alquiler.contrato.fecha_firma %}
+                                    <a href="{% url 'alquiler:firmar_contrato' alquiler.uuid_id %}" class="btn btn-sm btn-primary" title="Firmar Contrato">
+                                        <i class="fas fa-signature"></i>
+                                    </a>
+                                {% else %}
+                                    <a href="{{ alquiler.contrato.documento_contrato.url }}" target="_blank" class="btn btn-sm btn-info" title="Ver Contrato">
+                                        <i class="fas fa-file-contract"></i>
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <a href="{% url 'alquiler:crear_contrato' alquiler.uuid_id %}" class="btn btn-sm btn-primary" title="Generar Contrato">
+                                    <i class="fas fa-file-signature"></i>
+                                </a>
+                            {% endif %}
 
-    </div>
-</td>
+                        </div>
+                    </td>
 
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="11" class="text-center py-4"> {# ¡IMPORTANTE! Ajustar el colspan #}
+                    <td colspan="10" class="text-center py-4"> {# ¡IMPORTANTE! Se ajustó a 10 #}
                         <i class="fas fa-info-circle me-2"></i> No se encontraron alquileres
                     </td>
                 </tr>

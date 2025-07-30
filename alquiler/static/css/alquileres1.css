@@ -1,0 +1,392 @@
+/* alquileres.css - Versión corregida y mejorada */
+:root {
+    --alquileres-header-bg: var(--card-background);
+    --alquileres-header-border: var(--border-color);
+    --filtros-bg: var(--card-background);
+    --filtros-border: var(--border-color);
+    --table-header-bg: var(--primary-color);
+    --table-header-text: #ffffff;
+    --table-row-bg: var(--card-background);
+    --table-row-hover: rgba(52, 152, 219, 0.1);
+    --table-border: var(--border-color);
+    --badge-padding: 6px 12px;
+    --badge-radius: 20px;
+}
+
+/* Contenedor principal */
+.alquileres-container {
+    padding: 25px;
+    background-color: var(--card-background);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+    border: 1px solid var(--border-color);
+    overflow-x: hidden; /* Previene desbordamiento horizontal si algo se sale */
+}
+
+/* Encabezado */
+.alquileres-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--alquileres-header-border);
+    flex-wrap: wrap; /* Permite que el contenido del header se ajuste */
+    gap: 15px; /* Espaciado entre título y acciones en pantallas pequeñas */
+}
+
+.alquileres-header h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 0; /* Elimina margen inferior de h1 */
+}
+
+.alquileres-header h1 i {
+    color: var(--accent-color);
+    font-size: 1.5rem;
+}
+
+/* Acciones */
+.alquileres-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap; /* Fundamental para que los botones se envuelvan */
+    justify-content: flex-end; /* Alinea los botones a la derecha */
+}
+
+.alquileres-actions .btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    padding: 10px 18px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    background-color: var(--secondary-color);
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: center; /* Centra el texto si el botón es más ancho */
+}
+
+.alquileres-actions .btn:hover {
+    background-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.alquileres-actions .btn i {
+    font-size: 0.95rem;
+}
+
+/* Filtros */
+.filtros-container {
+    background-color: var(--filtros-bg);
+    border: 1px solid var(--filtros-border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.filtros-form {
+    /* Eliminamos display: flex y gap: 15px; de aquí, Bootstrap .row ya lo maneja */
+    align-items: flex-end;
+}
+
+.filtro-group {
+    /* flex: 1; min-width: 200px; ya no son necesarios gracias a las columnas de Bootstrap */
+    width: 100%; /* Asegura que dentro de la columna ocupe el 100% */
+}
+
+.filtro-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.filtro-group label i {
+    margin-right: 8px;
+    color: var(--accent-color);
+}
+
+.filtro-group .form-control,
+.filtro-group .form-select { /* Agregado form-select */
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--card-background);
+    color: var(--text-color);
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.filtro-group .form-control:focus,
+.filtro-group .form-select:focus { /* Agregado form-select */
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    outline: none;
+}
+
+.filtros-form .btn {
+    padding: 12px 20px;
+    font-weight: 500;
+    border-radius: 6px;
+    background-color: var(--secondary-color);
+    color: #ffffff;
+    border: none;
+    transition: all 0.3s ease;
+    width: auto; /* Permite que el botón se ajuste a su contenido, o al 100% en mobile */
+}
+
+.filtros-form .btn:hover {
+    background-color: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+/* Tabla */
+.table-responsive {
+    border-radius: 8px;
+    overflow-x: auto; /* MUY IMPORTANTE: Permite el scroll horizontal en la tabla */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--table-border);
+}
+
+.alquileres-table {
+    width: 100%;
+    min-width: 800px; /* Establece un ancho mínimo para la tabla en pantallas pequeñas si es necesario */
+    border-collapse: collapse;
+    margin-bottom: 0;
+}
+
+.alquileres-table thead th {
+    background-color: var(--table-header-bg);
+    color: var(--table-header-text);
+    padding: 15px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    white-space: nowrap; /* Evita que el texto de las cabeceras se rompa */
+}
+
+.alquileres-table tbody td {
+    padding: 15px 12px;
+    border-bottom: 1px solid var(--table-border);
+    vertical-align: middle;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    background-color: var(--table-row-bg);
+    white-space: nowrap; /* Evita que el texto de las celdas se rompa, para scroll horizontal */
+}
+
+.alquileres-table tbody tr:hover {
+    background-color: var(--table-row-hover);
+}
+
+.alquileres-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Estilos específicos para celdas con contenido complejo */
+.alquileres-table tbody td:nth-child(4) { /* Columna de Equipos */
+    white-space: normal; /* Permite que el contenido se envuelva */
+    max-width: 250px; /* O un valor apropiado */
+}
+.alquileres-table tbody td:nth-child(2) { /* Columna de SKUs */
+    white-space: normal;
+}
+.alquileres-table tbody td:nth-child(10) { /* Columna de Acciones */
+    white-space: normal; /* Permite que los botones se envuelvan */
+    max-width: 180px; /* Ajusta según el número de botones */
+}
+
+
+/* Badges */
+.badge {
+    padding: var(--badge-padding);
+    border-radius: var(--badge-radius);
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Botones de acción */
+.btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    /* justify-content: center; */ /* Descomenta si quieres centrar en mobile */
+}
+
+.btn-group .btn {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px; /* Asegura un tamaño mínimo clickeable */
+    height: 36px;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-group .btn i {
+    font-size: 0.9rem;
+}
+
+.btn-group .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Paginación */
+.pagination {
+    margin-top: 25px;
+}
+
+.pagination .page-item .page-link {
+    padding: 10px 15px;
+    margin: 0 3px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--card-background);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.pagination .page-item .page-link:hover {
+    background-color: var(--secondary-color);
+    color: #ffffff;
+    border-color: var(--secondary-color);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: #ffffff;
+}
+
+/* Mensaje cuando no hay resultados */
+.alquileres-table tbody tr td[colspan] {
+    text-align: center;
+    padding: 30px 15px;
+    color: var(--text-secondary);
+    font-style: italic;
+    background-color: var(--table-row-bg);
+}
+
+/* Modo oscuro específico */
+body.dark-mode .alquileres-container {
+    background-color: var(--card-background);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .alquileres-header {
+    border-color: var(--border-color);
+}
+
+body.dark-mode .filtros-container {
+    background-color: var(--card-background);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .filtro-group .form-control,
+body.dark-mode .filtro-group .form-select { /* Agregado form-select */
+    background-color: var(--card-background);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .alquileres-table thead th {
+    background-color: var(--primary-color);
+    color: #ffffff;
+}
+
+body.dark-mode .alquileres-table tbody td {
+    background-color: var(--card-background);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .alquileres-table tbody tr:hover {
+    background-color: rgba(52, 152, 219, 0.15);
+}
+
+body.dark-mode .pagination .page-item .page-link {
+    background-color: var(--card-background);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .pagination .page-item .page-link:hover {
+    background-color: var(--secondary-color);
+    color: #ffffff;
+}
+
+/* Responsive */
+/* Eliminamos algunas media queries redundantes gracias a Bootstrap Grid */
+
+@media (max-width: 992px) {
+    .alquileres-header {
+        flex-direction: column;
+        align-items: flex-start;
+        /* gap: 15px; ya definido en el header principal */
+    }
+
+    .alquileres-actions {
+        width: 100%;
+        justify-content: flex-start; /* Alinea los botones a la izquierda en pantallas pequeñas */
+    }
+}
+
+@media (max-width: 768px) {
+    /* Las columnas de Bootstrap manejarán el apilamiento de los filtros automáticamente */
+    .alquileres-table thead th,
+    .alquileres-table tbody td {
+        padding: 10px 8px; /* Reducir el padding en celdas para pantallas más pequeñas */
+        font-size: 0.8rem; /* Reducir tamaño de fuente en celdas */
+    }
+
+    .btn-group .btn {
+        padding: 6px 8px; /* Ajustar padding de botones de acción */
+        font-size: 0.75rem; /* Reducir tamaño de fuente de botones de acción */
+        min-width: 32px;
+        height: 32px;
+    }
+}
+
+@media (max-width: 576px) {
+    .alquileres-header h1 {
+        font-size: 1.5rem; /* Ajustar tamaño del título principal */
+    }
+
+    .alquileres-actions .btn {
+        width: 100%; /* Botones de acción del encabezado ocupan todo el ancho */
+        justify-content: center;
+    }
+
+    .filtros-form .btn {
+        width: 100%; /* Botones de filtro ocupan todo el ancho */
+    }
+
+    .pagination .page-item .page-link {
+        padding: 6px 10px; /* Reducir padding de paginación */
+        font-size: 0.8rem; /* Reducir tamaño de fuente de paginación */
+    }
+}

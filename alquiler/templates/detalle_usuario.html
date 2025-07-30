@@ -3,7 +3,7 @@
 
 {% block title %}Detalle de Usuario - {{ usuario.nombre_usuario }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/detalle_usuario.css' %}">
+<link rel="stylesheet" href="{% static 'css/detalle_usuario1.css' %}">
 {% endblock %}
 {% block page_title %}
 <i class="fas fa-user fa-fw"></i> Detalle de Usuario: {{ usuario.nombre_usuario }}
@@ -114,23 +114,6 @@
                     <i class="fas fa-trash"></i> Eliminar usuario
                 </a>
                 {% endif %}
-            </div>
-        </div>
-
-        <!-- Bloque 4: Actividad reciente -->
-        <div class="info-block activity-block">
-            <div class="info-block-header">
-                <i class="fas fa-clock"></i>
-                <h3>Actividad Reciente</h3>
-            </div>
-            <div class="info-block-content">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> 
-                    Módulo de actividad en desarrollo. Próximamente se mostrará el historial completo.
-                </div>
-                <a href="{% url 'alquiler:auditoria_usuario' usuario.uuid_id %}" class="btn btn-secondary">
-                    <i class="fas fa-history mt-5"></i> Ver historial completo
-                </a>
             </div>
         </div>
     </div>

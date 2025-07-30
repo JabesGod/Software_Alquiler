@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Configuración para SignaturePad
     const signatureConfig = {
-        backgroundColor: 'rgb(255, 255, 255)',
         penColor: 'rgb(0, 0, 0)',
         minWidth: 0.8,
         maxWidth: 2.5,

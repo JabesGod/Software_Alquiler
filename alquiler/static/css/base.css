@@ -220,7 +220,6 @@ body.dark-mode .sidebar {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background-color: var(--card-background);
 }
 
 .content-header {
@@ -251,15 +250,14 @@ body:not(.dark-mode) .menu-toggle {
 }
 
 .content-wrapper {
-padding: 20px;
-background-color: var(--card-background);
-margin: 20px;
-border-radius: 8px;
-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-border: 1px solid var(--border-color);
-flex: 1;
-overflow-x: auto;
-max-width: 100%;
+    padding: 20px;
+    margin: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+    flex: 1;
+    overflow-x: auto;
+    max-width: 100%;
 }
 
 /* Messages */

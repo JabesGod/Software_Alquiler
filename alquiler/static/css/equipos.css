@@ -6,7 +6,6 @@
     max-width: 1400px;
     margin: 2rem auto;
     padding: 0 1.5rem;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--background-color); /* Fondo principal de la página */
     color: var(--text-color);
 }

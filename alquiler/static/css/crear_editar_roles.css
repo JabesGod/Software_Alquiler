@@ -203,7 +203,6 @@
 
 .permission-item .form-check-input:checked::before {
     content: '\f00c'; /* FontAwesome check icon */
-    font-family: "Font Awesome 6 Free";
     font-weight: 900;
     color: white;
     font-size: 12px;

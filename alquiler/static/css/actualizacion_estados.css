@@ -7,7 +7,6 @@
     background: var(--card-background); /* Usa la variable de fondo de tarjeta para adaptarse al modo oscuro */
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    font-family: 'Poppins', sans-serif; /* Asegura consistencia */
 }
 
 .header-acciones {

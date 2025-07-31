@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/renovar_contrato.css' %}">
+<link rel="stylesheet" href="{% static 'css/renovar_contrato1.css' %}">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 {% endblock %}
 {% block title %}Renovacion # {{alquiler.numero_factura}} {% endblock %}
@@ -70,7 +70,7 @@
                 {% if contrato_original %}
                 <div class="mb-3">
                     <h5><i class="fas fa-file-contract"></i> Términos del contrato original</h5>
-                    <div class="border p-3 bg-light">
+                    <div class="border p-3">
                         {{ contrato_original.terminos_contrato|linebreaks }}
                     </div>
                 </div>

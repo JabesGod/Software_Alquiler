@@ -7,7 +7,7 @@
 <i class="fas fa-user-tag fa-fw"></i> Gestión de Roles
 {% endblock %}
 {% block styles %}
-<link rel="stylesheet" href="{% static 'css/roles.css' %}">
+<link rel="stylesheet" href="{% static 'css/roles1.css' %}">
 {% endblock %}
 {% block content %}
 <div class="roles-management-container">
@@ -15,7 +15,7 @@
         <div class="card-header">
             <h2 class="card-title">Listado de Roles</h2>
             <div class="header-actions">
-                <a href="{% url 'alquiler:crear_rol' %}" class="btn btn-primary">
+                <a href="{% url 'alquiler:crear_rol' %}" class="btn btn-secondary">
                     <i class="fas fa-plus"></i> Nuevo Rol
                 </a>
             </div>

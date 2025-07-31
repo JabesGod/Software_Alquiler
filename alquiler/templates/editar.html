@@ -12,7 +12,7 @@
     <div class="form-header">
         <h2><i class="fas fa-edit me-2"></i>{{ titulo }}</h2>
         <div class="header-actions">
-            <a href="{% url 'alquiler:detalle_equipo' equipo.pk %}" class="btn btn-outline-secondary">
+            <a href="{% url 'alquiler:detalle_equipo' equipo.uuid_id %}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-1"></i> Volver al detalle
             </a>
         </div>
@@ -232,7 +232,7 @@
 
             <div>
                 <button type="button" class="btn btn-outline-secondary me-2"
-                    onclick="location.href='{% url 'alquiler:detalle_equipo' equipo.pk %}'">
+                    onclick="location.href='{% url 'alquiler:detalle_equipo' equipo.uuid_id %}'">
                     <i class="fas fa-times me-1"></i> Cancelar
                 </button>
                 <button type="submit" class="btn btn-primary btn-save">
@@ -265,7 +265,7 @@
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times me-1"></i> Cancelar
                 </button>
-                <form action="{% url 'alquiler:eliminar_equipo' equipo.pk %}" method="post" style="display: inline;">
+                <form action="{% url 'alquiler:eliminar_equipo' equipo.uuid_id %}" method="post" style="display: inline;">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger">
                         <i class="fas fa-trash-alt me-1"></i> Sí, Eliminar

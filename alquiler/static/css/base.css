@@ -61,7 +61,7 @@ body.dark-mode {
 }
 
 body {
-    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+font-family: 'Verdana', sans-serif;
     background-color: var(--background-color);
     color: var(--text-color); /* Usa la variable para que cambie con el modo */
     line-height: 1.6;

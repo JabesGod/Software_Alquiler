@@ -67,6 +67,59 @@ font-family: 'Verdana', sans-serif;
     line-height: 1.6;
 }
 
+/* Estilos para el contenedor de la pantalla de carga */
+#loader-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background-color); /* Utiliza tu variable de fondo */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.spinner {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 6px solid var(--border-color); /* Borde base */
+    border-top-color: var(--accent-color); /* Color de la parte que gira */
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+.spinner-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 6px solid transparent; /* Asegura un círculo completo */
+    position: absolute;
+    top: -6px;
+    left: -6px;
+}
+
+.loading-text {
+    color: var(--text-color); /* Color del texto de carga */
+    font-size: 1rem;
+}
+
+/* Animación de rotación */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Clase para ocultar el loader con un desvanecimiento */
+.loader-hidden {
+    opacity: 0;
+    pointer-events: none; /* Deshabilita los clics en el área del loader */
+}
+
 .app-container {
     display: flex;
     min-height: 100vh;

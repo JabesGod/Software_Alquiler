@@ -28,7 +28,6 @@ body {
     min-height: 100vh;
     display: flex;
     font-family: 'Verdana', sans-serif;
-
     justify-content: center;
     align-items: center;
     padding: 20px;

@@ -8,7 +8,6 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
-    color: var(--text-color); /* Ensure headings adapt */
     transition: color 0.3s ease;
 }
 
@@ -249,32 +248,23 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-color); /* Default color, can be overridden */
+    color: var(--text-color); 
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Metric Colors */
-/* Using specific colors for borders and light backgrounds to maintain visual distinctiveness.
-   For light/dark mode adaptation, ensure these are either defined as variables in base.css or adjust manually.
-   Assuming a slightly different approach for light/dark variations of success/warning/danger/info.
-   If you want these to truly adapt, you'd need `--success-light-bg`, `--warning-light-bg` etc. in your base.css.
-   For now, I'll keep the current hardcoded rgba values for `bg-light-*` to match the current look,
-   but for pure variable-driven, they should be variables.
-*/
 .border-success { border-color: var(--success-color) !important; }
-.bg-light-success { background-color: rgba(40, 167, 69, 0.1) !important; } /* Consider making this a variable: var(--success-fade-color) */
+.bg-light-success { background-color: rgba(40, 167, 69, 0.1) !important; } 
 .text-success { color: var(--success-color) !important; }
 
 .border-warning { border-color: var(--warning-color) !important; }
-.bg-light-warning { background-color: rgba(255, 193, 7, 0.1) !important; } /* Consider making this a variable: var(--warning-fade-color) */
+.bg-light-warning { background-color: rgba(255, 193, 7, 0.1) !important; }
 .text-warning { color: var(--warning-color) !important; }
 
-.border-danger { border-color: var(--error-color) !important; } /* Using error-color as danger */
-.bg-light-danger { background-color: rgba(220, 53, 69, 0.1) !important; } /* Consider making this a variable: var(--error-fade-color) */
-.text-danger { color: var(--error-color) !important; } /* Using error-color as danger */
-
+.border-danger { border-color: var(--error-color) !important; } 
+.bg-light-danger { background-color: rgba(220, 53, 69, 0.1) !important; } 
+.text-danger { color: var(--error-color) !important; } 
 .border-info { border-color: var(--info-color) !important; }
-.bg-light-info { background-color: rgba(23, 162, 184, 0.1) !important; } /* Consider making this a variable: var(--info-fade-color) */
+.bg-light-info { background-color: rgba(23, 162, 184, 0.1) !important; } 
 .text-info { color: var(--info-color) !important; }
 
 .metrics-row .small {

@@ -155,7 +155,6 @@ h5 .fas {
     min-height: 42px; /* Adjust height to match form-control */
     border: 1px solid var(--border-color) !important;
     border-radius: var(--border-radius-sm) !important;
-    background-color: var(--background-color) !important;
     color: var(--text-color) !important;
     display: flex;
     align-items: center;

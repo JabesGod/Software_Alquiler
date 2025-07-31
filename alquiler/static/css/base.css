@@ -214,6 +214,7 @@ body.dark-mode .sidebar {
 
 /* Main content styles */
 .main-content {
+    background: var(--card-background);
     flex: 1;
     margin-left: 250px;
     transition: margin-left 0.3s ease;

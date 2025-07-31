@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %} Búsqueda {% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/resultados_busqueda.css' %}">
+<link rel="stylesheet" href="{% static 'css/resultados_busqueda1.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -27,15 +27,15 @@
                 {% if resultado.imagen_url %}
                     <img src="{{ resultado.imagen_url }}" alt="{{ resultado.tipo_resultado }}" class="result-image">
                 {% else %}
-                    <div class="result-image" style="background: #f3f4f6; display: flex; align-items: center; justify-content: center;">
+                    <div class="result-image" >
                         {% if resultado.tipo_resultado == 'Usuario' %}
-                            <i class="fas fa-user" style="color: #9ca3af; font-size: 2rem;"></i>
+                            <i class="fas fa-user" ></i>
                         {% elif resultado.tipo_resultado == 'Rol' %}
-                            <i class="fas fa-user-shield" style="color: #9ca3af; font-size: 2rem;"></i>
+                            <i class="fas fa-user-shield"></i>
                         {% elif resultado.tipo_resultado == 'Pago' %}
-                            <i class="fas fa-money-bill-wave" style="color: #9ca3af; font-size: 2rem;"></i>
+                            <i class="fas fa-money-bill-wave" ></i>
                         {% else %}
-                            <i class="fas fa-image" style="color: #9ca3af; font-size: 2rem;"></i>
+                            <i class="fas fa-image" ></i>
                         {% endif %}
                     </div>
                 {% endif %}
@@ -48,6 +48,8 @@
                                 {{ resultado.nombre_rol }}
                             {% elif resultado.tipo_resultado == 'Pago' %}
                                 Pago #{{ resultado.uuid_id }} - ${{ resultado.monto }}
+                            {% elif resultado.tipo_resultado == 'Alquiler' %} {# MODIFICADO AQUÍ #}
+                                Alquiler #{{ resultado.numero_factura }} {# Muestra el numero_factura #}
                             {% else %}
                                 {{ resultado }}
                             {% endif %}
@@ -67,6 +69,8 @@
                         <p class="result-description">{{ resultado.descripcion|truncatechars:120 }}</p>
                     {% elif resultado.tipo_resultado == 'Pago' %}
                         <p class="result-description">Estado: {{ resultado.estado_pago }} - {{ resultado.fecha_pago|date:"d/m/Y" }}</p>
+                    {% elif resultado.tipo_resultado == 'Alquiler' %} {# Puedes añadir más detalles específicos para Alquiler aquí #}
+                        <p class="result-description">Cliente: {{ resultado.cliente.nombre }} - Estado: {{ resultado.estado_alquiler }}</p>
                     {% endif %}
                 </div>
             </div>

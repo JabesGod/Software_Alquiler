@@ -4,14 +4,18 @@ from django.utils import timezone
 from ..models import Pago, Alquiler, Cliente
 from decimal import Decimal
 
-
 class PagoForm(forms.ModelForm):
     class Meta:
         model = Pago
         fields = [
-            'alquiler', 'monto', 'metodo_pago', 'estado_pago',
-            'referencia_transaccion', 'fecha_vencimiento',
-            'comprobante_pago', 'notas'
+            'alquiler',
+            'monto',
+            'metodo_pago',
+            'estado_pago',
+            'referencia_transaccion',
+            'fecha_vencimiento',
+            'comprobante_pago',
+            'notas'
         ]
         widgets = {
             'alquiler': forms.Select(attrs={'class': 'form-control'}),
@@ -26,20 +30,22 @@ class PagoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        alquiler = self.initial.get('alquiler') or self.instance.alquiler
+        alquiler = self.instance.alquiler  # Garantizamos que es objeto, no ID
+
         if alquiler:
-            # Asegura que max_saldo sea un Decimal
             max_saldo = alquiler.saldo_pendiente if alquiler.saldo_pendiente is not None else Decimal('0.00')
             self.fields['monto'].widget.attrs.update({'max': max_saldo})
 
     def clean_monto(self):
         monto = self.cleaned_data.get('monto')
         alquiler = self.instance.alquiler
+
         if alquiler:
-            # Asegura que saldo_pendiente_val sea un Decimal
-            saldo_pendiente_val = alquiler.saldo_pendiente if alquiler.saldo_pendiente is not None else Decimal('0.00')
-            if monto is not None and monto > saldo_pendiente_val:
-                raise forms.ValidationError(f"El monto no puede ser mayor al saldo pendiente (${saldo_pendiente_val})")
+            saldo_pendiente = alquiler.saldo_pendiente if alquiler.saldo_pendiente is not None else Decimal('0.00')
+            if monto is not None and monto > saldo_pendiente:
+                raise forms.ValidationError(
+                    f"El monto no puede ser mayor al saldo pendiente (${saldo_pendiente})"
+                )
         return monto
 
 

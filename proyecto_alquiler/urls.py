@@ -36,7 +36,7 @@ from alquiler.views.pago_views import (
     RegistrarPagoView,
     PagosPendientesView, GenerarFacturaView, PasarelaPagoView, PagosAlquilerView, RegistrarPagoParcialView,
     PagoDetalleView,ProcesarPagoPasarelaView, TotalPagadoAlquilerView, listar_pagos, editar_pago,verificar_estado_pago_alquiler, enviar_notificacion_pago,
-    registrar_pago, detalle_pago,generar_factura_pdf, pagos_vencidos, pagos_proximos_vencer, cambiar_estado_pago, eliminar_pago, reportes_pagos, pagos_parciales, registrar_pago_contra_obligacion
+    registrar_pago, detalle_pago,generar_factura_pdf, pagos_vencidos, pagos_proximos_vencer, cambiar_estado_pago, eliminar_pago, reportes_pagos, pagos_parciales, 
 )
 
 from alquiler.views.usuario_views import(
@@ -124,7 +124,6 @@ core_patterns = [
     path('pagos/parcial/', pagos_parciales, name='pagos_parciales'),  # Versión con GET
     path('alquiler/<uuid:alquiler_uuid>/pago-parcial/', registrar_pago_parcial, name='registrar_pago_parcial_alquiler'),  # Con alquiler directo en URL
 
-    path('pagos/<uuid:pago_uuid>/registrar-obligacion/', registrar_pago_contra_obligacion, name='registrar_pago_contra_obligacion'),
 
 
     #Urls Usuario 

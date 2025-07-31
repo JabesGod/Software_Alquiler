@@ -17,6 +17,9 @@
             <a href="{% url 'alquiler:registrar_pago' %}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Registrar Pago
             </a>
+            <a href="{% url 'alquiler:pagos_pendientes_admin' %}" class="btn btn-outline-primary">
+                <i class="fas fa-exclamation-triangle"></i> Pagos Pendientes
+            </a>
             <a href="{% url 'alquiler:pagos_vencidos' %}" class="btn btn-outline-primary">
                 <i class="fas fa-exclamation-triangle"></i> Pagos Vencidos
             </a>
@@ -28,9 +31,6 @@
             </a>
             <a href="{% url 'alquiler:reportes_pagos' %}" class="btn btn-outline-primary">
                 <i class="fas fa-chart-bar"></i> Reportes
-            </a>
-            <a href="{% url 'alquiler:lista_pagos' %}?estado=pendiente" class="btn btn-outline-primary">
-                <i class="fas fa-hand-holding-usd"></i> Registrar Obligaciones
             </a>
         </div>
     </div>
@@ -68,10 +68,6 @@
             <div class="pago-summary-item">
                 <span class="label">Pagos Parciales</span>
                 <span class="value">{{ pagos_parciales|default:"0" }}</span>
-            </div>
-            <div class="pago-summary-item">
-                <span class="label">Obligaciones</span>
-                <span class="value">{{ obligaciones_count|default:"0" }}</span>
             </div>
         </div>
     </div>
@@ -224,9 +220,6 @@
                             {% if pago.estado_pago == 'pendiente' %}
                                 <a href="{% url 'alquiler:cambiar_estado_pago' pago.uuid_id 'pagado' %}" class="btn btn-sm btn-success" title="Aprobar pago">
                                     <i class="fas fa-check"></i>
-                                </a>
-                                <a href="{% url 'alquiler:registrar_pago_contra_obligacion' pago.uuid_id %}" class="btn btn-sm btn-info" title="Registrar obligación">
-                                    <i class="fas fa-hand-holding-usd"></i>
                                 </a>
                             {% endif %}
                             <a href="{% url 'alquiler:eliminar_pago' pago.uuid_id %}" class="btn btn-sm btn-danger" title="Eliminar">

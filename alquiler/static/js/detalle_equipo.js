@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
         images.forEach(img => {
             img.addEventListener('error', function() {
                 this.onerror = null;
-                this.src = '/static/img/default-equipo.png';
+                this.src = '/alquiler/static/img/default-equipo.png';
                 this.style.objectFit = 'contain';
                 this.style.padding = '1rem';
                 this.style.backgroundColor = '#f8f9fa';

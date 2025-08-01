@@ -1,15 +1,21 @@
 :root {
     /* Colores principales */
-    --primary-color: #2c3e50; /* Un azul/gris oscuro */
-    --secondary-color: #34495e; /* Un poco más claro */
-    --accent-color: #3498db; /* Azul */
+    --primary-color: #2c3e50;
+    /* Un azul/gris oscuro */
+    --secondary-color: #34495e;
+    /* Un poco más claro */
+    --accent-color: #3498db;
+    /* Azul */
 
     /* Colores de texto */
-    --text-color: #333333; /* ¡AJUSTE AQUÍ! Gris oscuro para el texto general en modo claro */
-    --text-secondary: #7f8c8d; /* Un gris medio para texto secundario en modo claro */
+    --text-color: #333333;
+    /* ¡AJUSTE AQUÍ! Gris oscuro para el texto general en modo claro */
+    --text-secondary: #7f8c8d;
+    /* Un gris medio para texto secundario en modo claro */
 
     /* Colores de fondo */
-    --background-color: #ecf0f1; /* Gris claro */
+    --background-color: #ecf0f1;
+    /* Gris claro */
 
     /* Colores de estado */
     --success-color: #2ecc71;
@@ -19,32 +25,40 @@
 
     /* Colores adicionales */
     --highlight-color: #2980b9;
-    --card-background: #ffffff; /* Fondo de tarjeta blanco para modo claro */
-    --border-color: #dfe6e9; /* Borde claro */
+    --card-background: #ffffff;
+    /* Fondo de tarjeta blanco para modo claro */
+    --border-color: #dfe6e9;
+    /* Borde claro */
 
     /* Variables de transiciones y sombras (asegúrate de que estas también estén) */
     --transition: all 0.3s ease;
     --border-radius-sm: 4px;
     --border-radius-md: 8px;
-    --shadow-sm: 0 2px 5px rgba(0,0,0,0.05);
-    --shadow-md: 0 4px 10px rgba(0,0,0,0.1);
+    --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* Dark mode colors */
 body.dark-mode {
-    --primary-color: #0d0d0d; /* Negro para el sidebar en modo oscuro */
+    --primary-color: #0d0d0d;
+    /* Negro para el sidebar en modo oscuro */
     --secondary-color: #16213e;
     --accent-color: #0f3460;
-    --text-color: #e6e6e6; /* Correcto para el modo oscuro (texto claro) */
-    --text-secondary: #a8a8a8; /* Gris claro para texto secundario */
-    --background-color: #121212; /* Fondo muy oscuro */
+    --text-color: #e6e6e6;
+    /* Correcto para el modo oscuro (texto claro) */
+    --text-secondary: #a8a8a8;
+    /* Gris claro para texto secundario */
+    --background-color: #121212;
+    /* Fondo muy oscuro */
     --success-color: #27ae60;
     --error-color: #c0392b;
     --warning-color: #f39c12;
     --info-color: #1abc9c;
     --highlight-color: #0f3460;
-    --card-background: #1e1e1e; /* Fondo de tarjeta oscuro */
-    --border-color: #333333; /* Borde oscuro */
+    --card-background: #1e1e1e;
+    /* Fondo de tarjeta oscuro */
+    --border-color: #333333;
+    /* Borde oscuro */
 
     /* Variables específicas para dark mode que podrías centralizar aquí si son globales */
     /* --table-header-bg: #1e1e1e; */
@@ -61,64 +75,346 @@ body.dark-mode {
 }
 
 body {
-font-family: 'Verdana', sans-serif;
+    font-family: 'Verdana', sans-serif;
     background-color: var(--background-color);
-    color: var(--text-color); /* Usa la variable para que cambie con el modo */
+    color: var(--text-color);
+    /* Usa la variable para que cambie con el modo */
     line-height: 1.6;
 }
 
-/* Estilos para el contenedor de la pantalla de carga */
-#loader-container {
+* Contenedor principal del loader */ #loader-container {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: var(--background-color); /* Utiliza tu variable de fondo */
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 9999;
-    transition: opacity 0.5s ease-in-out;
+    transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
 }
 
-.spinner {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    border: 6px solid var(--border-color); /* Borde base */
-    border-top-color: var(--accent-color); /* Color de la parte que gira */
-    animation: spin 1s linear infinite;
-    margin-bottom: 15px;
+#loader-container.loader-hidden {
+    opacity: 0;
+    transform: scale(0.9);
 }
 
-.spinner-inner {
+/* Contenedor del computador */
+.computer-container {
+    perspective: 1000px;
+    margin-bottom: 30px;
+}
+
+.computer {
+    width: 120px;
+    height: 100px;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: computerSpin 3s linear infinite;
+}
+
+/* Base del computador (monitor) */
+.monitor {
+    width: 100px;
+    height: 70px;
+    background: var(--computer-color);
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+/* Pantalla del monitor */
+.screen {
+    width: 80px;
+    height: 50px;
+    background: var(--screen-color);
+    border-radius: 4px;
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Efecto de la pantalla encendida */
+.screen::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
     width: 100%;
     height: 100%;
-    border-radius: 50%;
-    border: 6px solid transparent; /* Asegura un círculo completo */
+    background: linear-gradient(90deg, transparent, var(--screen-glow), transparent);
+    animation: screenGlow 2s ease-in-out infinite;
+}
+
+/* Líneas de código simuladas */
+.code-lines {
     position: absolute;
-    top: -6px;
-    left: -6px;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    bottom: 5px;
 }
 
+.code-line {
+    height: 2px;
+    background: var(--screen-glow);
+    margin: 3px 0;
+    border-radius: 1px;
+    opacity: 0.7;
+}
+
+.code-line:nth-child(1) {
+    width: 60%;
+    animation: codeBlink 1.5s ease-in-out infinite;
+}
+
+.code-line:nth-child(2) {
+    width: 80%;
+    animation: codeBlink 1.8s ease-in-out infinite;
+}
+
+.code-line:nth-child(3) {
+    width: 45%;
+    animation: codeBlink 2.1s ease-in-out infinite;
+}
+
+.code-line:nth-child(4) {
+    width: 70%;
+    animation: codeBlink 1.2s ease-in-out infinite;
+}
+
+/* Soporte del monitor */
+.monitor-stand {
+    width: 30px;
+    height: 15px;
+    background: var(--computer-color);
+    position: absolute;
+    bottom: -15px;
+    left: 35px;
+    border-radius: 0 0 5px 5px;
+}
+
+.monitor-base {
+    width: 60px;
+    height: 8px;
+    background: var(--computer-color);
+    position: absolute;
+    bottom: -23px;
+    left: 20px;
+    border-radius: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Botón de encendido */
+.power-button {
+    width: 8px;
+    height: 8px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    position: absolute;
+    bottom: 5px;
+    right: 8px;
+    animation: powerPulse 2s ease-in-out infinite;
+    box-shadow: 0 0 8px var(--accent-color);
+}
+
+/* Texto de carga */
 .loading-text {
-    color: var(--text-color); /* Color del texto de carga */
-    font-size: 1rem;
+    color: var(--text-color);
+    font-size: 1.2rem;
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-align: center;
+    margin-top: 20px;
 }
 
-/* Animación de rotación */
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+.loading-dots {
+    display: inline-block;
+    animation: loadingDots 1.5s ease-in-out infinite;
 }
 
-/* Clase para ocultar el loader con un desvanecimiento */
-.loader-hidden {
-    opacity: 0;
-    pointer-events: none; /* Deshabilita los clics en el área del loader */
+/* Partículas flotantes */
+.particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 }
+
+.particle {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    opacity: 0.6;
+}
+
+.particle:nth-child(1) {
+    animation: floatParticle 6s ease-in-out infinite;
+    top: 20%;
+    left: 10%;
+}
+
+.particle:nth-child(2) {
+    animation: floatParticle 8s ease-in-out infinite 1s;
+    top: 60%;
+    left: 80%;
+}
+
+.particle:nth-child(3) {
+    animation: floatParticle 7s ease-in-out infinite 2s;
+    top: 80%;
+    left: 20%;
+}
+
+.particle:nth-child(4) {
+    animation: floatParticle 5s ease-in-out infinite 0.5s;
+    top: 30%;
+    left: 70%;
+}
+
+.particle:nth-child(5) {
+    animation: floatParticle 9s ease-in-out infinite 1.5s;
+    top: 70%;
+    left: 50%;
+}
+
+/* Contenido de la página */
+#page-content {
+    transition: opacity 0.8s ease-in-out;
+    padding: 50px;
+    text-align: center;
+    color: var(--text-color);
+}
+
+/* Animaciones */
+@keyframes computerSpin {
+    0% {
+        transform: rotateY(0deg) rotateX(0deg);
+    }
+
+    25% {
+        transform: rotateY(90deg) rotateX(10deg);
+    }
+
+    50% {
+        transform: rotateY(180deg) rotateX(0deg);
+    }
+
+    75% {
+        transform: rotateY(270deg) rotateX(-10deg);
+    }
+
+    100% {
+        transform: rotateY(360deg) rotateX(0deg);
+    }
+}
+
+@keyframes screenGlow {
+
+    0%,
+    100% {
+        left: -100%;
+    }
+
+    50% {
+        left: 100%;
+    }
+}
+
+@keyframes codeBlink {
+
+    0%,
+    100% {
+        opacity: 0.7;
+    }
+
+    50% {
+        opacity: 0.2;
+    }
+}
+
+@keyframes powerPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+}
+
+@keyframes loadingDots {
+
+    0%,
+    20% {
+        content: '';
+    }
+
+    40% {
+        content: '.';
+    }
+
+    60% {
+        content: '..';
+    }
+
+    80%,
+    100% {
+        content: '...';
+    }
+}
+
+@keyframes floatParticle {
+
+    0%,
+    100% {
+        transform: translateY(0px) scale(1);
+        opacity: 0.6;
+    }
+
+    50% {
+        transform: translateY(-20px) scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .computer {
+        width: 100px;
+        height: 80px;
+    }
+
+    .monitor {
+        width: 80px;
+        height: 56px;
+    }
+
+    .screen {
+        width: 64px;
+        height: 40px;
+        top: 6px;
+        left: 8px;
+    }
+
+    .loading-text {
+        font-size: 1rem;
+    }
+}
+
 
 .app-container {
     display: flex;
@@ -129,8 +425,10 @@ font-family: 'Verdana', sans-serif;
 /* Sidebar styles */
 .sidebar {
     width: 250px;
-    background-color: var(--primary-color); /* Ahora será negro en dark-mode */
-    color: #ffffff; /* ¡AJUSTE AQUÍ! Texto blanco para el sidebar en modo claro */
+    background-color: var(--primary-color);
+    /* Ahora será negro en dark-mode */
+    color: #ffffff;
+    /* ¡AJUSTE AQUÍ! Texto blanco para el sidebar en modo claro */
     transition: all 0.3s ease;
     position: fixed;
     height: 100vh;
@@ -143,7 +441,8 @@ font-family: 'Verdana', sans-serif;
 
 /* Para el sidebar en modo oscuro, el color del texto será el definido en --text-color para dark-mode */
 body.dark-mode .sidebar {
-    color: var(--text-color); /* Esto será #e6e6e6 en dark mode */
+    color: var(--text-color);
+    /* Esto será #e6e6e6 en dark mode */
 }
 
 
@@ -177,7 +476,8 @@ body.dark-mode .sidebar {
     display: flex;
     align-items: center;
     padding: 12px 20px;
-    color: inherit; /* Heredará el color del .sidebar (blanco en claro, claro en oscuro) */
+    color: inherit;
+    /* Heredará el color del .sidebar (blanco en claro, claro en oscuro) */
     text-decoration: none;
     transition: all 0.3s ease;
     cursor: pointer;
@@ -224,7 +524,8 @@ body.dark-mode .sidebar {
     display: flex;
     align-items: center;
     padding: 10px 20px 10px 50px;
-    color: inherit; /* Heredará el color del .sidebar */
+    color: inherit;
+    /* Heredará el color del .sidebar */
     text-decoration: none;
     font-size: 0.85rem;
     transition: all 0.3s ease;
@@ -336,7 +637,8 @@ body:not(.dark-mode) .menu-toggle {
 
 .message.warning {
     background-color: var(--warning-color);
-    color: #333; /* Mantener este color si necesitas texto oscuro en badges de advertencia */
+    color: #333;
+    /* Mantener este color si necesitas texto oscuro en badges de advertencia */
 }
 
 .message.info {
@@ -369,7 +671,8 @@ body:not(.dark-mode) .menu-toggle {
     justify-content: space-between;
     position: relative;
     cursor: pointer;
-    color: inherit; /* Heredará el color del .sidebar (blanco en claro, claro en oscuro) */
+    color: inherit;
+    /* Heredará el color del .sidebar (blanco en claro, claro en oscuro) */
     padding: 8px 0;
 }
 
@@ -390,12 +693,12 @@ body:not(.dark-mode) .menu-toggle {
     transform: translateX(0);
 }
 
-.toggle-checkbox:checked + .toggle-label .fa-sun {
+.toggle-checkbox:checked+.toggle-label .fa-sun {
     opacity: 1;
     transform: translateX(0);
 }
 
-.toggle-checkbox:checked + .toggle-label .fa-moon {
+.toggle-checkbox:checked+.toggle-label .fa-moon {
     opacity: 0;
     transform: translateX(-20px);
 }
@@ -422,11 +725,11 @@ body:not(.dark-mode) .menu-toggle {
     transition: transform 0.3s;
 }
 
-.toggle-checkbox:checked + .toggle-label .toggle-handle {
+.toggle-checkbox:checked+.toggle-label .toggle-handle {
     background-color: var(--accent-color);
 }
 
-.toggle-checkbox:checked + .toggle-label .toggle-handle:after {
+.toggle-checkbox:checked+.toggle-label .toggle-handle:after {
     transform: translateX(20px);
 }
 
@@ -440,7 +743,8 @@ body:not(.dark-mode) .menu-toggle {
     display: flex;
     align-items: center;
     gap: 15px;
-    color: inherit; /* Heredará el color del .sidebar (blanco en claro, claro en oscuro) */
+    color: inherit;
+    /* Heredará el color del .sidebar (blanco en claro, claro en oscuro) */
     cursor: pointer;
     padding: 8px 0;
     position: relative;
@@ -496,7 +800,11 @@ body:not(.dark-mode) .menu-toggle {
         overflow: hidden;
     }
 
-    .sidebar-header, .sidebar-title, .link-text, .submenu-icon, .user-details {
+    .sidebar-header,
+    .sidebar-title,
+    .link-text,
+    .submenu-icon,
+    .user-details {
         display: none;
     }
 
@@ -530,13 +838,17 @@ body:not(.dark-mode) .menu-toggle {
         transition: transform 0.3s ease;
         overflow-y: auto;
     }
-    
+
     .sidebar.active {
         transform: translateX(0);
         box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2);
     }
-    
-    .sidebar-header, .sidebar-title, .link-text, .submenu-icon, .user-details {
+
+    .sidebar-header,
+    .sidebar-title,
+    .link-text,
+    .submenu-icon,
+    .user-details {
         display: block;
     }
 
@@ -572,7 +884,7 @@ body:not(.dark-mode) .menu-toggle {
         overflow-x: auto;
         white-space: nowrap;
     }
-    
+
     .content-wrapper {
         margin: 10px;
         padding: 10px;
@@ -596,7 +908,8 @@ body:not(.dark-mode) .menu-toggle {
 
 .equipos-table th {
     background-color: var(--primary-color);
-    color: white; /* Esto está bien si el primary-color es oscuro en dark-mode */
+    color: white;
+    /* Esto está bien si el primary-color es oscuro en dark-mode */
     padding: 12px 15px;
     text-align: left;
     font-weight: 500;
@@ -606,11 +919,13 @@ body:not(.dark-mode) .menu-toggle {
     padding: 12px 15px;
     border-bottom: 1px solid var(--border-color);
     vertical-align: middle;
-    color: var(--text-color); /* Asegura que el texto de las celdas cambie */
+    color: var(--text-color);
+    /* Asegura que el texto de las celdas cambie */
 }
 
 .equipos-table tr:hover {
-    background-color: var(--secondary-color); /* Usar variable para el hover */
+    background-color: var(--secondary-color);
+    /* Usar variable para el hover */
 }
 
 .status-badge {
@@ -622,24 +937,29 @@ body:not(.dark-mode) .menu-toggle {
 
 .status-badge.disponible {
     /* Aquí también es mejor usar rgba de tus variables de color si están definidas. */
-    background-color: rgba(46, 204, 113, 0.2); /* Fondo más claro en base al success-color */
-    color: var(--success-color); /* Color de texto basado en la variable */
+    background-color: rgba(46, 204, 113, 0.2);
+    /* Fondo más claro en base al success-color */
+    color: var(--success-color);
+    /* Color de texto basado en la variable */
 }
 
 .status-badge.alquilado {
-    background-color: rgba(231, 76, 60, 0.2); /* Fondo más claro en base al error-color */
+    background-color: rgba(231, 76, 60, 0.2);
+    /* Fondo más claro en base al error-color */
     color: var(--error-color);
 }
 
 .status-badge.reservado {
-    background-color: rgba(243, 156, 18, 0.2); /* Fondo más claro en base al warning-color */
+    background-color: rgba(243, 156, 18, 0.2);
+    /* Fondo más claro en base al warning-color */
     color: var(--warning-color);
 }
 
 .btn-action {
     padding: 5px 10px;
     border-radius: 4px;
-    color: white; /* Asegura que el texto sea blanco, asumiendo fondos oscuros para botones */
+    color: white;
+    /* Asegura que el texto sea blanco, asumiendo fondos oscuros para botones */
     text-decoration: none;
     margin-right: 5px;
     font-size: 0.8rem;
@@ -654,12 +974,14 @@ body:not(.dark-mode) .menu-toggle {
 
 .btn-edit {
     background-color: var(--warning-color);
-    color: white; /* Cambiado a blanco para mejor visibilidad en dark mode */
+    color: white;
+    /* Cambiado a blanco para mejor visibilidad en dark mode */
 }
 
 .btn-delete {
     background-color: var(--error-color);
 }
+
 /* Estilos generales para botones */
 .btn {
     padding: 10px 15px;
@@ -690,7 +1012,8 @@ body:not(.dark-mode) .menu-toggle {
 }
 
 .btn-secondary:hover {
-    background-color: var(--highlight-color); /* Usar highlight-color */
+    background-color: var(--highlight-color);
+    /* Usar highlight-color */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
@@ -701,18 +1024,21 @@ body:not(.dark-mode) .menu-toggle {
 }
 
 .btn-success:hover {
-    background-color: var(--highlight-color); /* Usar highlight-color */
+    background-color: var(--highlight-color);
+    /* Usar highlight-color */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 /* Botón de advertencia */
 .btn-warning {
     background-color: var(--warning-color);
-    color: white; /* Asegura que el texto sea blanco */
+    color: white;
+    /* Asegura que el texto sea blanco */
 }
 
 .btn-warning:hover {
-    background-color: var(--highlight-color); /* Usar highlight-color */
+    background-color: var(--highlight-color);
+    /* Usar highlight-color */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
@@ -723,7 +1049,8 @@ body:not(.dark-mode) .menu-toggle {
 }
 
 .btn-error:hover {
-    background-color: var(--highlight-color); /* Usar highlight-color */
+    background-color: var(--highlight-color);
+    /* Usar highlight-color */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
@@ -734,7 +1061,8 @@ body:not(.dark-mode) .menu-toggle {
 }
 
 .btn-info:hover {
-    background-color: var(--highlight-color); /* Usar highlight-color */
+    background-color: var(--highlight-color);
+    /* Usar highlight-color */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
@@ -742,8 +1070,10 @@ body:not(.dark-mode) .menu-toggle {
 /* Añade esto a tu base.css */
 .search-container {
     position: relative;
-    width: 300px; /* Añade un ancho fijo */
-    margin-left: auto; /* Lo coloca a la derecha */
+    width: 300px;
+    /* Añade un ancho fijo */
+    margin-left: auto;
+    /* Lo coloca a la derecha */
 }
 
 .search-form {
@@ -754,18 +1084,23 @@ body:not(.dark-mode) .menu-toggle {
 .search-form input[type="text"] {
     width: 100%;
     padding: 10px 15px;
-    border: 1px solid var(--border-color); /* Usar variable */
+    border: 1px solid var(--border-color);
+    /* Usar variable */
     border-radius: 4px;
     font-size: 14px;
     transition: all 0.3s;
-    background-color: var(--card-background); /* Usar variable */
-    color: var(--text-color); /* Usar variable */
+    background-color: var(--card-background);
+    /* Usar variable */
+    color: var(--text-color);
+    /* Usar variable */
 }
 
 .search-form input[type="text"]:focus {
     outline: none;
-    border-color: var(--accent-color); /* Usar variable */
-    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5); /* Considerar usar rgba de accent-color-rgb si lo tienes */
+    border-color: var(--accent-color);
+    /* Usar variable */
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+    /* Considerar usar rgba de accent-color-rgb si lo tienes */
 }
 
 .search-form button {
@@ -777,7 +1112,8 @@ body:not(.dark-mode) .menu-toggle {
     border: none;
     padding: 0 15px;
     cursor: pointer;
-    color: var(--text-secondary); /* Usar variable */
+    color: var(--text-secondary);
+    /* Usar variable */
 }
 
 .search-suggestions {
@@ -785,15 +1121,18 @@ body:not(.dark-mode) .menu-toggle {
     top: 100%;
     left: 0;
     right: 0;
-    background-color: var(--card-background); /* Usar variable */
-    border: 1px solid var(--border-color); /* Usar variable */
+    background-color: var(--card-background);
+    /* Usar variable */
+    border: 1px solid var(--border-color);
+    /* Usar variable */
     border-radius: 0 0 4px 4px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     z-index: 1000;
     display: none;
     max-height: 300px;
     overflow-y: auto;
-    color: var(--text-color); /* Usar variable para el texto de sugerencias */
+    color: var(--text-color);
+    /* Usar variable para el texto de sugerencias */
 }
 
 .search-suggestions.show {
@@ -803,7 +1142,8 @@ body:not(.dark-mode) .menu-toggle {
 .search-suggestion-item {
     padding: 10px 15px;
     cursor: pointer;
-    border-bottom: 1px solid var(--border-color); /* Usar variable */
+    border-bottom: 1px solid var(--border-color);
+    /* Usar variable */
     display: flex;
     align-items: center;
     transition: background-color 0.2s;
@@ -814,12 +1154,14 @@ body:not(.dark-mode) .menu-toggle {
 }
 
 .search-suggestion-item:hover {
-    background-color: var(--secondary-color); /* Usar variable */
+    background-color: var(--secondary-color);
+    /* Usar variable */
 }
 
 .search-suggestion-item i {
     margin-right: 10px;
-    color: var(--text-secondary); /* Usar variable */
+    color: var(--text-secondary);
+    /* Usar variable */
 }
 
 .search-suggestion-item .suggestion-text {
@@ -835,7 +1177,8 @@ body:not(.dark-mode) .menu-toggle {
 
 .result-item h3 {
     margin-bottom: 10px;
-    color: var(--primary-color); /* Esto ya usa el color personalizado */
+    color: var(--primary-color);
+    /* Esto ya usa el color personalizado */
 }
 
 .result-item a {
@@ -857,13 +1200,13 @@ body:not(.dark-mode) .menu-toggle {
     .content-header {
         flex-wrap: wrap;
     }
-    
+
     .search-container {
         order: 3;
         width: 100%;
         margin: 10px 0 0 0;
     }
-    
+
     .search-form input {
         width: 100%;
     }
@@ -876,7 +1219,8 @@ body:not(.dark-mode) .menu-toggle {
     gap: 10px;
 }
 
-.pagination a, .pagination span {
+.pagination a,
+.pagination span {
     padding: 8px 16px;
     text-decoration: none;
     border: 1px solid var(--border-color);

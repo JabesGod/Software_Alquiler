@@ -52,6 +52,7 @@ def listar_equipos(request):
     form = EquipoForm() if request.user.is_staff else None
     return render(request, 'lista.html', {'equipos': equipos, 'form': form})
 
+
 @login_required
 @permission_required('alquiler.add_equipo', raise_exception=True)
 def crear_equipo(request):
@@ -598,7 +599,7 @@ def enviar_alertas_vencimiento():
                                 cid = f'equipo_{i}'
                                 img.add_header('Content-ID', f'<{cid}>')
                                 img.add_header('Content-Disposition', 'inline', 
-                                             filename=f'equipo_{i}_{os.path.basename(foto_path)}')
+                                            filename=f'equipo_{i}_{os.path.basename(foto_path)}')
                                 email.attach(img)
                                 imagenes_adjuntas.append(f'cid:{cid}')
                         except Exception as foto_error:

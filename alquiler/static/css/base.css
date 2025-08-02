@@ -239,20 +239,37 @@ body.dark-mode .sidebar {
 
 
 .sidebar-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     padding: 20px;
-    text-align: center;
-    border-bottom: 1px solid var(--secondary-color);
+    background-color: var(--primary-color);
+    border-bottom: 1px solid var(--text-color);
 }
 
 .sidebar-logo {
-    width: 60px;
+    width: 100px;
     height: auto;
     margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border-color);
+    transition: var(--transition);
+    
+    /* Si el logo es muy oscuro, aplica un brillo en dark mode */
+    filter: brightness(1);
+}
+
+/* Opcional si usas logos SVG en modo oscuro y se ven apagados */
+body.dark-mode .sidebar-logo {
+    /* Mejora visibilidad si tu logo tiene fondo oscuro */
+    filter: brightness(1.2);
 }
 
 .sidebar-title {
     font-size: 1.2rem;
-    font-weight: 500;
+    margin: 0;
+    text-align: center;
+    transition: var(--transition);
 }
 
 .sidebar-menu {

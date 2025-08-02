@@ -273,9 +273,9 @@ body.dark-mode .estado-badge.mantenimiento {
     align-items: center;
 }
 
+
 .quick-view-header h2 {
     margin: 0;
-    color: var(--primary-color); /* Usa la variable primaria */
     display: flex;
     align-items: center;
     gap: 10px;

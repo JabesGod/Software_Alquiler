@@ -423,6 +423,7 @@ def actualizar_estados_masivo(request):
         'estados': estados
     })
 
+
 @login_required
 @permission_required('alquiler.view_equipo', raise_exception=True)
 def exportar_equipos_csv(request):

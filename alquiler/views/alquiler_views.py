@@ -139,6 +139,7 @@ def alquileres_a_vencer(request):
         'fecha_limite': fecha_limite,
     })
 
+
 def enviar_alertas_vencimiento(alquileres_por_vencer):
     hoy = timezone.now().date()
     

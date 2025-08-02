@@ -51,9 +51,9 @@ INSTALLED_APPS = [
 ]
 
 
-LOGIN_URL = '/login/'
+LOGIN_URL = '/guanabanazo/'
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/login/'
+LOGOUT_REDIRECT_URL = '/guanabanazo/'
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"

@@ -17,11 +17,12 @@
 
 /* Columnas de contenido */
 .col-lg-8, .col-lg-4, .col-md-12 {
-    flex-grow: 1; /* Permite que las columnas crezcan */
-    flex-shrink: 1; /* Permite que las columnas se encojan */
-    padding: 0; /* Reiniciar padding de Bootstrap si los hay */
+    flex-basis: 100%; /* Ocupa todo el ancho por defecto */
+    max-width: 100%;
+    flex-grow: 1; 
+    flex-shrink: 1; 
+    padding: 0; 
 }
-
 /* Media query para pantallas grandes (desktop) */
 @media (min-width: 992px) {
     .col-lg-8 {

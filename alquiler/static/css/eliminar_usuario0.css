@@ -1,0 +1,286 @@
+/*
+ * Archivo CSS para la página de confirmación de eliminación de usuario.
+ * Versión completa y optimizada.
+ */
+
+.confirm-delete-container {
+    width: 100%;
+    padding: 30px 20px;
+    color: var(--text-color);
+    transition: var(--transition);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: calc(100vh - var(--header-height, 0px) - var(--footer-height, 0px));
+}
+
+/* Estilos para la tarjeta principal de confirmación */
+.card {
+    background-color: var(--card-background); /* Asegura que el fondo de la tarjeta se adapta */
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-md);
+    max-width: 600px;
+    width: 100%;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+/* Encabezado de la tarjeta */
+.card-header {
+    background-color: var(--error-color);
+    color: white;
+    padding: 20px 25px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.card-header h3 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    color: white;
+    flex-wrap: wrap; /* Evita desbordamientos en títulos largos */
+    min-width: 0; /* Evita que el texto desborde el contenedor */
+}
+
+.card-header h3 i {
+    font-size: 2rem;
+    color: white;
+    flex-shrink: 0; /* Evita que el ícono se comprima */
+    margin-right: 10px;
+}
+
+/* Cuerpo de la tarjeta */
+.card-body {
+    padding: 25px;
+    color: var(--text-color);
+}
+
+/* Estilo para la alerta de peligro */
+.alert.alert-danger {
+    padding: 10px;
+    border-radius: var(--border-radius-md);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background-color: rgba(var(--error-color-rgb, 231, 76, 60), 0.1);
+    color: var(--error-color);
+    border: 1px solid var(--error-color);
+    font-weight: 500;
+}
+
+.alert.alert-danger h5 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 5px 0;
+    color: var(--error-color);
+    line-height: 4; 
+}
+
+.alert.alert-danger i {
+    font-size: 1.5rem;
+    color: var(--error-color);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* Estilo para el callout de advertencia */
+.callout.callout-warning {
+    padding: 15px;
+    border-radius: var(--border-radius-md);
+    margin-bottom: 20px;
+    background-color: rgba(var(--warning-color-rgb, 243, 156, 18), 0.1);
+    color: var(--warning-color);
+    border: 1px solid var(--warning-color);
+}
+
+.callout.callout-warning h5 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+    color: var(--warning-color);
+}
+
+.callout.callout-warning ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.callout.callout-warning ul li {
+    font-size: 1rem;
+    margin-bottom: 5px;
+    color: var(--text-color);
+}
+
+.callout.callout-warning ul li strong {
+    color: var(--primary-color);
+}
+
+/* Pie de página de la tarjeta para botones de acción */
+.card-footer {
+    padding: 20px 25px;
+    border-top: 1px solid var(--border-color);
+}
+
+.card-footer form {
+    display: flex;
+    flex-direction: column; /* Apila los botones por defecto en pantallas pequeñas */
+    gap: 15px;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* Estilos de botones */
+.btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    width: 100%;
+    max-width: 250px;
+    color: white;
+}
+
+.btn-danger {
+    background-color: var(--error-color);
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--highlight-color);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+/* Media query para pantallas más grandes (botones en fila) */
+@media (min-width: 576px) {
+    .card-footer form {
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+    }
+    .btn {
+        width: auto;
+        flex-grow: 0;
+    }
+}
+
+/* Media query para pantallas más pequeñas (ajustes finos) */
+@media (max-width: 575px) {
+    .card-footer form {
+        gap: 10px; /* Reducir el espacio entre botones */
+    }
+    .btn {
+        max-width: 300px; /* Limitar el ancho máximo para que no se vea tan extenso */
+        margin: 0 auto; /* Centrar el botón */
+    }
+    .card-body,
+    .card-footer {
+        padding: 15px; /* Reducir el padding en móviles */
+    }
+    .alert.alert-danger,
+    .callout.callout-warning {
+        padding: 10px; /* Reducir el padding */
+        margin-bottom: 15px; /* Reducir el margen inferior */
+    }
+}
+
+/* Ajustes para el modo oscuro */
+body.dark-mode .card {
+    border-color: var(--border-color);
+}
+
+body.dark-mode .card-header {
+    background-color: var(--error-color);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .card-header h3 {
+    color: white;
+}
+
+body.dark-mode .card-header h3 i {
+    color: white;
+}
+
+body.dark-mode .card-body {
+    color: var(--text-color);
+}
+
+body.dark-mode .alert.alert-danger {
+    background-color: rgba(var(--error-color-rgb, 231, 76, 60), 0.2);
+    color: var(--error-color);
+    border-color: var(--error-color);
+}
+
+body.dark-mode .alert.alert-danger h5 {
+    color: var(--error-color);
+}
+
+body.dark-mode .alert.alert-danger i {
+    color: var(--error-color);
+}
+
+body.dark-mode .callout.callout-warning {
+    background-color: rgba(var(--warning-color-rgb, 243, 156, 18), 0.2);
+    color: var(--warning-color);
+    border-color: var(--warning-color);
+}
+
+body.dark-mode .callout.callout-warning h5 {
+    color: var(--warning-color);
+}
+
+body.dark-mode .callout.callout-warning ul li {
+    color: var(--text-color);
+}
+
+body.dark-mode .callout.callout-warning ul li strong {
+    color: var(--primary-color);
+}
+
+body.dark-mode .card-footer {
+    border-color: var(--border-color);
+}
+
+body.dark-mode .btn-danger {
+    background-color: var(--error-color);
+}
+
+body.dark-mode .btn-danger:hover {
+    background-color: #c0392b;
+}
+
+body.dark-mode .btn-secondary {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+}
+
+body.dark-mode .btn-secondary:hover {
+    background-color: var(--highlight-color);
+}

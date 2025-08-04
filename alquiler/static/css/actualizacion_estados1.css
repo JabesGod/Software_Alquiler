@@ -252,22 +252,72 @@ input[type="checkbox"]:checked::after {
 
 /* Responsive */
 @media (max-width: 768px) {
+    /* ---------------------------------------------------- */
+    /* Ajustes para el header, para que se apilen correctamente */
+    /* ---------------------------------------------------- */
+    .header-acciones {
+        flex-direction: column; /* Apila los elementos verticalmente */
+        align-items: stretch; /* Hace que los elementos ocupen todo el ancho */
+        gap: 15px;
+    }
+
+    .btn-volver {
+        width: 100%; /* El botón "Volver" ocupa todo el ancho */
+        justify-content: center;
+    }
+    
+    .acciones-rapidas {
+        width: 100%; /* El contenedor de botones rápidos ocupa todo el ancho */
+        /* Cambiamos a 'space-around' o 'space-between' para mejor distribución */
+        justify-content: space-between; 
+        gap: 5px; /* Reducimos el espacio entre los botones para evitar que se aplasten */
+    }
+
+    .btn-accion {
+        flex-grow: 1; /* Permite que los botones crezcan para llenar el espacio */
+        justify-content: center;
+        text-align: center;
+        /* Reducimos el padding para que el texto encaje mejor */
+        padding: 8px 10px;
+        font-size: 0.9rem;
+    }
+
+    /* ---------------------------------------------------- */
+    /* Ajustes para la sección de filtros */
+    /* ---------------------------------------------------- */
     .filtros-rapidos {
         flex-direction: column;
         align-items: stretch;
+        gap: 10px; /* Reducimos el gap para que el espacio se use mejor */
     }
-
+    
     .input-filtro,
     .select-estado {
-        width: 100%;
+        width: 100%; /* Ahora ocupan el 100% del ancho */
+        min-width: unset; /* Reiniciamos el min-width */
     }
-
+    
     .controles-estado {
-        width: 100%;
+        flex-direction: column; /* Apilamos el select y el botón de actualizar */
+        width: 100%; 
+        justify-content: space-between;
+        gap: 10px;
     }
-
+    
     .btn-actualizar {
         width: 100%;
         justify-content: center;
+    }
+
+    /* ---------------------------------------------------- */
+    /* Ajustes para la tabla */
+    /* ---------------------------------------------------- */
+    .tabla-equipos {
+        font-size: 0.85rem; /* Reducimos el tamaño de la fuente para que el texto quepa */
+    }
+    
+    .tabla-equipos th,
+    .tabla-equipos td {
+        padding: 8px 10px; /* Reducimos el padding de las celdas */
     }
 }

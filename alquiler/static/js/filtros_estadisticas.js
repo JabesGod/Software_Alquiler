@@ -1,14 +1,12 @@
-// filtros_estadisticas.js - Manejo avanzado de filtros
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Manejar cambios en los filtros
+  
     const formFiltros = document.querySelector('.form-filtros');
     if (formFiltros) {
-        // Puedes agregar lógica adicional para manejar cambios en los filtros
-        // Por ejemplo, validaciones o actualizaciones en tiempo real
+   
         
         formFiltros.addEventListener('submit', function(e) {
-            // Validación adicional si es necesaria
+      
             const fechaInicio = document.getElementById('rango-fechas').dataset.startDate;
             const fechaFin = document.getElementById('rango-fechas').dataset.endDate;
             
@@ -18,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return false;
             }
             
-            // Mostrar loader mientras se cargan los datos
+       
             mostrarLoader();
         });
     }
@@ -36,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         document.body.appendChild(loader);
         
-        // Ocultar loader cuando la página termine de cargar
+
         window.addEventListener('load', function() {
             if (loader) loader.remove();
         });

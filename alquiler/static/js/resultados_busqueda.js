@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Filtrado por tipo
     const filterButtons = document.querySelectorAll('.filter-btn');
     const resultCards = document.querySelectorAll('.result-card');
     
@@ -7,11 +6,9 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             const filter = this.dataset.filter;
             
-            // Actualizar botones activos
             filterButtons.forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
             
-            // Mostrar/ocultar resultados
             resultCards.forEach(card => {
                 if (filter === 'todos' || card.dataset.type === filter) {
                     card.style.display = 'flex';
@@ -22,7 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Animación al cargar
     const cards = document.querySelectorAll('.result-card');
     cards.forEach((card, index) => {
         card.style.opacity = '0';
@@ -35,10 +31,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }, index * 50);
     });
 
-    // Manejar clics en las tarjetas (redundante pero seguro)
     document.querySelectorAll('.result-card').forEach(card => {
         card.addEventListener('click', function(e) {
-            // Permitir clics en enlaces internos
             if (e.target.tagName === 'A' || e.target.closest('a')) {
                 return;
             }

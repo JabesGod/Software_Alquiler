@@ -100,11 +100,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             ? equipo.series.split(',').map(s => s.trim()).filter(Boolean)
                             : []);
 
-                    // Obtener el precio del periodo seleccionado
                     const equipoOption = $(`#equipo-selector option[value="${equipo.equipoId}"]`);
                     let precioUnitario = parseFloat(equipo.precioUnitario) || 0;
 
-                    // Si no tiene precio, obtenerlo del equipo
                     if (precioUnitario <= 0 && equipoOption.length) {
                         precioUnitario = parseFloat(equipoOption.data(`precio-${equipo.periodo}`)) || 0;
                     }
@@ -201,7 +199,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            // Permitir múltiples equipos sin serie
             if (!requiereSerie) {
                 state.equiposAgregados.push({
                     id: state.contadorEquipos++,
@@ -217,18 +214,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     requiereSerie: false
                 });
             } else {
-                // Verificar si ya existe este equipo con el mismo periodo
                 const existenteIndex = state.equiposAgregados.findIndex(e =>
                     e.equipoId == equipoId && e.periodo == periodo
                 );
 
                 if (existenteIndex >= 0) {
-                    // Actualizar series existentes
                     state.equiposAgregados[existenteIndex].series = [
                         ...new Set([...state.equiposAgregados[existenteIndex].series, ...series])
                     ];
                 } else {
-                    // Agregar nuevo equipo
                     state.equiposAgregados.push({
                         id: state.contadorEquipos++,
                         equipoId: equipoId,
@@ -249,7 +243,6 @@ document.addEventListener('DOMContentLoaded', function () {
             actualizarInputsOcultos();
             actualizarResumenCostos();
 
-            // Limpiar selección
             $('#equipo-selector').val('').trigger('change');
             $('#serie-selector').val(null).trigger('change');
         }

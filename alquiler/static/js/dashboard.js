@@ -11,7 +11,6 @@ function initEstadoEquiposChart() {
     }
     
     try {
-        // Obtener los datos de los atributos data-*
         const labels = JSON.parse(`[${ctx.getAttribute('data-labels')}]`);
         const data = JSON.parse(`[${ctx.getAttribute('data-values')}]`);
         const colors = JSON.parse(`[${ctx.getAttribute('data-colors')}]`);

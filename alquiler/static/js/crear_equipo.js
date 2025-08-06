@@ -1,7 +1,6 @@
 // Funcionalidad adicional para el formulario de equipos
 
 $(document).ready(function() {
-    // Validación de cantidad disponible
     $('#id_cantidad_total, #id_cantidad_disponible').change(function() {
         const total = parseInt($('#id_cantidad_total').val()) || 0;
         const disponible = parseInt($('#id_cantidad_disponible').val()) || 0;
@@ -12,20 +11,17 @@ $(document).ready(function() {
         }
     });
 
-    // Auto-completar ubicación si está vacío
     $('#id_ubicacion').blur(function() {
         if (!$(this).val()) {
             $(this).val('Almacén Principal');
         }
     });
 
-    // Mostrar/ocultar ayuda para campos de precio
     $('.precio-help').tooltip({
         trigger: 'hover focus',
         placement: 'right'
     });
 
-    // Validar que al menos una foto esté marcada como principal
     $('form').submit(function(e) {
         const hasPrincipal = $('input[name$="-es_principal"]:checked').length > 0;
         const hasPhotos = $('.foto-card').length > 0 || $('#id_fotos')[0].files.length > 0;
@@ -36,14 +32,12 @@ $(document).ready(function() {
         }
     });
 
-    // Mostrar calculadora de precios
     $('#show-price-calculator').click(function(e) {
         e.preventDefault();
         $('#price-calculator').toggleClass('d-none');
     });
 });
 
-// Función para calcular precios basados en días
 function calculatePrices() {
     const dailyPrice = parseFloat($('#id_precio_dia').val()) || 0;
     const days = parseInt($('#calculation-days').val()) || 1;
@@ -69,7 +63,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Mostrar vista previa de las fotos seleccionadas
     const fotoInput = document.getElementById('id_fotos');
     if (fotoInput) {
         fotoInput.addEventListener('change', function(e) {
@@ -121,13 +114,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Auto-calcular precios para periodos más largos si están vacíos
     const precioDiaInput = document.getElementById('id_precio_dia');
     if (precioDiaInput) {
         precioDiaInput.addEventListener('change', function() {
             const precioDia = parseFloat(this.value) || 0;
             
-            // Solo calcular si los campos están vacíos
             if (!document.getElementById('id_precio_semana').value) {
                 document.getElementById('id_precio_semana').value = (precioDia * 7 * 0.9).toFixed(2);
             }

@@ -630,6 +630,7 @@ def ejecutar_alertas_vencimiento(request):
     return redirect('alquiler:dashboard_admin')  # cambia al nombre de tu vista de inicio
 
 
+
 @login_required
 @permission_required('alquiler.view_equipo', raise_exception=True)
 def equipos_mas_alquilados(request):
@@ -638,31 +639,37 @@ def equipos_mas_alquilados(request):
     marca = request.GET.get('tipo_equipo')
     agrupar_por = request.GET.get('agrupar_por', 'equipo')
 
+    # INICIALIZACIÓN DE LA VARIABLE 'filtros_alquiler'
+    # Esto asegura que la variable siempre exista, incluso si no se agrupa por mes.
+    filtros_alquiler = Q(es_reserva=False) | Q(estado_alquiler__in=['activo', 'finalizado'])
+    if fecha_inicio and fecha_fin:
+        filtros_alquiler &= Q(fecha_inicio__gte=fecha_inicio, fecha_fin__lte=fecha_fin)
+
+
+    # Filtros para la consulta principal de equipos
     filtros_equipos = Q(detallealquiler__alquiler__estado_alquiler__in=['activo', 'finalizado'])
 
     if fecha_inicio and fecha_fin:
         filtros_equipos &= (
-            Q(detallealquiler__alquiler__fecha_inicio__lte=fecha_fin) &
-            Q(detallealquiler__alquiler__fecha_fin__gte=fecha_inicio)
+            Q(detallealquiler__alquiler__fecha_inicio__date__gte=fecha_inicio) &
+            Q(detallealquiler__alquiler__fecha_inicio__date__lte=fecha_fin)
         )
     if marca:
         filtros_equipos &= Q(marca__iexact=marca)
 
-    filtros_alquiler = Q(es_reserva=False) | Q(estado_alquiler='activo')
-    if fecha_inicio and fecha_fin:
-        filtros_alquiler &= Q(fecha_inicio__gte=fecha_inicio, fecha_fin__lte=fecha_fin)
-
+    # Lógica para agrupar por mes
     if agrupar_por == 'mes':
         return estadisticas_por_mes(request, filtros_alquiler)
 
     equipos = (
         Equipo.objects.annotate(
-            total_alquileres=Count('detallealquiler__alquiler', filter=filtros_equipos, distinct=True),
-            ingresos_generados=Coalesce(Sum('detallealquiler__alquiler__precio_total', filter=filtros_equipos), Decimal('0.00')),
-            precio_promedio=Coalesce(Avg('detallealquiler__alquiler__precio_total', filter=filtros_equipos), Decimal('0.00')),
+            total_alquileres=Count('detallealquiler', filter=filtros_equipos),
+            ingresos_generados=Coalesce(Sum(F('detallealquiler__precio_unitario') * F('detallealquiler__cantidad'), filter=filtros_equipos), Decimal('0.00')),
+            precio_promedio=Coalesce(Avg('detallealquiler__precio_unitario', filter=filtros_equipos), Decimal('0.00')),
             ultimo_alquiler_fecha=Max('detallealquiler__alquiler__fecha_inicio', filter=filtros_equipos)
         ).filter(total_alquileres__gt=0).order_by('-total_alquileres')[:10]
     )
+
 
     # Agregar datos adicionales para cada equipo (clientes frecuentes y último alquiler)
     for equipo in equipos:
@@ -730,78 +737,118 @@ def equipos_mas_alquilados(request):
         'agrupar_por': agrupar_por, 
     })
 
+
+@login_required
+@permission_required('alquiler.send_notifications', raise_exception=True)
+def ejecutar_alertas_vencimiento(request):
+    enviar_alertas_vencimiento()
+    messages.success(request, "Se han procesado las alertas de vencimiento (7 días antes).")
+    return redirect('alquiler:dashboard_admin')  # cambia al nombre de tu vista de inicio
+
+
 @login_required
 @permission_required('alquiler.view_equipo', raise_exception=True)
-def estadisticas_por_mes(request, filtros_base):
-    # Obtener alquileres agrupados por mes
-    alquileres_por_mes = (
-        Alquiler.objects
-        .filter(filtros_base)
-        .annotate(
-            mes=ExtractMonth('fecha_inicio'),
-            año=ExtractYear('fecha_inicio')
+def equipos_mas_alquilados(request):
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    marca = request.GET.get('tipo_equipo')
+    agrupar_por = request.GET.get('agrupar_por', 'equipo')
+
+    # Se inicializa filtros_alquiler para evitar UnboundLocalError
+    filtros_alquiler = Q(es_reserva=False) | Q(estado_alquiler__in=['activo', 'finalizado'])
+    if fecha_inicio and fecha_fin:
+        filtros_alquiler &= Q(fecha_inicio__date__gte=fecha_inicio, fecha_fin__date__lte=fecha_fin)
+
+
+    # Filtros para la consulta principal de equipos
+    filtros_equipos = Q(detallealquiler__alquiler__estado_alquiler__in=['activo', 'finalizado'])
+    if fecha_inicio and fecha_fin:
+        filtros_equipos &= (
+            Q(detallealquiler__alquiler__fecha_inicio__date__gte=fecha_inicio) &
+            Q(detallealquiler__alquiler__fecha_inicio__date__lte=fecha_fin)
         )
-        .values('mes', 'año')
-        .annotate(
-            total=Count('id'),
-            ingresos=Sum('precio_total')
-        )
-        .order_by('año', 'mes')
+    if marca:
+        filtros_equipos &= Q(marca__iexact=marca)
+
+    # Lógica para agrupar por mes
+    if agrupar_por == 'mes':
+        return estadisticas_por_mes(request, filtros_alquiler)
+
+    equipos = (
+        Equipo.objects.annotate(
+            # Corregido: Contar detalles para el número de alquileres
+            total_alquileres=Count('detallealquiler', filter=filtros_equipos),
+            # Corregido: Sumar el precio_unitario * cantidad
+            ingresos_generados=Coalesce(Sum(F('detallealquiler__precio_unitario') * F('detallealquiler__cantidad'), filter=filtros_equipos), Decimal('0.00')),
+            # Corregido: Promedio por precio_unitario
+            precio_promedio=Coalesce(Avg('detallealquiler__precio_unitario', filter=filtros_equipos), Decimal('0.00')),
+            ultimo_alquiler_fecha=Max('detallealquiler__alquiler__fecha_inicio', filter=filtros_equipos)
+        ).filter(total_alquileres__gt=0).order_by('-total_alquileres')[:10]
     )
-    
-    # Preparar datos para los gráficos
-    meses = [
-        'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-        'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
-    ]
-    
-    labels = []
-    datos_alquileres = []
-    datos_ingresos = []
-    
-    for dato in alquileres_por_mes:
-        labels.append(f"{meses[dato['mes']-1]} {dato['año']}")
-        datos_alquileres.append(dato['total'])
-        datos_ingresos.append(float(dato['ingresos']))
-    
-    # Obtener estadísticas generales
+
+    # Agregar datos adicionales para cada equipo (clientes frecuentes y último alquiler)
+    for equipo in equipos:
+        clientes_frecuentes_query = DetalleAlquiler.objects.filter(equipo=equipo)
+        if fecha_inicio and fecha_fin:
+            clientes_frecuentes_query = clientes_frecuentes_query.filter(
+                alquiler__fecha_inicio__gte=fecha_inicio,
+                alquiler__fecha_fin__lte=fecha_fin
+            )
+        clientes = (
+            clientes_frecuentes_query
+            .values('alquiler__cliente__id', 'alquiler__cliente__nombre')
+            .annotate(total=Count('alquiler__cliente'))
+            .order_by('-total')[:3]
+        )
+        equipo.clientes_frecuentes = [c['alquiler__cliente__nombre'] for c in clientes]
+
+        equipo.ultimo_alquiler = (
+            DetalleAlquiler.objects
+            .filter(equipo=equipo)
+            .select_related('alquiler', 'alquiler__cliente')
+            .order_by('-alquiler__fecha_inicio')
+            .first()
+        )
+
+        equipo.cantidad_total = getattr(equipo, 'cantidad_total', 1)
+        equipo.cantidad_disponible = equipo.cantidad_total - equipo.total_alquileres
+
     total_equipos = Equipo.objects.count()
-    total_alquileres = sum(datos_alquileres)
-    total_clientes = Cliente.objects.filter(alquileres__in=Alquiler.objects.filter(filtros_base)).distinct().count()
-    ingresos_totales = sum(datos_ingresos)
-    
-    # Obtener marcas para el filtro
+    total_alquileres = sum(e.total_alquileres for e in equipos)
+    total_clientes = Cliente.objects.filter(alquileres__in=Alquiler.objects.filter(filtros_alquiler)).distinct().count()
+    ingresos_totales = sum(e.ingresos_generados for e in equipos)
+
     marcas = Equipo.objects.values_list('marca', flat=True).distinct().order_by('marca')
-    
-    # Serializar datos para JavaScript
-    labels_json = json.dumps(labels)
-    datos_alquileres_json = json.dumps(datos_alquileres)
-    datos_ingresos_json = json.dumps(datos_ingresos)
-    
-    # Manejar exportación
+
+    labels = [f"{e.marca} {e.modelo}" for e in equipos]
+    datos_alquileres = [e.total_alquileres for e in equipos]
+    datos_ingresos = [float(e.ingresos_generados) for e in equipos]
+
     if 'export' in request.GET:
         if request.GET['export'] == 'excel':
-            return exportar_a_excel_mensual(labels, datos_alquileres, datos_ingresos)
+            return exportar_a_excel(request, equipos, labels, datos_alquileres, datos_ingresos)
+
         elif request.GET['export'] == 'pdf':
-            return exportar_a_pdf_mensual(labels, datos_alquileres, datos_ingresos, 
-                                        total_equipos, total_alquileres, total_clientes, ingresos_totales)
-    
+            return exportar_a_pdf(request, equipos, labels, datos_alquileres, datos_ingresos,
+                                  total_equipos, total_alquileres, total_clientes, ingresos_totales)
+
+
     return render(request, 'estadisticas.html', {
-        'labels': labels_json,
-        'datos': datos_alquileres_json,
-        'ingresos_equipos': datos_ingresos_json,
-        'equipos': [],  # No mostramos tabla de equipos en vista mensual
+        'labels': json.dumps(labels),
+        'datos': json.dumps(datos_alquileres),
+        'ingresos_equipos': json.dumps(datos_ingresos),
+        'equipos': equipos,
         'total_equipos': total_equipos,
         'total_alquileres': total_alquileres,
         'total_clientes': total_clientes,
         'ingresos_totales': ingresos_totales,
         'marcas': marcas,
-        'fecha_inicio': request.GET.get('fecha_inicio'),
-        'fecha_fin': request.GET.get('fecha_fin'),
-        'marca_seleccionada': request.GET.get('tipo_equipo'),
-        'agrupar_por': 'mes',
-        'vista_mensual': True
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+        'marca_seleccionada': marca,
+        'agrupar_por': agrupar_por,
     })
+
 
 
 @login_required

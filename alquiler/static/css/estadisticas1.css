@@ -80,7 +80,6 @@ html, body {
     padding: 0;
     width: 100%;
     min-height: 100vh;
-    overflow-x: hidden;
     line-height: 1.6;
     color: var(--text-color); /* Usar variable para el color de texto */
     background-color: var(--background-light); /* Usar variable para el color de fondo */
@@ -401,7 +400,6 @@ html, body {
 .cliente-tag {
     display: inline-block;
     background-color: var(--primary-color-light-rgba); /* Usar variable */
-    color: var(--primary-color);
     padding: 3px 8px;
     border-radius: 12px;
     font-size: 0.8rem;

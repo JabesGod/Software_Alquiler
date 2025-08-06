@@ -1,4 +1,3 @@
-// Función para crear partículas (sin cambios)
 function createParticles() {
     const particlesContainer = document.querySelector('.particles');
     if (particlesContainer) {
@@ -15,7 +14,6 @@ function createParticles() {
     }
 }
 
-// Simulador de progreso de carga (sin cambios)
 function simulateLoading() {
     const loadingText = document.querySelector('.loading-text');
     const messages = [
@@ -37,7 +35,6 @@ function simulateLoading() {
     return messageInterval;
 }
 
-// Función para ocultar el loader (sin cambios)
 function hideLoader() {
     const loaderContainer = document.getElementById('loader-container');
     const appContainer = document.querySelector('.app-container');
@@ -56,7 +53,6 @@ function hideLoader() {
     }
 }
 
-// Efecto adicional: cambiar color del botón de encendido
 const powerButtonInterval = setInterval(() => {
     const powerButton = document.querySelector('.power-button');
     if (powerButton) {
@@ -69,7 +65,6 @@ const powerButtonInterval = setInterval(() => {
     }
 }, 1500);
 
-// --- Lógica principal del loader (más rápida) ---
 document.addEventListener('DOMContentLoaded', function() {
     const loaderContainer = document.getElementById('loader-container');
     const appContainer = document.querySelector('.app-container');
@@ -92,34 +87,32 @@ document.addEventListener('DOMContentLoaded', function() {
     createParticles();
     const loadingInterval = simulateLoading();
 
-    let extraWaitTime = 0; // Por defecto no hay tiempo de espera extra
+    let extraWaitTime = 0; 
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
 
     if (connection && connection.effectiveType) {
         switch (connection.effectiveType) {
             case '4g':
-                extraWaitTime = 0; // Conexión rápida, no hay espera
+                extraWaitTime = 0; 
                 if (loadingText) loadingText.innerHTML = "Cargando rápido gracias a tu conexión 🚀 <span class='loading-dots'></span>";
                 break;
             case '3g':
-                extraWaitTime = 1000; // Conexión moderada, 1 segundo extra
+                extraWaitTime = 1000; 
                 break;
             case '2g':
             case 'slow-2g':
-                extraWaitTime = 3000; // Conexión lenta, 3 segundos extra
+                extraWaitTime = 3000;
                 if (loadingText) loadingText.innerHTML = "Conexión lenta detectada... optimizando carga <span class='loading-dots'></span>";
                 break;
             default:
-                extraWaitTime = 500; // Conexión desconocida, espera mínima para la animación
+                extraWaitTime = 500; 
         }
         console.log(`Tipo de conexión: ${connection.effectiveType}. Tiempo de espera adicional: ${extraWaitTime / 1000}s`);
     } else {
-        // En local o sin API, no hay espera adicional
         extraWaitTime = 0;
         console.log("No se pudo detectar el tipo de conexión. Ocultando el loader tan pronto como sea posible.");
     }
 
-    // Esperar a que la página cargue Y el tiempo extra si lo hay
     Promise.all([
         new Promise(resolve => setTimeout(resolve, extraWaitTime)),
         new Promise(resolve => window.addEventListener('load', resolve))
@@ -129,7 +122,6 @@ document.addEventListener('DOMContentLoaded', function() {
         hideLoader();
     });
 
-    // Fallback absoluto: ocultar después de 6 segundos si algo falla
     setTimeout(() => {
         clearInterval(loadingInterval);
         clearInterval(powerButtonInterval);

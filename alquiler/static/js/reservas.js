@@ -1,16 +1,13 @@
 $(document).ready(function () {
-    // Inicializar Select2 para los selects
     $('.select2').select2({
         placeholder: "Seleccione...",
         allowClear: true,
         width: '100%'
     });
 
-    // Variables globales
     let equiposAgregados = [];
     let contadorEquipos = 0;
 
-    // Calcular duración de la reserva
     function calcularDuracion() {
         const inicio = new Date($('#id_fecha_inicio').val());
         const fin = new Date($('#id_fecha_fin').val());
@@ -38,7 +35,6 @@ $(document).ready(function () {
     $('#id_fecha_inicio, #id_fecha_fin').change(calcularDuracion);
     calcularDuracion();
 
-    // Manejar cambio de equipo para cargar números de serie
     $('#equipo-selector').change(function () {
         const equipoId = $(this).val();
         const serieSelector = $('#serie-selector');
@@ -48,14 +44,12 @@ $(document).ready(function () {
             return;
         }
 
-        // Mostrar carga mientras se obtienen los datos
         serieSelector.empty().prop('disabled', true);
         serieSelector.append($('<option>', {
             value: '',
             text: 'Cargando series...'
         }));
 
-        // Hacer la petición AJAX
         $.ajax({
             url: window.SERIES_DISPONIBLES_URL.replace('{equipoId}', equipoId),
             method: 'GET',
@@ -91,7 +85,6 @@ $(document).ready(function () {
         });
     });
 
-    // Inicializar Select2 para el selector de series
     $('#serie-selector').select2({
         placeholder: "Seleccione series...",
         allowClear: true,
@@ -99,14 +92,12 @@ $(document).ready(function () {
         closeOnSelect: false
     }).prop('disabled', true);
 
-    // Inicializar Select2 para el selector de periodo
     $('#periodo-selector').select2({
         placeholder: "Seleccione periodo...",
         allowClear: false,
         width: '100%'
     });
 
-    // Agregar equipo a la tabla
     $('#agregar-equipo').click(function () {
         const equipoId = $('#equipo-selector').val();
         const equipoTexto = $('#equipo-selector option:selected').text().split('(')[0].trim();
@@ -124,7 +115,6 @@ $(document).ready(function () {
             return;
         }
 
-        // Obtener precios del equipo
         const selectedOption = $('#equipo-selector option:selected');
         const precios = {
             dia: parseFloat(selectedOption.data('precio-dia')) || 0,
@@ -137,13 +127,11 @@ $(document).ready(function () {
 
         const precioUnitario = precios[periodo] || 0;
 
-        // Verificar si ya existe este equipo con el mismo periodo
         const indexExistente = equiposAgregados.findIndex(e =>
             e.equipoId == equipoId && e.periodo == periodo
         );
 
         if (indexExistente >= 0) {
-            // Verificar si hay series duplicadas
             const seriesDuplicadas = series.filter(serie =>
                 equiposAgregados[indexExistente].series.includes(serie)
             );
@@ -153,12 +141,10 @@ $(document).ready(function () {
                 return;
             }
 
-            // Actualizar series existentes
             equiposAgregados[indexExistente].series = [
                 ...new Set([...equiposAgregados[indexExistente].series, ...series])
             ];
         } else {
-            // Agregar nuevo equipo
             equiposAgregados.push({
                 id: contadorEquipos++,
                 equipoId: equipoId,
@@ -173,11 +159,9 @@ $(document).ready(function () {
         actualizarTablaEquipos();
         actualizarInputsOcultos();
 
-        // Limpiar selección de series
         $('#serie-selector').val(null).trigger('change');
     });
 
-    // Actualizar la tabla de equipos
     function actualizarTablaEquipos() {
         const tbody = $('#tabla-equipos tbody');
         tbody.empty();
@@ -227,20 +211,17 @@ $(document).ready(function () {
         });
     }
 
-    // Eliminar equipo de la lista
     function eliminarEquipo(id) {
         equiposAgregados = equiposAgregados.filter(e => e.id !== id);
         actualizarTablaEquipos();
         actualizarInputsOcultos();
     }
 
-    // Actualizar los inputs ocultos para el formulario
     function actualizarInputsOcultos() {
         const container = $('#equipos-container');
         container.empty();
 
         equiposAgregados.forEach((equipo, index) => {
-            // Asegurar que el precio_unitario esté definido
             const precioUnitario = equipo.precioUnitario || 0;
 
             container.append($('<input>').attr({
@@ -268,9 +249,6 @@ $(document).ready(function () {
                 value: equipo.series.length > 0 ? equipo.series.length : 1
             }));
 
-
-
-            // CORREGIDO: Asegurar que el precio_unitario se envíe correctamente
             container.append($('<input>').attr({
                 type: 'hidden',
                 name: `detalles-${index}-precio_unitario`,
@@ -290,21 +268,17 @@ $(document).ready(function () {
             }));
         });
 
-        // CORREGIDO: Actualizar el total de formularios
         const totalForms = $('#id_detalles-TOTAL_FORMS');
         if (totalForms.length) {
             totalForms.val(equiposAgregados.length);
         }
     }
 
-    // Validación del formulario
     (function () {
         'use strict';
 
-        // Fetch all the forms we want to apply custom Bootstrap validation styles to
         var forms = document.querySelectorAll('.needs-validation');
 
-        // Loop over them and prevent submission
         Array.prototype.slice.call(forms)
             .forEach(function (form) {
                 form.addEventListener('submit', function (event) {
@@ -315,7 +289,6 @@ $(document).ready(function () {
                         return;
                     }
 
-                    // Actualizar inputs ocultos antes de enviar
                     actualizarInputsOcultos();
 
                     if (!form.checkValidity()) {
@@ -328,6 +301,5 @@ $(document).ready(function () {
             });
     })();
 
-    // Inicializar la tabla de equipos
     actualizarTablaEquipos();
 });

@@ -808,20 +808,27 @@ def series_disponibles(request, equipo_id):
 def finalizar_alquiler(request, id):
     alquiler = get_object_or_404(Alquiler, uuid_id=id)
 
-    
+    # Verifica si el alquiler ya está finalizado o cancelado
     if alquiler.estado_alquiler in ['finalizado', 'cancelado']:
         messages.warning(request, f"Este alquiler ya está {alquiler.get_estado_alquiler_display().lower()}.")
         return redirect('alquiler:listar_alquileres')
-    
-    alquiler.estado_alquiler = 'finalizado'
-    alquiler.save() 
 
+    # Verifica si ha pasado la fecha de vencimiento
+    fecha_vencimiento = alquiler.fecha_vencimiento
+    fecha_actual = datetime.date.today()
+    
+    if fecha_actual <= fecha_vencimiento:
+        messages.error(request, "No se puede finalizar el alquiler antes de la fecha de vencimiento.")
+        return redirect('alquiler:listar_alquileres')
+
+    # Si la fecha de vencimiento ha pasado, se procede a finalizar el alquiler
+    alquiler.estado_alquiler = 'finalizado'
+    alquiler.save()
 
     for detalle in alquiler.detalles.all():
         equipo = detalle.equipo
         
         if detalle.numeros_serie:
-
             if isinstance(detalle.numeros_serie, str):
                 try:
                     returned_series = json.loads(detalle.numeros_serie)
@@ -829,9 +836,9 @@ def finalizar_alquiler(request, id):
                     returned_series = [s.strip() for s in detalle.numeros_serie.split(',') if s.strip()]
             else: 
                 returned_series = detalle.numeros_serie
+            
             current_equipo_series = []
             if equipo.numero_serie:
-                
                 current_equipo_series = [s.strip() for s in equipo.numero_serie.split(',') if s.strip()]
             
             for s_num in returned_series:
@@ -840,11 +847,9 @@ def finalizar_alquiler(request, id):
             
             equipo.numero_serie = ', '.join(sorted(current_equipo_series))
             
-
         equipo.save(update_fields=['numero_serie'])
-        equipo.actualizar_disponibilidad() 
+        equipo.actualizar_disponibilidad()
 
-    
     messages.success(request, "Alquiler finalizado exitosamente. Los equipos han sido liberados.")
     return redirect('alquiler:listar_alquileres')
 

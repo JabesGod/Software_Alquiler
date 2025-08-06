@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     console.log('DOM loaded, iniciando configuración de gráficas...');
 
-    // Verificar si datosGraficas existe
     if (typeof datosGraficas === 'undefined') {
         console.error('ERROR: datosGraficas no está definido');
         return;
@@ -9,19 +8,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     console.log('Datos recibidos:', datosGraficas);
 
-    // Registrar el plugin de datalabels globalmente
     if (typeof ChartDataLabels !== 'undefined') {
         Chart.register(ChartDataLabels);
     }
 
-    // Configuración común para gráficas
     Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
     Chart.defaults.color = '#6c757d';
     Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(0, 0, 0, 0.7)';
     Chart.defaults.plugins.tooltip.padding = 10;
     Chart.defaults.plugins.tooltip.cornerRadius = 4;
     Chart.defaults.plugins.tooltip.boxPadding = 4;
-    // Función para inicializar o destruir un gráfico
     function initChart(chartId, chartType, data, options, plugins = []) {
         const canvas = document.getElementById(chartId);
         const noDataDiv = document.getElementById(`noData${chartId.replace('Chart', '')}`);
@@ -33,7 +29,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         console.log(`[${chartId}] Datos recibidos:`, data);
 
-        // Verificar si hay datos de manera más robusta
         let hasData = false;
         try {
             if (data.labels && data.labels.length > 0) {
@@ -82,7 +77,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (existingChart) existingChart.destroy();
         }
     }
-    // Función para crear o actualizar gráfico
     function createOrUpdateChart(chartId, chartType, data, options, plugins = []) {
         const canvas = document.getElementById(chartId);
         const noDataDiv = document.getElementById(`noData${chartId.replace('Chart', '')}`);
@@ -94,7 +88,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         console.log(`[DEBUG - ${chartId}] - Data recibida:`, data);
 
-        // Verificar si hay datos
         let hasData = false;
         if (data.labels && data.labels.length > 0) {
             if (chartType === 'bar' || chartType === 'line') {
@@ -114,7 +107,6 @@ document.addEventListener('DOMContentLoaded', function () {
             canvas.style.display = 'block';
             if (noDataDiv) noDataDiv.classList.add('d-none');
 
-            // Destruir gráfico existente
             const existingChart = Chart.getChart(chartId);
             if (existingChart) {
                 existingChart.destroy();
@@ -133,7 +125,6 @@ document.addEventListener('DOMContentLoaded', function () {
             canvas.style.display = 'none';
             if (noDataDiv) noDataDiv.classList.remove('d-none');
 
-            // Destruir gráfico existente
             const existingChart = Chart.getChart(chartId);
             if (existingChart) {
                 existingChart.destroy();
@@ -143,7 +134,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // --- Gráfica de Evolución ---
     function createEvolucionChart() {
         const evolucionData = {
             labels: datosGraficas.evolucion.labels || [],
@@ -266,18 +256,17 @@ document.addEventListener('DOMContentLoaded', function () {
         createOrUpdateChart('evolucionChart', 'bar', evolucionData, evolucionOptions);
     }
 
-    // --- Gráfica de Estados ---
     function createEstadosChart() {
         const estadosData = {
             labels: datosGraficas.estados.labels || [],
             datasets: [{
                 data: datosGraficas.estados.data || [],
                 backgroundColor: [
-                    'rgba(25, 135, 84, 0.7)',    // Pagado (Success)
-                    'rgba(255, 193, 7, 0.7)',    // Pendiente (Warning)
-                    'rgba(220, 53, 69, 0.7)',    // Cancelado (Danger)
-                    'rgba(13, 110, 253, 0.7)',   // Parcial (Primary/Info)
-                    'rgba(108, 117, 125, 0.7)'   // Otro (Secondary)
+                    'rgba(25, 135, 84, 0.7)',    
+                    'rgba(255, 193, 7, 0.7)',    
+                    'rgba(220, 53, 69, 0.7)',    
+                    'rgba(13, 110, 253, 0.7)',   
+                    'rgba(108, 117, 125, 0.7)'   
                 ],
                 borderColor: [
                     'rgba(25, 135, 84, 1)',
@@ -338,19 +327,18 @@ document.addEventListener('DOMContentLoaded', function () {
         createOrUpdateChart('estadosChart', 'doughnut', estadosData, estadosOptions, plugins);
     }
 
-    // --- Gráfica de Métodos de Pago ---
     function createMetodosChart() {
         const metodosData = {
             labels: datosGraficas.metodos.labels || [],
             datasets: [{
                 data: datosGraficas.metodos.data || [],
                 backgroundColor: [
-                    'rgba(13, 110, 253, 0.7)',    // Primary
-                    'rgba(111, 66, 193, 0.7)',    // Indigo
-                    'rgba(214, 51, 132, 0.7)',    // Pink
-                    'rgba(253, 126, 20, 0.7)',    // Orange
-                    'rgba(32, 201, 151, 0.7)',    // Teal
-                    'rgba(20, 220, 200, 0.7)'     // Custom color
+                    'rgba(13, 110, 253, 0.7)',  
+                    'rgba(111, 66, 193, 0.7)',    
+                    'rgba(214, 51, 132, 0.7)',    
+                    'rgba(253, 126, 20, 0.7)',   
+                    'rgba(32, 201, 151, 0.7)',    
+                    'rgba(20, 220, 200, 0.7)'    
                 ],
                 borderColor: [
                     'rgba(13, 110, 253, 1)',
@@ -412,12 +400,10 @@ document.addEventListener('DOMContentLoaded', function () {
         createOrUpdateChart('metodosChart', 'pie', metodosData, metodosOptions, plugins);
     }
 
-    // Crear todas las gráficas
     createEvolucionChart();
     createEstadosChart();
     createMetodosChart();
 
-    // Manejar los botones de período para cambiar el filtro
     document.querySelectorAll('.periodo-btn').forEach(button => {
         button.addEventListener('click', function () {
             const periodo = this.dataset.periodo;

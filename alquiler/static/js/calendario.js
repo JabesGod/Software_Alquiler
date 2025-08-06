@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const anioActual = document.getElementById('anioActual');
     const btnPrev = document.getElementById('anioAnterior');
     const btnNext = document.getElementById('anioSiguiente');
-
     let anio = new Date().getFullYear();
     anioActual.textContent = anio;
 
@@ -19,13 +18,10 @@ document.addEventListener('DOMContentLoaded', function () {
         renderCalendario(anio);
     });
 
-    // Configuración
     const maxEventosVisibles = 2;
     const diasSemana = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'];
-    const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-    // Función para obtener el prefijo actual de la URL
     function getCurrentPrefix() {
         const currentPath = window.location.pathname;
         
@@ -40,16 +36,15 @@ document.addEventListener('DOMContentLoaded', function () {
         return '';
     }
 
-    // Función para construir URLs con el prefijo correcto
     function buildUrl(url) {
         if (!url) return '';
         
         if (url.startsWith('http')) {
-            return url; // URL absoluta (externa)
+            return url;
         }
         
         const prefix = getCurrentPrefix();
-        const normalizedUrl = url.replace(/^\/*/, ''); // Eliminar barras iniciales
+        const normalizedUrl = url.replace(/^\/*/, '');
         
         return `${prefix}/${normalizedUrl}`;
     }
@@ -61,21 +56,13 @@ document.addEventListener('DOMContentLoaded', function () {
             const fecha = new Date(anio, mes, 1);
             const diasEnMes = new Date(anio, mes + 1, 0).getDate();
             const primerDia = fecha.getDay();
-
-            // Crear elemento del mes
             const tarjeta = document.createElement('div');
             tarjeta.classList.add('mes');
-
-            // Título del mes
             const titulo = document.createElement('div');
             titulo.classList.add('titulo-mes');
             titulo.textContent = nombresMeses[mes];
             tarjeta.appendChild(titulo);
-
-            // Crear tabla del mes
             const tabla = document.createElement('table');
-
-            // Cabecera con días de la semana
             const cabecera = document.createElement('thead');
             const filaCabecera = document.createElement('tr');
 
@@ -87,18 +74,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             cabecera.appendChild(filaCabecera);
             tabla.appendChild(cabecera);
-
-            // Cuerpo del calendario
             const cuerpo = document.createElement('tbody');
             let fila = document.createElement('tr');
             let diaSemana = (primerDia + 6) % 7;
 
-            // Celdas vacías para días del mes anterior
             for (let i = 0; i < diaSemana; i++) {
                 fila.appendChild(document.createElement('td'));
             }
 
-            // Días del mes actual
             for (let dia = 1; dia <= diasEnMes; dia++) {
                 if (fila.children.length === 7) {
                     cuerpo.appendChild(fila);
@@ -107,16 +90,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const celda = document.createElement('td');
                 celda.classList.add('celda-dia');
-
-                // Número del día
                 celda.innerHTML = `<div class="numero-dia">${dia}</div>`;
-
-                // Contenedor para eventos
                 const eventosContainer = document.createElement('div');
                 eventosContainer.classList.add('eventos-container');
                 celda.appendChild(eventosContainer);
-
-                // Resaltar día actual
                 const hoy = new Date();
                 if (dia === hoy.getDate() && mes === hoy.getMonth() && anio === hoy.getFullYear()) {
                     celda.classList.add('hoy');
@@ -127,12 +104,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 const totalEventos = eventosDia.length;
                 const eventosMostrar = eventosDia.slice(0, maxEventosVisibles);
 
-                // Mostrar eventos visibles
                 eventosMostrar.forEach(e => {
                     const evento = document.createElement('div');
                     evento.classList.add('evento');
 
-                    // Determinar tipo de evento
                     if (e.title.includes('INICIO')) {
                         evento.classList.add('evento-inicio');
                         evento.innerHTML = `<i class="fas fa-play"></i><span>${e.title.split(' - ')[0]}</span>`;
@@ -144,9 +119,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         evento.innerHTML = `<i class="fas fa-exclamation"></i><span>${e.title.split(' - ')[0]}</span>`;
                     }
 
-                    evento.title = e.title; // Tooltip con info completa
+                    evento.title = e.title;
 
-                    // Verificar que la URL existe y es válida antes de asignar el evento click
                     if (e.url && typeof e.url === 'string' && e.url.trim() !== '') {
                         evento.style.cursor = 'pointer';
                         evento.addEventListener('click', (ev) => {
@@ -160,7 +134,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     eventosContainer.appendChild(evento);
                 });
 
-                // Mostrar indicador si hay más eventos
                 if (totalEventos > maxEventosVisibles) {
                     const masEventos = document.createElement('div');
                     masEventos.classList.add('mas-eventos');
@@ -175,7 +148,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 fila.appendChild(celda);
             }
 
-            // Completar la última fila con celdas vacías si es necesario
             if (fila.children.length > 0) {
                 while (fila.children.length < 7) {
                     fila.appendChild(document.createElement('td'));
@@ -196,13 +168,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const contenido = document.createElement('div');
         contenido.className = 'modal-contenido';
         
-        // Título con la fecha
         const titulo = document.createElement('h3');
         titulo.className = 'modal-titulo';
         titulo.innerHTML = `<i class="fas fa-calendar-day"></i>Eventos para ${formatearFecha(fecha)}`;
         contenido.appendChild(titulo);
         
-        // Lista de eventos
         const lista = document.createElement('ul');
         lista.className = 'lista-eventos';
         
@@ -220,7 +190,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 item.innerHTML = `<i class="fas fa-exclamation-triangle"></i><span>${e.title}</span>`;
             }
             
-            // Manejo de URLs con prefijo dinámico
             if (e.url && typeof e.url === 'string' && e.url.trim() !== '') {
                 item.style.cursor = 'pointer';
                 item.addEventListener('click', () => {
@@ -233,7 +202,6 @@ document.addEventListener('DOMContentLoaded', function () {
         
         contenido.appendChild(lista);
         
-        // Botón para cerrar
         const cerrar = document.createElement('span');
         cerrar.className = 'cerrar-modal';
         cerrar.innerHTML = '&times;';
@@ -247,7 +215,6 @@ document.addEventListener('DOMContentLoaded', function () {
         
         modal.appendChild(contenido);
         
-        // Cerrar al hacer clic fuera del contenido
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 modal.classList.remove('active');
@@ -259,7 +226,6 @@ document.addEventListener('DOMContentLoaded', function () {
         
         document.body.appendChild(modal);
         
-        // Forzar reflow para activar la transición
         setTimeout(() => {
             modal.style.display = 'flex';
         }, 10);
@@ -270,6 +236,5 @@ document.addEventListener('DOMContentLoaded', function () {
         return `${dia}/${mes}/${anio}`;
     }
 
-    // Renderizar calendario inicial
     renderCalendario(anio);
 });

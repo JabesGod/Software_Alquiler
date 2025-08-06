@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function toggleEmpresaSection() {
         if (tipoClienteSelect.value === 'juridica') {
             empresaSection.style.display = 'block';
-            // Hacer campos requeridos en el frontend (la validación real está en el form)
             document.getElementById('id_nombre_empresa').required = true;
             document.getElementById('id_nit').required = true;
         } else {
@@ -15,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Ejecutar al cargar y cuando cambie
     toggleEmpresaSection();
     tipoClienteSelect.addEventListener('change', toggleEmpresaSection);
 });

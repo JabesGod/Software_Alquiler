@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Galería de imágenes del equipo principal
     const initImageGallery = () => {
         const thumbnails = document.querySelectorAll('.thumbnail-img');
         const mainImg = document.getElementById('mainEquipoImage');
@@ -7,13 +6,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (thumbnails.length > 0 && mainImg) {
             thumbnails.forEach(thumb => {
                 thumb.addEventListener('click', function() {
-                    // Remover clase active de todas las miniaturas
                     thumbnails.forEach(t => t.classList.remove('active'));
                     
-                    // Añadir clase active a la miniatura clickeada
                     this.classList.add('active');
                     
-                    // Cambiar imagen principal con efecto fade
                     const newSrc = this.getAttribute('data-full-img');
                     mainImg.style.opacity = 0;
                     
@@ -26,7 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
-    // Carrusel de equipos similares
     const initSimilarEquipmentCarousel = () => {
         const similaresScroller = document.querySelector('.similares-scroller');
         const leftBtn = document.querySelector('.left-btn');
@@ -49,7 +44,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             });
             
-            // Ocultar/mostrar botones según posición del scroll
             const updateButtonVisibility = () => {
                 const { scrollLeft, scrollWidth, clientWidth } = similaresScroller;
                 
@@ -59,11 +53,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             similaresScroller.addEventListener('scroll', updateButtonVisibility);
             window.addEventListener('resize', updateButtonVisibility);
-            updateButtonVisibility(); // Estado inicial
+            updateButtonVisibility(); 
         }
     };
 
-    // Manejo de errores en imágenes
     const handleImageErrors = () => {
         const images = document.querySelectorAll('.equipo-imagen, .quick-view-img, .main-img, .equipo-similar img');
         images.forEach(img => {
@@ -77,7 +70,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
-    // Inicializar todos los componentes
     initImageGallery();
     initSimilarEquipmentCarousel();
     handleImageErrors();

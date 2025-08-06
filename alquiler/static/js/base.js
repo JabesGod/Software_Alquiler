@@ -1,66 +1,46 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Toggle sidebar en móviles
     const menuToggle = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');
     const sidebarOverlay = document.querySelector('.sidebar-overlay');
-    
-    // Configurar el modo oscuro
     const darkModeToggle = document.getElementById('darkModeToggle');
     const body = document.body;
-    
-    // Configurar el color picker
     const colorPicker = document.getElementById('navColorPicker');
     const root = document.documentElement;
     const colorPreview = document.querySelector('.color-preview');
-    
-    // Buscador global
     const searchInput = document.getElementById('globalSearchInput');
     const searchForm = document.getElementById('globalSearchForm');
     const searchSuggestions = document.getElementById('searchSuggestions');
     
-    // Aplicar configuraciones guardadas
     applySavedSettings();
     
-    // Event listeners
     if (menuToggle) menuToggle.addEventListener('click', toggleSidebar);
     if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
     
-    // Configurar submenús
     setupSubmenus();
-    
-    // Resaltar ítem activo
     highlightActiveMenu();
     
-    // Configurar el modo oscuro
     if (darkModeToggle) {
         darkModeToggle.addEventListener('change', toggleDarkMode);
     }
     
-    // Configurar el color picker
     if (colorPicker) {
         colorPicker.addEventListener('input', updateNavColor);
     }
     
-    // Configurar el buscador global
     if (searchInput && searchForm && searchSuggestions) {
         setupSearch(searchInput, searchForm, searchSuggestions);
     }
     
-    // Ajustar el sidebar al cambiar el tamaño de la ventana
     window.addEventListener('resize', handleResize);
     
-    // Configurar scroll del sidebar
     handleSidebarScroll();
     
-    // Funciones principales
     function applySavedSettings() {
-        // Aplicar modo oscuro si está activado
         if (localStorage.getItem('darkMode') === 'enabled') {
             body.classList.add('dark-mode');
             if (darkModeToggle) darkModeToggle.checked = true;
         }
         
-        // Aplicar color guardado (si existe)
         const savedColor = localStorage.getItem('navColor');
         if (savedColor && colorPicker && colorPreview) {
             root.style.setProperty('--primary-color', savedColor);
@@ -88,14 +68,12 @@ document.addEventListener('DOMContentLoaded', function () {
         
         hasSubmenu.forEach(item => {
             item.addEventListener('click', function (e) {
-                // Solo prevenir comportamiento por defecto si es un enlace "#"
                 if (this.getAttribute('href') === '#') {
                     e.preventDefault();
                 }
                 
                 const parent = this.parentElement;
                 
-                // Cerrar otros submenús abiertos solo en móviles
                 if (window.innerWidth <= 768) {
                     document.querySelectorAll('.has-submenu').forEach(otherItem => {
                         if (otherItem !== parent) {
@@ -104,17 +82,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
                 }
                 
-                // Alternar el submenú actual
                 parent.classList.toggle('active');
                 
-                // Cerrar el sidebar en móviles al seleccionar un enlace real
                 if (this.getAttribute('href') !== '#' && window.innerWidth <= 768) {
                     closeSidebar();
                 }
             });
         });
         
-        // Cerrar submenús al hacer clic fuera solo en móviles
         document.addEventListener('click', function(e) {
             if (window.innerWidth <= 768 && !e.target.closest('.has-submenu')) {
                 document.querySelectorAll('.has-submenu').forEach(item => {
@@ -132,14 +107,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (link.href && currentPath.includes(new URL(link.href).pathname)) {
                 link.classList.add('active');
                 
-                // Abrir submenú padre si existe
                 const parentSubmenu = link.closest('.submenu');
                 if (parentSubmenu) {
                     const parentItem = parentSubmenu.closest('.has-submenu');
                     if (parentItem) {
                         parentItem.classList.add('active');
                         
-                        // Abrir también el submenú padre si está anidado
                         const grandParent = parentItem.closest('.submenu');
                         if (grandParent) {
                             grandParent.closest('.has-submenu').classList.add('active');
@@ -164,14 +137,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const newColor = this.value;
         root.style.setProperty('--primary-color', newColor);
         
-        // Calcular y establecer una versión más oscura para el color secundario
         const darkerColor = shadeColor(newColor, -20);
         root.style.setProperty('--secondary-color', darkerColor);
         
-        // Actualizar la vista previa
         colorPreview.style.backgroundColor = newColor;
-        
-        // Guardar en localStorage
         localStorage.setItem('navColor', newColor);
     }
     
@@ -190,7 +159,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function setupSearch(input, form, suggestionsContainer) {
-        // Mostrar/ocultar sugerencias
         input.addEventListener('focus', function() {
             if (this.value.length > 0) {
                 fetchSuggestions(this.value);
@@ -203,7 +171,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 200);
         });
         
-        // Autocompletado mientras se escribe
         input.addEventListener('input', debounce(function() {
             const query = this.value.trim();
             
@@ -215,7 +182,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }, 300));
         
-        // Manejar selección de sugerencias
         suggestionsContainer.addEventListener('click', function(e) {
             const suggestionItem = e.target.closest('.search-suggestion-item');
             if (suggestionItem) {
@@ -224,7 +190,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
         
-        // Prevenir envío del formulario si no hay query
         form.addEventListener('submit', function(e) {
             if (input.value.trim().length < 1) {
                 e.preventDefault();
@@ -232,7 +197,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
         
-        // Cerrar sugerencias al hacer clic fuera
         document.addEventListener('click', function(e) {
             if (!form.contains(e.target)) {
                 suggestionsContainer.style.display = 'none';
@@ -240,15 +204,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         
         function fetchSuggestions(query) {
-            // Aquí deberías hacer una llamada AJAX a tu endpoint de sugerencias
-            // Ejemplo con datos mock para pruebas
             const mockData = [
                 { type: 'equipo', text: '' },
                 { type: 'cliente', text: '' },
                 { type: 'alquiler', text: '' }
             ];
             
-            // Filtrar datos mock basados en la query (simulación)
             const filteredData = mockData.filter(item => 
                 item.text.toLowerCase().includes(query.toLowerCase())
             );
@@ -263,9 +224,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 suggestions.forEach(item => {
                     const suggestion = document.createElement('div');
                     suggestion.className = 'search-suggestion-item';
-                    suggestion.dataset.text = item.text.split(' (')[0]; // Para solo tomar el nombre
+                    suggestion.dataset.text = item.text.split(' (')[0];
                     
-                    // Icono según el tipo
                     let iconClass = 'fa-question';
                     if (item.type === 'equipo') iconClass = 'fa-laptop';
                     if (item.type === 'cliente') iconClass = 'fa-user';
@@ -289,7 +249,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    // Función debounce para mejorar rendimiento
     function debounce(func, wait) {
         let timeout;
         return function() {
@@ -301,7 +260,6 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
     
-    // Función para aclarar/oscurecer colores
     function shadeColor(color, percent) {
         let R = parseInt(color.substring(1, 3), 16);
         let G = parseInt(color.substring(3, 5), 16);
@@ -327,18 +285,16 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-
 let inactivityTime = function() {
     let time;
     const logoutUrl = "{% url 'inicio_sesion' %}?session_expired=1";
-    const warningTime = 1000 * 60 * 4; // 4 minutos (aviso 1 minuto antes)
+    const warningTime = 1000 * 60 * 4;
     
     window.onload = resetTimer;
     document.onmousemove = resetTimer;
     document.onkeypress = resetTimer;
     
     function showWarning() {
-        // Puedes mostrar un modal o notificación aquí
         alert('Tu sesión está a punto de expirar por inactividad. Realiza alguna acción para mantenerte conectado.');
     }
     
@@ -349,8 +305,6 @@ let inactivityTime = function() {
     function resetTimer() {
         clearTimeout(time);
         time = setTimeout(showWarning, warningTime);
-        time = setTimeout(logout, 1000 * 60 * 5); // 5 minutos
+        time = setTimeout(logout, 1000 * 60 * 5);
     }
 };
-
-

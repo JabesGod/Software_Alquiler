@@ -1,10 +1,8 @@
-// Script específico para edición
 document.addEventListener('DOMContentLoaded', function () {
-    // Manejar la selección de foto principal
+
     document.querySelectorAll('.photo-card input[name$="-es_principal"]').forEach(radio => {
         radio.addEventListener('change', function () {
             if (this.checked) {
-                // Desmarcar las otras fotos principales
                 document.querySelectorAll('.photo-card input[name$="-es_principal"]').forEach(otherRadio => {
                     if (otherRadio !== this) {
                         otherRadio.checked = false;
@@ -14,11 +12,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Previsualización de nuevas fotos
     const fileInput = document.querySelector('input[name="nuevas_fotos"]');
     if (fileInput) {
         fileInput.addEventListener('change', function (e) {
-            // Implementar previsualización de nuevas fotos aquí
+
         });
     }
 });
@@ -27,15 +24,12 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener("DOMContentLoaded", function () {
     const modalElement = document.getElementById("confirmDeleteModal");
 
-    // 1. Eliminar clases de Bootstrap que lo abren automáticamente
     modalElement.classList.remove("show");
     modalElement.style.display = "none";
 
-    // 2. Eliminar backdrop si quedó colgado
     const backdrops = document.querySelectorAll('.modal-backdrop');
     backdrops.forEach(b => b.remove());
 
-    // 3. Quitar scroll-block de body si quedó bloqueado
     document.body.classList.remove("modal-open");
     document.body.style.paddingRight = "";
 });
@@ -55,7 +49,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Manejar la visualización de archivos seleccionados
     const fileInput = document.querySelector('.file-upload-input');
     const uploadContent = document.querySelector('.upload-content');
     
@@ -71,13 +64,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Validación de tamaño de archivo
     document.querySelector('form').addEventListener('submit', function(e) {
         const files = document.querySelector('.file-upload-input').files;
         let isValid = true;
         
         for (let i = 0; i < files.length; i++) {
-            if (files[i].size > 5 * 1024 * 1024) { // 5MB
+            if (files[i].size > 5 * 1024 * 1024) { 
                 alert(`El archivo ${files[i].name} es demasiado grande (máximo 5MB)`);
                 isValid = false;
                 break;

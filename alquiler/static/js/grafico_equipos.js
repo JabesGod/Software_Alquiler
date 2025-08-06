@@ -1,7 +1,5 @@
-// grafico_equipos.js - Manejo de gráficos estadísticos
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Configuración común para todos los gráficos
     const commonChartConfig = {
         responsive: true,
         maintainAspectRatio: false,
@@ -60,7 +58,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Colores para los gráficos
     const chartColors = {
         blue: {
             bg: 'rgba(52, 152, 219, 0.7)',
@@ -80,17 +77,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Determinar si estamos en vista mensual
     const isMonthlyView = document.body.classList.contains('vista-mensual');
 
-    // Inicializar gráficos según el tipo de vista
     if (isMonthlyView) {
         initMonthlyCharts();
     } else {
         initEquipmentCharts();
     }
 
-    // Función para inicializar gráficos de equipos
     function initEquipmentCharts() {
         initChart(
             'grafico', 
@@ -175,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
         );
     }
 
-    // Función para inicializar gráficos mensuales
+    
     function initMonthlyCharts() {
         initChart(
             'grafico', 
@@ -250,7 +244,6 @@ document.addEventListener('DOMContentLoaded', function() {
         );
     }
 
-    // Función para inicializar gráficos
     function initChart(canvasId, chartType, datasetLabel, colors, scalesConfig, customTooltipCallback) {
         const canvas = document.getElementById(canvasId);
         
@@ -270,7 +263,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Configuración específica del gráfico
             const chartOptions = {
                 ...commonChartConfig,
                 scales: scalesConfig,
@@ -288,7 +280,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             };
             
-            // Crear el gráfico
             new Chart(ctx, {
                 type: chartType,
                 data: {
@@ -314,7 +305,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Mostrar mensaje cuando no hay datos
     function showNoDataMessage(canvas) {
         canvas.style.display = 'none';
         
@@ -345,7 +335,6 @@ document.addEventListener('DOMContentLoaded', function() {
         canvas.parentNode.insertBefore(messageContainer, canvas.nextSibling);
     }
 
-    // Manejar errores en los gráficos
     function handleChartError(canvas, error) {
         console.error(`Error en el gráfico ${canvas.id}:`, error);
         canvas.style.display = 'none';
@@ -385,7 +374,6 @@ document.addEventListener('DOMContentLoaded', function() {
         canvas.parentNode.insertBefore(errorContainer, canvas.nextSibling);
     }
 
-    // Función para redimensionar gráficos al cambiar el tamaño de la ventana
     window.addEventListener('resize', function() {
         Chart.helpers.each(Chart.instances, function(instance) {
             instance.resize();

@@ -1,8 +1,7 @@
-// generar_pdf.js - Generación de PDF en el cliente (opcional)
+
 
 function generarPDFenCliente() {
-    // Solo usar si no puedes generar el PDF desde el servidor
-    // Requiere la biblioteca jsPDF y html2canvas
+
     
     if (typeof jsPDF === 'undefined' || typeof html2canvas === 'undefined') {
         console.error('Las bibliotecas jsPDF y html2canvas son requeridas');
@@ -29,6 +28,3 @@ function generarPDFenCliente() {
         pdf.save(filename);
     });
 }
-
-// Si decides usar generación en el cliente, descomenta esta línea:
-// document.getElementById('export-pdf').addEventListener('click', generarPDFenCliente);

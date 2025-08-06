@@ -1,9 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Manejo de la vista rápida
     const quickViewButtons = document.querySelectorAll('.quick-view-btn');
     const closeButtons = document.querySelectorAll('.close-quick-view, .close-quick-view-btn');
     
-    // Abrir modal de vista rápida
     quickViewButtons.forEach(button => {
         button.addEventListener('click', function() {
             const equipoId = this.getAttribute('data-equipo-id');
@@ -15,7 +13,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Cerrar modal de vista rápida
     closeButtons.forEach(button => {
         button.addEventListener('click', function() {
             const modals = document.querySelectorAll('.quick-view-modal');
@@ -26,7 +23,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Cerrar modal al hacer clic fuera del contenido
     window.addEventListener('click', function(event) {
         if (event.target.classList.contains('quick-view-modal')) {
             event.target.style.display = 'none';
@@ -34,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Efecto hover en cards de equipos
     const equipoCards = document.querySelectorAll('.equipo-card');
     equipoCards.forEach(card => {
         card.addEventListener('mouseenter', function() {
@@ -48,7 +43,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Manejo de errores en imágenes (fallback)
     const images = document.querySelectorAll('.equipo-imagen, .quick-view-img');
     images.forEach(img => {
         img.addEventListener('error', function() {

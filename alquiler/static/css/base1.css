@@ -78,7 +78,6 @@ body {
     font-family: 'Verdana', sans-serif;
     background-color: var(--background-color);
     color: var(--text-color);
-    /* Usa la variable para que cambie con el modo */
     line-height: 1.6;
 }
 

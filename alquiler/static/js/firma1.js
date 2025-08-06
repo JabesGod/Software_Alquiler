@@ -1,8 +1,6 @@
-// JavaScript para el manejo de firmas digitales
 document.addEventListener('DOMContentLoaded', function () {
     console.log('Inicializando sistema de firmas...');
 
-    // Configuración para SignaturePad
     const signatureConfig = {
         penColor: 'rgb(0, 0, 0)',
         minWidth: 0.8,
@@ -13,7 +11,6 @@ document.addEventListener('DOMContentLoaded', function () {
         minDistance: 1
     };
 
-    // Referencias a elementos del DOM
     const canvasCliente = document.getElementById('signature-pad-cliente');
     const canvasRepresentante = document.getElementById('signature-pad-representante');
     
@@ -22,7 +19,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    // Inicializar los pads de firma
     let signaturePadCliente, signaturePadRepresentante;
     
     try {
@@ -34,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    // Función para ajustar el canvas manteniendo las proporciones
     function setupCanvas(canvas, signaturePad) {
         const rect = canvas.getBoundingClientRect();
         const dpr = window.devicePixelRatio || 1;
@@ -51,13 +46,11 @@ document.addEventListener('DOMContentLoaded', function () {
         signaturePad.clear();
     }
 
-    // Configurar canvas inicialmente
     setTimeout(() => {
         setupCanvas(canvasCliente, signaturePadCliente);
         setupCanvas(canvasRepresentante, signaturePadRepresentante);
     }, 100);
 
-    // Función para actualizar el estado visual de la firma
     function updateSignatureStatus(signaturePad, statusElementId) {
         const statusElement = document.getElementById(statusElementId);
         if (statusElement) {
@@ -71,7 +64,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Agregar elementos de estado si no existen
     function addStatusElements() {
         const clienteContainer = canvasCliente.closest('.firma-container');
         const representanteContainer = canvasRepresentante.closest('.firma-container');
@@ -95,7 +87,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     addStatusElements();
 
-    // Eventos para detectar cuando se está dibujando
     signaturePadCliente.addEventListener('beginStroke', () => {
         console.log('Iniciando firma del cliente');
     });
@@ -114,7 +105,6 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('Firma del representante actualizada');
     });
 
-    // Botones para borrar firmas
     const clearClienteBtn = document.getElementById('clear-signature-cliente');
     const clearRepresentanteBtn = document.getElementById('clear-signature-representante');
 
@@ -122,7 +112,6 @@ document.addEventListener('DOMContentLoaded', function () {
         clearClienteBtn.addEventListener('click', function() {
             signaturePadCliente.clear();
             updateSignatureStatus(signaturePadCliente, 'status-cliente');
-            // Limpiar el campo oculto con el nombre correcto
             const firmaDataField = document.getElementById('firma-data-cliente');
             if (firmaDataField) {
                 firmaDataField.value = '';
@@ -135,7 +124,6 @@ document.addEventListener('DOMContentLoaded', function () {
         clearRepresentanteBtn.addEventListener('click', function() {
             signaturePadRepresentante.clear();
             updateSignatureStatus(signaturePadRepresentante, 'status-representante');
-            // Limpiar el campo oculto con el nombre correcto
             const firmaDataField = document.getElementById('firma-data-representante');
             if (firmaDataField) {
                 firmaDataField.value = '';
@@ -144,7 +132,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Redimensionar ventana con debounce
     let resizeTimeout;
     window.addEventListener('resize', function() {
         clearTimeout(resizeTimeout);
@@ -155,13 +142,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 250);
     });
 
-    // Manejo del envío del formulario
     const form = document.getElementById('firmaForm');
     if (form) {
         form.addEventListener('submit', function(e) {
             console.log('Preparando envío del formulario...');
             
-            // Guardar las firmas dibujadas en los campos ocultos con nombres correctos
             const firmaClienteField = document.getElementById('firma-data-cliente');
             const firmaRepresentanteField = document.getElementById('firma-data-representante');
             
@@ -175,7 +160,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log('Firma del representante guardada en campo: firma_representante_data');
             }
             
-            // Validar que al menos un método de firma esté completo para cada parte
             const clienteImageFile = document.querySelector('input[name="firma_imagen"]');
             const representanteImageFile = document.querySelector('input[name="firma_representante_imagen"]');
             
@@ -199,7 +183,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 return false;
             }
             
-            // Debug: mostrar valores que se enviarán
             console.log('Datos del formulario:', {
                 firma_data: firmaClienteField ? firmaClienteField.value.substring(0, 50) + '...' : 'null',
                 firma_representante_data: firmaRepresentanteField ? firmaRepresentanteField.value.substring(0, 50) + '...' : 'null',
@@ -212,7 +195,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Manejo de archivos de imagen
     function setupFileInput(inputElement, signaturePad, statusId) {
         if (inputElement) {
             inputElement.addEventListener('change', function() {
@@ -220,14 +202,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     const file = this.files[0];
                     console.log('Archivo seleccionado:', file.name);
                     
-                    // Validar tamaño del archivo (2MB máximo)
                     if (file.size > 2 * 1024 * 1024) {
                         alert('El archivo es demasiado grande. Máximo 2MB.');
                         this.value = '';
                         return;
                     }
                     
-                    // Validar tipo de archivo
                     if (!file.type.startsWith('image/')) {
                         alert('Por favor, seleccione solo archivos de imagen.');
                         this.value = '';
@@ -256,7 +236,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Verificar que SignaturePad esté disponible
     if (typeof SignaturePad === 'undefined') {
         console.error('SignaturePad no se cargó correctamente');
         alert('Error: No se pudo cargar el sistema de firmas. Por favor, recarga la página.');

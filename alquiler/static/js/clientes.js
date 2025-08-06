@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Opcional: Para cambiar el cursor y dar indicación de que la fila es clickable
     const style = document.createElement('style');
     style.innerHTML = `
             .clickable-row {

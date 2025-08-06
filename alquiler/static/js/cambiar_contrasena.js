@@ -4,13 +4,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const email = wrapper?.dataset.email || '';
     const passwordInput = wrapper?.querySelector('input[type="password"], input[type="text"]');
     const requirements = document.querySelectorAll('.password-requirements li');
-
     const commonPasswords = ['password', '12345678', 'qwerty', 'admin', 'welcome'];
 
     if (passwordInput) {
         passwordInput.addEventListener('input', function () {
             const password = this.value;
-
             const validations = {
                 length: password.length >= 8,
                 personal: !isSimilarToPersonalInfo(password, username, email),
@@ -22,7 +20,6 @@ document.addEventListener('DOMContentLoaded', function () {
             requirements.forEach(req => {
                 const requirement = req.getAttribute('data-requirement');
                 const icon = req.querySelector('i');
-
                 if (validations[requirement]) {
                     icon.classList.remove('fa-times', 'text-danger');
                     icon.classList.add('fa-check', 'text-success');
@@ -47,7 +44,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return commonPasswords.includes(password.toLowerCase());
     }
 
-    // 👁️ Mostrar/Ocultar contraseña
     document.querySelectorAll('.toggle-password').forEach(button => {
         button.addEventListener('click', function () {
             const input = document.getElementById(this.dataset.targetId);

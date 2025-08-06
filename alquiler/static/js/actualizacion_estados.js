@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Elementos del DOM
     const form = document.getElementById('form-actualizacion');
     const checkTodos = document.getElementById('check-todos');
     const checkEquipos = document.querySelectorAll('.check-equipo');
@@ -13,7 +12,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnConfirmar = document.getElementById('btn-confirmar');
     const textoConfirmacion = document.getElementById('texto-confirmacion');
 
-    // Filtrado de equipos
     filtroEquipos.addEventListener('input', function() {
         const filtro = this.value.toLowerCase();
         const filas = document.querySelectorAll('.equipo-fila');
@@ -24,7 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Selección de todos los equipos disponibles
     btnSeleccionarTodos.addEventListener('click', function(e) {
         e.preventDefault();
         const equiposDisponibles = document.querySelectorAll('.equipo-fila[data-alquilado="false"] .check-equipo:not(:disabled)');
@@ -37,7 +34,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .every(checkbox => checkbox.checked);
     });
 
-    // Deselección de todos los equipos
     btnDeseleccionarTodos.addEventListener('click', function(e) {
         e.preventDefault();
         checkEquipos.forEach(checkbox => {
@@ -46,7 +42,6 @@ document.addEventListener('DOMContentLoaded', function() {
         checkTodos.checked = false;
     });
 
-    // Control del checkbox "todos"
     checkTodos.addEventListener('change', function() {
         const checkboxes = document.querySelectorAll('.check-equipo:not(:disabled)');
         checkboxes.forEach(checkbox => {
@@ -54,7 +49,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Validación del formulario antes de enviar
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -81,7 +75,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Mostrar modal de confirmación
         const equiposConAlquiler = [...document.querySelectorAll('.check-equipo:checked')]
             .filter(checkbox => checkbox.closest('tr').dataset.alquilado === 'true');
         
@@ -89,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
             Swal.fire({
                 title: 'Alerta',
                 html: `<p>${equiposConAlquiler.length} equipos seleccionados tienen alquileres activos y no serán actualizados.</p>
-                      <p>¿Deseas continuar con la actualización del resto?</p>`,
+                       <p>¿Deseas continuar con la actualización del resto?</p>`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#4361ee',
@@ -98,19 +91,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Enviar solo los equipos sin alquiler activo
                     const equiposParaActualizar = equiposSeleccionados
                         .filter(checkbox => checkbox.closest('tr').dataset.alquilado === 'false')
                         .map(checkbox => checkbox.value);
                     
-                    // Crear input oculto con los IDs válidos
                     const inputOculto = document.createElement('input');
                     inputOculto.type = 'hidden';
                     inputOculto.name = 'ids_equipos';
                     inputOculto.value = equiposParaActualizar.join(',');
                     form.appendChild(inputOculto);
                     
-                    // Deshabilitar los checkboxes originales
                     document.querySelectorAll('input[name="ids_equipos"]').forEach(input => {
                         input.disabled = true;
                     });
@@ -119,7 +109,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         } else {
-            // Todos los equipos seleccionados pueden ser actualizados
             Swal.fire({
                 title: 'Confirmar',
                 text: `¿Estás seguro de actualizar ${equiposSeleccionados.length} equipos al estado seleccionado?`,
@@ -137,7 +126,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Actualizar interfaz cuando cambia el estado seleccionado
     selectEstado.addEventListener('change', function() {
         const color = this.options[this.selectedIndex].dataset.color;
         btnActualizar.className = `btn-actualizar ${color}`;
